@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  student-obrok-client:
+    image: student-obrok-client:latest
+    ports:
+      - "80:80"
+  student-obrok-server:
+    image: student-obrok-server:latest
+    ports:
+      - "6969:6969"
+  student-obrok-db:
+    image: mongo:latest
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: maco
+      MONGO_INITDB_ROOT_PASSWORD: randomlygeneratedp@$$word
+    volumes:
+      - "/data/mongo-db:/data/db"
