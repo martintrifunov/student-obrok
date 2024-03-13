@@ -40,7 +40,7 @@ router.post("/login", async (req, res) => {
   //TODO MAKE SECRET ENV VAR
   const token = jwt.sign({ id: user._id }, "secret");
 
-  res.status(200).json({ token, uerId: user._id });
+  res.status(200).json({ token, userId: user._id });
 });
 
 export { router as userRouter };
