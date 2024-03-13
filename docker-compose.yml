@@ -1,19 +1,25 @@
 version: "3.8"
 
 services:
-  student-obrok-client:
-    image: student-obrok-client:latest
-    ports:
-      - "80:80"
-  student-obrok-server:
-    image: student-obrok-server:latest
-    ports:
-      - "6969:6969"
+  # student-obrok-client:
+  #   image: student-obrok-client:latest
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - student-obrok-server
+  # student-obrok-server:
+  #   image: student-obrok-server:latest
+  #   ports:
+  #     - "6969:6969"
+  #   depends_on: 
+  #     - student-obrok-db
   student-obrok-db:
     image: mongo:latest
     restart: unless-stopped
+    ports:
+      - "6969:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: maco
-      MONGO_INITDB_ROOT_PASSWORD: randomlygeneratedp@$$word
+      MONGO_INITDB_ROOT_USERNAME: ussukim
+      MONGO_INITDB_ROOT_PASSWORD: 123verynicepassword123
     volumes:
       - "/data/mongo-db:/data/db"
