@@ -8,4 +8,10 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.listen(6969, () => console.log("Server Init"));
+// MongoDB connection
+mongoose
+  .connect("mongodb://localhost:6969/db")
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("Error connecting to MongoDB:", err));
+
+app.listen(8080, () => console.log("Server Init"));
