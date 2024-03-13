@@ -1,12 +1,16 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import { userRouter } from "./routes/users.js";
 
 const app = express();
 
 //Middlewares
 app.use(express.json());
 app.use(cors());
+
+//Routes
+app.use("/auth", userRouter);
 
 // MongoDB connection
 mongoose

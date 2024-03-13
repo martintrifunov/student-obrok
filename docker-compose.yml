@@ -18,8 +18,5 @@ services:
     restart: unless-stopped
     ports:
       - "6969:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ussukim
-      MONGO_INITDB_ROOT_PASSWORD: 123verynicepassword123
     volumes:
       - "/data/mongo-db:/data/db"
