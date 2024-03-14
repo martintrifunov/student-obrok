@@ -28,7 +28,7 @@ router.post("/login", async (req, res) => {
   const user = await UserModel.findOne({ username });
 
   if (!user) {
-    return res.status(409).json({ message: "User does not exists!" });
+    return res.status(404).json({ message: "User does not exists!" });
   }
 
   const passwordValidator = await bcrypt.compare(password, user.password);

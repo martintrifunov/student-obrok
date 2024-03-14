@@ -14,7 +14,7 @@ const Map = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={position}>
-          <Popup>Let's goooo dude!</Popup>
+          <Popup>Lets go dude!</Popup>
         </Marker>
       </MapContainer>
     </div>

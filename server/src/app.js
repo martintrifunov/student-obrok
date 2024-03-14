@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import { userRouter } from "./routes/users.js";
+import { dealsRouter } from "./routes/deals.js";
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(cors());
 
 //Routes
 app.use("/api", userRouter);
+app.use("/api", dealsRouter);
 
 // MongoDB connection
 mongoose
