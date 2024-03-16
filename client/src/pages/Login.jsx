@@ -65,7 +65,7 @@ const Login = () => {
       });
       setCookies("access_token", response.data.token);
       window.localStorage.setItem("userId", response.data.userId);
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       setError(error.response.data.message);
     }
