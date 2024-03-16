@@ -25,26 +25,36 @@ const Login = () => {
   const navigate = useNavigate();
 
   const paperStyle = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "center",
     padding: 20,
-    height: "50vh",
-    width: isMediumScreen ? "60vw" : "30vw",
+    height: isMediumScreen ? "70vh" : "70vh",
+    width: isMediumScreen ? "85vw" : "30vw",
     margin: "15vh auto",
   };
 
   const iconStyle = {
-    marginTop: 20,
-    marginBottom: 50,
-    fontSize: 75,
+    marginTop: isMediumScreen ? "50px" : "75px",
+    fontSize: 100,
   };
 
   const buttonStyle = {
     color: "white",
     backgroundColor: "black",
+    padding: 20
   };
 
   const errorStyle = {
     color: "crimson",
   };
+  
+  const iconDiv = {
+    display: "flex",
+    height: "25vh",
+    
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -65,7 +75,7 @@ const Login = () => {
     <ThemeProvider theme={theme}>
       <Grid>
         <Paper elevation={5} style={paperStyle}>
-          <Grid align="center">
+          <Grid align="center" style={iconDiv}>
             <VerifiedUserIcon style={iconStyle} />
           </Grid>
           <form onSubmit={handleSubmit}>
