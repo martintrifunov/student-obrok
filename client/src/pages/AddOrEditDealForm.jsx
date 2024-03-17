@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Grid,
@@ -8,30 +8,60 @@ import {
   Typography,
   createTheme,
   ThemeProvider,
+  InputAdornment,
 } from "@mui/material";
+import ImageIcon from "@mui/icons-material/Image";
 import { Container } from "@mui/system";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import DashboardHeader from "../components/DashboardHeader";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
+import axios from "axios";
+import { API_ROOT } from "../../../server/conifg";
 
-const AddOrEditForm = () => {
+const AddOrEditDealForm = () => {
   const theme = createTheme();
   const navigate = useNavigate();
+  const params = useParams();
+  const [deal, setDeal] = useState({});
 
-  const addDealButtonStyle = {
-    textTransform: "none",
-    backgroundColor: "black",
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    if (name === "longitude") {
+      setDeal({
+        ...deal,
+        location: [deal?.location?.[0] || "", value],
+      });
+    } else if (name === "latitude") {
+      setDeal({
+        ...deal,
+        location: [value, deal?.location?.[1] || ""],
+      });
+    } else {
+      setDeal({
+        ...deal,
+        [name]: value,
+      });
+    }
   };
-  const cancelButtonStyle = {
-    color: "black",
-    textTransform: "none",
-    marginRight: "1vw",
+
+  const fetchDeal = async () => {
+    try {
+      const response = await axios.get(
+        `${API_ROOT}/dashboard/${params.dealId}`
+      );
+      setDeal(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
-  const dealHeadingStyle = {
-    marginBottom: 10,
-  };
+
+  useEffect(() => {
+    if (params?.dealId) {
+      fetchDeal();
+    }
+  }, []);
 
   const handleCancel = () => {
     navigate("/dashboard");
@@ -39,11 +69,40 @@ const AddOrEditForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    alert("WAH");
+    if (params?.dealId) {
+      try {
+        const response = await axios.put(
+          `${API_ROOT}/dashboard/${params.dealId}`
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    try {
+      const response = await axios.put(`${API_ROOT}/dashboard`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const onSelectFileHandler = (e) => {
     console.log(e.target.files[0]);
+  };
+
+  const addDealButtonStyle = {
+    textTransform: "none",
+    backgroundColor: "black",
+  };
+
+  const cancelButtonStyle = {
+    color: "black",
+    textTransform: "none",
+    marginRight: "1vw",
+  };
+
+  const dealHeadingStyle = {
+    marginBottom: 10,
   };
 
   const onDeleteFileHandler = () => {};
@@ -66,28 +125,12 @@ const AddOrEditForm = () => {
               <Grid container spacing={3} justify="center">
                 <Grid item xs={12}>
                   <TextField
-                    id="title"
-                    label="Title"
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
                     id="locationName"
+                    name="locationName"
                     label="Location Name"
                     variant="outlined"
                     fullWidth
+                    value={deal?.locationName || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -98,15 +141,18 @@ const AddOrEditForm = () => {
                         color: "black",
                       },
                     }}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
                     id="latitude"
+                    name="latitude"
                     label="Latitude"
                     variant="outlined"
                     type="number"
                     fullWidth
+                    value={deal?.location?.[0] || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -117,14 +163,17 @@ const AddOrEditForm = () => {
                         color: "black",
                       },
                     }}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
                     id="longitude"
+                    name="longitude"
                     label="Longitude"
                     variant="outlined"
                     type="number"
+                    value={deal?.location?.[1] || ""}
                     fullWidth
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -136,14 +185,17 @@ const AddOrEditForm = () => {
                         color: "black",
                       },
                     }}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     id="description"
+                    name="description"
                     label="Description"
                     variant="outlined"
                     fullWidth
+                    value={deal?.description || ""}
                     multiline
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -156,14 +208,17 @@ const AddOrEditForm = () => {
                       },
                     }}
                     inputProps={{ style: { resize: "none" } }}
+                    onChange={handleChange}
                   />
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
                     id="price"
+                    name="price"
                     label="Price"
                     variant="outlined"
                     type="number"
+                    value={deal?.price || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -175,8 +230,39 @@ const AddOrEditForm = () => {
                       },
                     }}
                     fullWidth
+                    onChange={handleChange}
                   />
                 </Grid>
+                {deal?.image && (
+                  <Grid item xs={12}>
+                    <TextField
+                      id="image"
+                      label="Cover Image"
+                      variant="outlined"
+                      type="text"
+                      value={deal?.image || ""}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "&.Mui-focused fieldset": {
+                            borderColor: "black",
+                          },
+                        },
+                        "& label.Mui-focused": {
+                          color: "black",
+                        },
+                      }}
+                      fullWidth
+                      disabled
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <ImageIcon />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                )}
                 <Grid item xs={12}>
                   <FileUploader
                     onSelectFile={onSelectFileHandler}
@@ -210,4 +296,4 @@ const AddOrEditForm = () => {
   );
 };
 
-export default AddOrEditForm;
+export default AddOrEditDealForm;
