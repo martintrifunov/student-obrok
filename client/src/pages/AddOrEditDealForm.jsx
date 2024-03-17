@@ -25,6 +25,7 @@ const AddOrEditDealForm = () => {
   const navigate = useNavigate();
   const params = useParams();
   const [deal, setDeal] = useState({});
+  const [error, setError] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -67,22 +68,43 @@ const AddOrEditDealForm = () => {
     navigate("/dashboard");
   };
 
+  const transformDealData = () => {
+    let dealData = {};
+
+    if (deal.location) dealData.location = deal.location;
+    if (deal.locationName) dealData.locationName = deal.locationName;
+    if (deal.description) dealData.description = deal.description;
+    if (deal.price) dealData.price = deal.price;
+    if (deal.image) dealData.image = deal.image;
+
+    console.log(dealData);
+
+    return dealData;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    const transformedData = transformDealData();
+    console.log(transformedData);
+
     if (params?.dealId) {
       try {
-        const response = await axios.put(
-          `${API_ROOT}/dashboard/${params.dealId}`
+        await axios.put(
+          `${API_ROOT}/dashboard/${params.dealId}`,
+          transformedData
         );
+        return navigate("/dashboard");
       } catch (error) {
         console.error(error);
       }
     }
 
     try {
-      const response = await axios.put(`${API_ROOT}/dashboard`);
+      await axios.post(`${API_ROOT}/dashboard`, transformedData);
+      return navigate("/dashboard");
     } catch (error) {
-      console.error(error);
+      setError("This field is required!");
     }
   };
 
@@ -120,7 +142,7 @@ const AddOrEditDealForm = () => {
           <Typography variant="h4" style={dealHeadingStyle}>
             Add Deal
           </Typography>
-          <form noValidate autoComplete="off" onSubmit={handleSubmit}>
+          <form autoComplete="off" onSubmit={handleSubmit}>
             <Paper elevation={5} sx={{ padding: 10, marginBottom: 2 }}>
               <Grid container spacing={3} justify="center">
                 <Grid item xs={12}>
@@ -130,6 +152,7 @@ const AddOrEditDealForm = () => {
                     label="Location Name"
                     variant="outlined"
                     fullWidth
+                    required
                     value={deal?.locationName || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -152,6 +175,7 @@ const AddOrEditDealForm = () => {
                     variant="outlined"
                     type="number"
                     fullWidth
+                    required
                     value={deal?.location?.[0] || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -175,6 +199,7 @@ const AddOrEditDealForm = () => {
                     type="number"
                     value={deal?.location?.[1] || ""}
                     fullWidth
+                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -197,6 +222,7 @@ const AddOrEditDealForm = () => {
                     fullWidth
                     value={deal?.description || ""}
                     multiline
+                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -219,6 +245,7 @@ const AddOrEditDealForm = () => {
                     variant="outlined"
                     type="number"
                     value={deal?.price || ""}
+                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -264,6 +291,9 @@ const AddOrEditDealForm = () => {
                   </Grid>
                 )}
                 <Grid item xs={12}>
+                  {error && (
+                    <Typography sx={{ color: "crimson" }}>{error}</Typography>
+                  )}
                   <FileUploader
                     onSelectFile={onSelectFileHandler}
                     onDeleteFile={onDeleteFileHandler}
