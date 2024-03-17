@@ -1,0 +1,23 @@
+.file-uploader {
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.file-div {
+  display: flex;
+  width: 85%;
+}
+
+.file-div > button {
+  justify-content: left;
+}
+
+.file-name {
+  margin-left: 0.5rem;
+}
+
+.attachment-icon {
+  width: 100%;
+}

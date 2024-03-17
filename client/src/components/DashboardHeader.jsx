@@ -15,8 +15,14 @@ const DashboardHeader = ({ theme }) => {
     alignItems: "center",
   };
 
-  const buttonStyle = {
+  const mapButtonStyle = {
     backgroundColor: "black",
+    padding: isSmallScreen && "13px 33px",
+    textTransform: "none",
+  };
+
+  const logoutButtonStyle = {
+    marginLeft: isSmallScreen ? "0vw" : "2vw",
     padding: isSmallScreen && "13px 33px",
     textTransform: "none",
   };
@@ -34,27 +40,20 @@ const DashboardHeader = ({ theme }) => {
   return (
     <Paper elevation={5} style={navStyle}>
       <Button
-        style={buttonStyle}
+        style={mapButtonStyle}
         variant="contained"
         onClick={handleMapNavigation}
       >
         Map
       </Button>
-      <Link
-        onClick={handleLogout}
+      <Button
+        style={logoutButtonStyle}
+        variant="outlined"
         color="inherit"
-        variant={isSmallScreen ? "h5" : "h6"}
-        underline="none"
-        sx={{
-          marginLeft: isSmallScreen ? "0vw" : "3vw",
-          "&:hover": {
-            cursor: "pointer",
-            color: "#665d5d",
-          },
-        }}
+        onClick={handleLogout}
       >
         Logout
-      </Link>
+      </Button>
     </Paper>
   );
 };
