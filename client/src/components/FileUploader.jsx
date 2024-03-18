@@ -44,7 +44,7 @@ let FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
             data-testid="file-upload-input"
           />
           <div className="file-name">
-            {file ? <div>{file?.name}</div> : <div>Choose file</div>}
+            {file ? <div>{file?.name}</div> : <div>Choose file *</div>}
           </div>
         </Button>
       </div>

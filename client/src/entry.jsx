@@ -4,8 +4,4 @@ import App from "./components/App.jsx";
 import "./assets/index.css";
 import "@fontsource/roboto/400.css";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);

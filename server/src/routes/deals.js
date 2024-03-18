@@ -1,10 +1,11 @@
 import { DealModel } from "../models/Deals.js";
 import express from "express";
 import mongoose from "mongoose";
+import { verifyToken } from "./users.js";
 
 const router = express.Router();
 
-router.get("/dashboard", async (req, res) => {
+router.get("/dashboard", verifyToken, async (req, res) => {
   try {
     const response = await DealModel.find({});
     res.status(200).json(response);
@@ -15,7 +16,7 @@ router.get("/dashboard", async (req, res) => {
   }
 });
 
-router.get("/dashboard/:id", async (req, res) => {
+router.get("/dashboard/:id", verifyToken, async (req, res) => {
   const dealId = req.params.id;
   try {
     const getDeal = await DealModel.findById(dealId);
@@ -32,7 +33,7 @@ router.get("/dashboard/:id", async (req, res) => {
   }
 });
 
-router.post("/dashboard", async (req, res) => {
+router.post("/dashboard", verifyToken,  async (req, res) => {
   const deal = new DealModel(req.body);
   try {
     const response = await deal.save();
@@ -44,7 +45,7 @@ router.post("/dashboard", async (req, res) => {
   }
 });
 
-router.put("/dashboard/:id", async (req, res) => {
+router.put("/dashboard/:id", verifyToken, async (req, res) => {
   const dealId = req.params.id;
   try {
     const updatedDeal = await DealModel.findByIdAndUpdate(dealId, req.body, {
@@ -63,7 +64,7 @@ router.put("/dashboard/:id", async (req, res) => {
   }
 });
 
-router.delete("/dashboard/:id", async (req, res) => {
+router.delete("/dashboard/:id", verifyToken, async (req, res) => {
   const dealId = req.params.id;
   try {
     const deletedDeal = await DealModel.findByIdAndDelete(dealId);

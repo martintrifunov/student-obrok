@@ -17,8 +17,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
-import axios from "axios";
-import { API_ROOT } from "../../../server/conifg";
+import axios from "../api/axios";
+import { useCookies } from "react-cookie";
 
 const AddOrEditDealForm = () => {
   const theme = createTheme();
@@ -26,6 +26,7 @@ const AddOrEditDealForm = () => {
   const params = useParams();
   const [deal, setDeal] = useState({});
   const [error, setError] = useState("");
+  const [cookies, _] = useCookies(["access_token"]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -47,21 +48,30 @@ const AddOrEditDealForm = () => {
     }
   };
 
-  const fetchDeal = async () => {
-    try {
-      const response = await axios.get(
-        `${API_ROOT}/dashboard/${params.dealId}`
-      );
-      setDeal(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchDeal = async () => {
+      try {
+        const response = await axios.get(`/dashboard/${params.dealId}`, {
+          signal: controller.signal,
+          headers: { authorization: cookies.access_token },
+        });
+        isMounted && setDeal(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     if (params?.dealId) {
       fetchDeal();
     }
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, []);
 
   const handleCancel = () => {
@@ -77,8 +87,6 @@ const AddOrEditDealForm = () => {
     if (deal.price) dealData.price = deal.price;
     if (deal.image) dealData.image = deal.image;
 
-    console.log(dealData);
-
     return dealData;
   };
 
@@ -86,14 +94,12 @@ const AddOrEditDealForm = () => {
     event.preventDefault();
 
     const transformedData = transformDealData();
-    console.log(transformedData);
 
     if (params?.dealId) {
       try {
-        await axios.put(
-          `${API_ROOT}/dashboard/${params.dealId}`,
-          transformedData
-        );
+        await axios.put(`/dashboard/${params.dealId}`, transformedData, {
+          headers: { authorization: cookies.access_token },
+        });
         return navigate("/dashboard");
       } catch (error) {
         console.error(error);
@@ -101,7 +107,9 @@ const AddOrEditDealForm = () => {
     }
 
     try {
-      await axios.post(`${API_ROOT}/dashboard`, transformedData);
+      await axios.post("/dashboard", transformedData, {
+        headers: { authorization: cookies.access_token },
+      });
       return navigate("/dashboard");
     } catch (error) {
       setError("This field is required!");
