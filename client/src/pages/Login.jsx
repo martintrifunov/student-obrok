@@ -10,19 +10,22 @@ import {
   Typography,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import { API_ROOT } from "../../../server/conifg";
-import axios from "axios";
+import axios from "../api/axios";
 import { useCookies } from "react-cookie";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 const Login = () => {
+  const { setAuth } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathName || "/dashboard";
   const theme = createTheme();
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [_, setCookies] = useCookies(["access_token"]);
-  const navigate = useNavigate();
 
   const paperStyle = {
     display: "flex",
@@ -43,31 +46,37 @@ const Login = () => {
   const buttonStyle = {
     color: "white",
     backgroundColor: "black",
-    padding: 20
+    padding: 20,
   };
 
   const errorStyle = {
     color: "crimson",
   };
-  
+
   const iconDiv = {
     display: "flex",
     height: "25vh",
-    
-  }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(`${API_ROOT}/login`, {
+      const response = await axios.post("/login", {
         username,
         password,
       });
-      setCookies("access_token", response.data.token);
-      window.localStorage.setItem("userId", response.data.userId);
-      navigate("/dashboard");
+
+      const user = response?.data?.userId;
+      const token = response?.data?.token;
+
+      setAuth({ user, token });
+
+      setCookies("access_token", token);
+      window.localStorage.setItem("userId", user);
+
+      navigate(from, { replace: true });
     } catch (error) {
-      setError(error.response.data.message);
+      setError(error?.response?.data?.message);
     }
   };
 
