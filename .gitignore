@@ -11,6 +11,7 @@ lerna-debug.log*
 package-lock.json
 *.gz
 node_modules
+.env
 dist
 dist-ssr
 *.local
