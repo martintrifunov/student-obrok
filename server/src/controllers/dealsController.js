@@ -48,7 +48,7 @@ const createNewDeal = async (req, res) => {
 
 const updateDeal = async (req, res) => {
   if (!req?.body?.id) {
-    return res.status(400).json({ message: "ID parameter is required." });
+    return res.status(400).json({ message: "ID is required." });
   }
 
   const deal = await DealModel.findOne({ _id: req.body.id }).exec();
@@ -71,7 +71,7 @@ const updateDeal = async (req, res) => {
 
 const deleteDeal = async (req, res) => {
   if (!req?.body?.id)
-    return res.status(400).json({ message: "ID parameter is required." });
+    return res.status(400).json({ message: "ID is required." });
 
   const deal = await DealModel.findOne({ _id: req.body.id }).exec();
 
