@@ -1,6 +1,12 @@
 import axios from "axios";
-import { API_ROOT } from "../../../server/conifg";
+const BASE_URL = "http://localhost:8080/api";
 
 export default axios.create({
-  baseURL: API_ROOT,
+  baseURL: BASE_URL,
+});
+
+export const axiostPrivate = axios.create({
+  baseURL: BASE_URL,
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });

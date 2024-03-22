@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Paper, useMediaQuery, Button, Link } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useCookies } from "react-cookie";
+import AuthContext from "../context/AuthProvider";
 
 const DashboardHeader = ({ theme }) => {
+  const { setAuth } = useContext(AuthContext);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
-  const [_, setCookies] = useCookies(["access_token"]);
 
   const navStyle = {
     height: isSmallScreen ? "15vh" : "7vh",
@@ -32,8 +32,7 @@ const DashboardHeader = ({ theme }) => {
   };
 
   const handleLogout = () => {
-    window.localStorage.removeItem("userId");
-    setCookies("access_token", "");
+    setAuth({});
     navigate("/login");
   };
 

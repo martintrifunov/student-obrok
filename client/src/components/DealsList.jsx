@@ -10,18 +10,18 @@ import {
   IconButton,
   TablePagination,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "../api/axios";
-import { useCookies } from "react-cookie";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const DealsList = ({ theme }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const axiosPrivate = useAxiosPrivate();
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [deals, setDeals] = useState([]);
-  const [cookies, _] = useCookies(["access_token"]);
   const [isRemoving, setIsRemoving] = useState("");
 
   useEffect(() => {
@@ -30,14 +30,13 @@ const DealsList = ({ theme }) => {
 
     const fetchDeal = async () => {
       try {
-        const response = await axios.get("/dashboard", {
+        const response = await axiosPrivate.get("/deals", {
           signal: controller.signal,
-          headers: { authorization: cookies.access_token },
         });
-        console.log(response.data);
         isMounted && setDeals(response.data);
       } catch (error) {
-        console.error(error);
+        setError(error.response.data.message);
+        navigate("/login", { state: { from: location }, replace: true });
       }
     };
 
@@ -62,24 +61,26 @@ const DealsList = ({ theme }) => {
 
       const removeDeal = async (dealId) => {
         try {
-          await axios.delete(`/dashboard/${dealId}`, {
+          await axiosPrivate.delete("/deals", {
+            data: JSON.stringify({
+              id: dealId,
+            }),
             signal: controller.signal,
-            headers: { authorization: cookies.access_token },
           });
         } catch (error) {
           setError(error.response.data.message);
+          navigate("/login", { state: { from: location }, replace: true });
         }
       };
 
       const fetchDeal = async () => {
         try {
-          const response = await axios.get("/dashboard", {
+          const response = await axiosPrivate.get("/deals", {
             signal: controller.signal,
-            headers: { authorization: cookies.access_token },
           });
           isMounted && setDeals(response.data);
         } catch (error) {
-          console.error(error);
+          setError(error.response.data.message);
         }
       };
 

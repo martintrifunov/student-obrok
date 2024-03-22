@@ -61,22 +61,35 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post("/login", {
-        username,
-        password,
-      });
+      const response = await axios.post(
+        "/login",
+        JSON.stringify({
+          username,
+          password,
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
 
-      const user = response?.data?.userId;
-      const token = response?.data?.token;
+      const accessToken = response?.data?.accessToken;
 
-      setAuth({ user, token });
-
-      setCookies("access_token", token);
-      window.localStorage.setItem("userId", user);
+      setAuth({ username, accessToken });
+      setUsername("");
+      setPassword("");
 
       navigate(from, { replace: true });
-    } catch (error) {
-      setError(error?.response?.data?.message);
+    } catch (err) {
+      if (!err?.response) {
+        setError("No Server Response");
+      } else if (err.response?.status === 400) {
+        setError("Missing Username or Password");
+      } else if (err.response?.status === 401) {
+        setError("Unauthorized");
+      } else {
+        setError("Login Failed");
+      }
     }
   };
 
