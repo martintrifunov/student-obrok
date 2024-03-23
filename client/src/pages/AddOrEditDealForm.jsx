@@ -17,10 +17,11 @@ import SaveIcon from "@mui/icons-material/Save";
 import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
-import axios from "../api/axios";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useCookies } from "react-cookie";
 
 const AddOrEditDealForm = () => {
+  const axiosPrivate = useAxiosPrivate();
   const theme = createTheme();
   const navigate = useNavigate();
   const params = useParams();
@@ -54,13 +55,13 @@ const AddOrEditDealForm = () => {
 
     const fetchDeal = async () => {
       try {
-        const response = await axios.get(`/dashboard/${params.dealId}`, {
+        const response = await axiosPrivate(`/deals/${params.dealId}`, {
           signal: controller.signal,
-          headers: { authorization: cookies.access_token },
         });
         isMounted && setDeal(response.data);
       } catch (error) {
         console.error(error);
+        navigate("/login", { state: { from: location }, replace: true });
       }
     };
 
@@ -81,6 +82,7 @@ const AddOrEditDealForm = () => {
   const transformDealData = () => {
     let dealData = {};
 
+    if (params?.dealId) dealData.id = params.dealId;
     if (deal.location) dealData.location = deal.location;
     if (deal.locationName) dealData.locationName = deal.locationName;
     if (deal.description) dealData.description = deal.description;
@@ -97,22 +99,18 @@ const AddOrEditDealForm = () => {
 
     if (params?.dealId) {
       try {
-        await axios.put(`/dashboard/${params.dealId}`, transformedData, {
-          headers: { authorization: cookies.access_token },
-        });
+        await axiosPrivate.put("/deals", transformedData);
         return navigate("/dashboard");
       } catch (error) {
-        console.error(error);
+        return console.error(error);
       }
     }
 
     try {
-      await axios.post("/dashboard", transformedData, {
-        headers: { authorization: cookies.access_token },
-      });
+      await axiosPrivate.post("/deals", transformedData);
       return navigate("/dashboard");
     } catch (error) {
-      setError("This field is required!");
+      return setError("This field is required!");
     }
   };
 
@@ -306,6 +304,29 @@ const AddOrEditDealForm = () => {
                     onSelectFile={onSelectFileHandler}
                     onDeleteFile={onDeleteFileHandler}
                     accept={"image/*"}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    id="image"
+                    name="image"
+                    label="Image"
+                    variant="outlined"
+                    type="text"
+                    value={deal?.image || ""}
+                    required
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-focused fieldset": {
+                          borderColor: "black",
+                        },
+                      },
+                      "& label.Mui-focused": {
+                        color: "black",
+                      },
+                    }}
+                    fullWidth
+                    onChange={handleChange}
                   />
                 </Grid>
               </Grid>

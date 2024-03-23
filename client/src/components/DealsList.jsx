@@ -84,8 +84,7 @@ const DealsList = ({ theme }) => {
         }
       };
 
-      removeDeal(isRemoving);
-      fetchDeal();
+      removeDeal(isRemoving).then(fetchDeal);
     }
 
     return () => {
