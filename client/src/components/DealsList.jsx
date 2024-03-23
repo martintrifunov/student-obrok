@@ -15,7 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const DealsList = ({ theme }) => {
+const DealsList = ({ theme, searchTerm }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
@@ -126,6 +126,16 @@ const DealsList = ({ theme }) => {
     color: "gray",
   };
 
+  const searchTermInDeal = (deal, term) => {
+    return Object.values(deal).some((value) =>
+      value.toString().toLowerCase().includes(term.toLowerCase())
+    );
+  };
+
+  const filteredDeals = deals.filter((deal) =>
+    searchTermInDeal(deal, searchTerm)
+  );
+
   return (
     <>
       {error && (
@@ -157,7 +167,7 @@ const DealsList = ({ theme }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {deals.slice(page * 5, page * 5 + 5).map((deal, index) => (
+            {filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
               <TableRow key={deal._id}>
                 <TableCell>{index + 1}</TableCell>
                 <TableCell>{deal.title}</TableCell>
