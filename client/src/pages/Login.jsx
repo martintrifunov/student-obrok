@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Grid,
   Paper,
@@ -8,24 +8,25 @@ import {
   TextField,
   Button,
   Typography,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import axios from "../api/axios";
-import { useCookies } from "react-cookie";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 
 const Login = () => {
-  const { setAuth } = useAuth();
+  const { setAuth, persist, setPersist } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathName || "/dashboard";
   const theme = createTheme();
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [_, setCookies] = useCookies(["access_token"]);
 
   const paperStyle = {
     display: "flex",
@@ -39,8 +40,12 @@ const Login = () => {
   };
 
   const iconStyle = {
-    marginTop: isMediumScreen ? "50px" : "75px",
-    fontSize: 100,
+    // marginTop: isMediumScreen ? "50px" : "75px",
+    height: "100%",
+    alignItems: "center",
+    fontSize: isSmallScreen ? 75 : 100,
+    marginBottom: 0,
+    paddingBottom: 0
   };
 
   const buttonStyle = {
@@ -51,6 +56,9 @@ const Login = () => {
 
   const errorStyle = {
     color: "crimson",
+    display: "flex",
+    width: "100%",
+    justifyContent: "center",
   };
 
   const iconDiv = {
@@ -93,6 +101,14 @@ const Login = () => {
     }
   };
 
+  const togglePersist = () => {
+    setPersist((prev) => !prev);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("persist", persist);
+  }, [persist]);
+
   return (
     <ThemeProvider theme={theme}>
       <Grid>
@@ -110,6 +126,7 @@ const Login = () => {
               label="Username"
               placeholder="Enter username..."
               sx={{
+                marginTop: "25px",
                 marginBottom: "25px",
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
@@ -122,8 +139,8 @@ const Login = () => {
               }}
               value={username}
               onChange={(event) => setUsername(event.target.value)}
+              autoComplete="username"
               fullWidth
-              required
             />
             <TextField
               label="Password"
@@ -143,7 +160,7 @@ const Login = () => {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               fullWidth
-              required
+              autoComplete="current-password"
             />
             <Button
               type="submit"
@@ -153,6 +170,22 @@ const Login = () => {
             >
               Sign In
             </Button>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={persist}
+                  onChange={togglePersist}
+                  inputProps={{ "aria-label": "controlled" }}
+                  sx={{
+                    color: persist ? 'black' : 'default',
+                    '&.Mui-checked': {
+                      color: 'black',
+                    },
+                  }}
+                />
+              }
+              label="Trust this device"
+            />
           </form>
         </Paper>
       </Grid>
