@@ -40,7 +40,6 @@ const Login = () => {
   };
 
   const iconStyle = {
-    // marginTop: isMediumScreen ? "50px" : "75px",
     height: "100%",
     alignItems: "center",
     fontSize: isSmallScreen ? 75 : 100,

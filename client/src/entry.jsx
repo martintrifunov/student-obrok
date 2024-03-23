@@ -5,6 +5,11 @@ import "./assets/index.css";
 import "@fontsource/roboto/400.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider.jsx";
+import { disableReactDevTools } from '@fvilers/disable-react-devtools';
+
+if (process.env.NODE_ENV === 'production') {
+  disableReactDevTools();
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
