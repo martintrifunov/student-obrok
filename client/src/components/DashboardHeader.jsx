@@ -2,11 +2,13 @@ import React, { useContext } from "react";
 import { Paper, useMediaQuery, Button, Link } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthProvider";
+import useLogout from "../hooks/useLogout";
 
 const DashboardHeader = ({ theme }) => {
   const { setAuth } = useContext(AuthContext);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+  const logout = useLogout();
 
   const navStyle = {
     height: isSmallScreen ? "15vh" : "7vh",
@@ -31,8 +33,8 @@ const DashboardHeader = ({ theme }) => {
     navigate("/");
   };
 
-  const handleLogout = () => {
-    setAuth({});
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
