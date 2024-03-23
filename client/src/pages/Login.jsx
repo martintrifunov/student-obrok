@@ -65,6 +65,14 @@ const Login = () => {
     height: "25vh",
   };
 
+  const macoStyle = {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
@@ -186,6 +194,14 @@ const Login = () => {
               label="Trust this device"
             />
           </form>
+          <Grid style={macoStyle}>
+            <Typography variant="p" sx={{ fontSize: 10 }}>
+              Secured with <strong>macoAuth</strong>
+            </Typography>
+            <Typography variant="p" sx={{ fontSize: 10 }}>
+              using love & kittens
+            </Typography>
+          </Grid>
         </Paper>
       </Grid>
     </ThemeProvider>
