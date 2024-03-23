@@ -304,29 +304,6 @@ const AddOrEditDealForm = () => {
                     accept={"image/*"}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    id="image"
-                    name="image"
-                    label="Image"
-                    variant="outlined"
-                    type="text"
-                    value={deal?.image || ""}
-                    required
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    fullWidth
-                    onChange={handleChange}
-                  />
-                </Grid>
               </Grid>
             </Paper>
             <Grid item xs={12} container justifyContent="flex-end">

@@ -157,7 +157,6 @@ const DealsList = ({ theme, searchTerm }) => {
           <TableHead>
             <TableRow>
               <TableCell style={tableHeaderCellStyle}>#</TableCell>
-              <TableCell style={tableHeaderCellStyle}>Title</TableCell>
               <TableCell style={tableHeaderCellStyle}>Location Name</TableCell>
               <TableCell style={tableHeaderCellStyle}>Location</TableCell>
               <TableCell style={tableHeaderCellStyle}>Description</TableCell>
@@ -170,7 +169,6 @@ const DealsList = ({ theme, searchTerm }) => {
             {filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
               <TableRow key={deal._id}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{deal.title}</TableCell>
                 <TableCell>{deal.locationName}</TableCell>
                 <TableCell>{deal.location.join(", ")}</TableCell>
                 <TableCell style={tldrStyle}>{deal.description}</TableCell>
