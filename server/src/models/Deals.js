@@ -6,6 +6,7 @@ const DealSchema = new mongoose.Schema({
   description: { type: String, required: true },
   price: { type: Number, required: true },
   image: { type: String, required: true },
+  imageTitle: { type: String, required: true },
 });
 
 export const DealModel = mongoose.model("deals", DealSchema);

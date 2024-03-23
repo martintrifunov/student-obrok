@@ -86,6 +86,7 @@ const AddOrEditDealForm = () => {
     if (deal.description) dealData.description = deal.description;
     if (deal.price) dealData.price = deal.price;
     if (deal.image) dealData.image = deal.image;
+    if (deal.imageTitle) dealData.imageTitle = deal.imageTitle;
 
     return dealData;
   };
@@ -112,8 +113,29 @@ const AddOrEditDealForm = () => {
     }
   };
 
-  const onSelectFileHandler = (e) => {
-    console.log(e.target.files[0]);
+  const onSelectFileHandler = async (e) => {
+    const file = e.target.files[0];
+    const fileName = file.name;
+    const convertedImage = await convertToBase64(file);
+
+    setDeal({ ...deal, image: convertedImage, imageTitle: fileName });
+  };
+
+  const onDeleteFileHandler = () => {
+    setDeal({ ...deal, image: "", imageTitle: "" });
+  };
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
   };
 
   const addDealButtonStyle = {
@@ -131,7 +153,6 @@ const AddOrEditDealForm = () => {
     marginBottom: 10,
   };
 
-  const onDeleteFileHandler = () => {};
   return (
     <ThemeProvider theme={theme}>
       <DashboardHeader theme={theme} />
@@ -264,14 +285,14 @@ const AddOrEditDealForm = () => {
                     onChange={handleChange}
                   />
                 </Grid>
-                {deal?.image && (
+                {deal?.imageTitle && (
                   <Grid item xs={12}>
                     <TextField
                       id="image"
                       label="Cover Image"
                       variant="outlined"
                       type="text"
-                      value={deal?.image || ""}
+                      value={deal?.imageTitle || ""}
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           "&.Mui-focused fieldset": {
@@ -301,7 +322,7 @@ const AddOrEditDealForm = () => {
                   <FileUploader
                     onSelectFile={onSelectFileHandler}
                     onDeleteFile={onDeleteFileHandler}
-                    accept={"image/*"}
+                    accept={".jpeg, .jpg, .png, .webp"}
                   />
                 </Grid>
               </Grid>

@@ -4,7 +4,7 @@ const getAllDeals = async (req, res) => {
   const deals = await DealModel.find();
 
   if (!deals) return res.status(204).json({ message: "No deals found." });
-  
+
   res.json(deals);
 };
 
@@ -27,7 +27,7 @@ const createNewDeal = async (req, res) => {
     return res.status(400).json({ message: "Price is required!" });
   }
 
-  if (!req?.body?.image) {
+  if (!req?.body?.image || !req?.body?.imageTitle) {
     return res.status(400).json({ message: "Cover image is required!" });
   }
 
@@ -38,6 +38,7 @@ const createNewDeal = async (req, res) => {
       description: req.body.description,
       price: req.body.price,
       image: req.body.image,
+      imageTitle: req.body.imageTitle,
     });
 
     res.status(201).json(result);
@@ -64,6 +65,7 @@ const updateDeal = async (req, res) => {
   if (req.body?.description) deal.description = req.body.description;
   if (req.body?.price) deal.price = req.body.price;
   if (req.body?.image) deal.image = req.body.image;
+  if (req.body?.imageTitle) deal.image = req.body.imageTitle;
 
   const result = await deal.save();
   res.json(result);

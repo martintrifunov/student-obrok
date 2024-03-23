@@ -173,7 +173,7 @@ const DealsList = ({ theme, searchTerm }) => {
                 <TableCell>{deal.location.join(", ")}</TableCell>
                 <TableCell style={tldrStyle}>{deal.description}</TableCell>
                 <TableCell>{deal.price}</TableCell>
-                <TableCell>{deal.image}</TableCell>
+                <TableCell style={tldrStyle}>{deal.image}</TableCell>
                 <TableCell>
                   <IconButton onClick={() => handleEditDeal(deal._id)}>
                     <EditIcon />
