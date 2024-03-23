@@ -18,7 +18,6 @@ import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useCookies } from "react-cookie";
 
 const AddOrEditDealForm = () => {
   const axiosPrivate = useAxiosPrivate();
@@ -27,7 +26,6 @@ const AddOrEditDealForm = () => {
   const params = useParams();
   const [deal, setDeal] = useState({});
   const [error, setError] = useState("");
-  const [cookies, _] = useCookies(["access_token"]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

@@ -44,7 +44,7 @@ const Login = () => {
     alignItems: "center",
     fontSize: isSmallScreen ? 75 : 100,
     marginBottom: 0,
-    paddingBottom: 0
+    paddingBottom: 0,
   };
 
   const buttonStyle = {
@@ -176,9 +176,9 @@ const Login = () => {
                   onChange={togglePersist}
                   inputProps={{ "aria-label": "controlled" }}
                   sx={{
-                    color: persist ? 'black' : 'default',
-                    '&.Mui-checked': {
-                      color: 'black',
+                    color: persist ? "black" : "default",
+                    "&.Mui-checked": {
+                      color: "black",
                     },
                   }}
                 />

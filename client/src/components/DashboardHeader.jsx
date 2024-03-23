@@ -1,11 +1,9 @@
-import React, { useContext } from "react";
-import { Paper, useMediaQuery, Button, Link } from "@mui/material";
+import React from "react";
+import { Paper, useMediaQuery, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import AuthContext from "../context/AuthProvider";
 import useLogout from "../hooks/useLogout";
 
 const DashboardHeader = ({ theme }) => {
-  const { setAuth } = useContext(AuthContext);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const logout = useLogout();

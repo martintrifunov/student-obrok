@@ -15,7 +15,7 @@ const DealsToolbar = ({ theme }) => {
 
   const buttonStyle = {
     textTransform: "none",
-    backgroundColor: "black"
+    backgroundColor: "black",
   };
 
   const handleAddDeal = () => {
