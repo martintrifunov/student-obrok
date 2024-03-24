@@ -3,6 +3,8 @@ import { Outlet } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useRefreshToken from "../hooks/useRefreshToken";
 import useAuth from "../hooks/useAuth";
+import { Box, LinearProgress, Typography } from "@mui/material";
+import GlobalLoadingProgress from "./GlobalLoadingProgress";
 
 const PersistLogin = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +30,15 @@ const PersistLogin = () => {
   }, []);
 
   return (
-    <>{!persist ? <Outlet /> : isLoading ? <p>Loading...</p> : <Outlet />}</>
+    <>
+      {!persist ? (
+        <Outlet />
+      ) : isLoading ? (
+        <GlobalLoadingProgress />
+      ) : (
+        <Outlet />
+      )}
+    </>
   );
 };
 

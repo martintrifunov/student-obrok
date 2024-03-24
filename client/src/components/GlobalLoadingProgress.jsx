@@ -1,0 +1,21 @@
+import { Box, LinearProgress, Typography } from "@mui/material";
+import React from "react";
+
+const GlobalLoadingProgress = () => {
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+      height="100vh"
+    >
+      <Typography variant="h6">Студентски Оброк</Typography>
+      <Box width="15%" marginTop="10px">
+        <LinearProgress color="inherit" />
+      </Box>
+    </Box>
+  );
+};
+
+export default GlobalLoadingProgress;
