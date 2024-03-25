@@ -1,5 +1,6 @@
 import React from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
+import DealMarkers from "../components/DealMarkers";
 import "leaflet/dist/leaflet.css";
 import "../assets/map.css";
 
@@ -19,9 +20,7 @@ const Map = () => {
           attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={position}>
-          <Popup>STINKI</Popup>
-        </Marker>
+        <DealMarkers />
       </MapContainer>
     </div>
   );

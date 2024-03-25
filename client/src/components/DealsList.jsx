@@ -21,6 +21,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "../api/axios";
 
 const DealsList = ({ theme, searchTerm }) => {
   const navigate = useNavigate();
@@ -40,9 +41,16 @@ const DealsList = ({ theme, searchTerm }) => {
 
     const fetchDeal = async () => {
       try {
-        const response = await axiosPrivate.get("/deals", {
-          signal: controller.signal,
-        });
+        const response = await axios.get(
+          "/deals",
+          {
+            signal: controller.signal,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
         isMounted && setDeals(response.data);
         setIsLoading(false);
       } catch (error) {
@@ -90,9 +98,16 @@ const DealsList = ({ theme, searchTerm }) => {
 
       const fetchDeal = async () => {
         try {
-          const response = await axiosPrivate.get("/deals", {
-            signal: controller.signal,
-          });
+          const response = await axios.get(
+            "/deals",
+            {
+              signal: controller.signal,
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+              withCredentials: true,
+            }
+          );
           isMounted && setDeals(response.data);
           setIsLoading(false);
         } catch (error) {
@@ -170,7 +185,7 @@ const DealsList = ({ theme, searchTerm }) => {
           {!isLoading
             ? filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
                 <Grid item xs={12} key={deal._id}>
-                  <Card sx={{marginTop: 2}}>
+                  <Card sx={{ marginTop: 2 }}>
                     <CardContent>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="h6" style={{ fontWeight: "bold" }}>
