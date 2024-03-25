@@ -170,7 +170,7 @@ const DealsList = ({ theme, searchTerm }) => {
           {!isLoading
             ? filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
                 <Grid item xs={12} key={deal._id}>
-                  <Card>
+                  <Card sx={{marginTop: 2}}>
                     <CardContent>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="h6" style={{ fontWeight: "bold" }}>

@@ -9,6 +9,7 @@ import {
   createTheme,
   ThemeProvider,
   InputAdornment,
+  useMediaQuery,
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import { Container } from "@mui/system";
@@ -22,6 +23,8 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 const AddOrEditDealForm = () => {
   const axiosPrivate = useAxiosPrivate();
   const theme = createTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   const navigate = useNavigate();
   const params = useParams();
   const [deal, setDeal] = useState({});
@@ -156,19 +159,21 @@ const AddOrEditDealForm = () => {
   return (
     <ThemeProvider theme={theme}>
       <DashboardHeader theme={theme} />
-
       <Box
         display="flex"
         flexDirection="column"
-        justifyContent="center"
-        height="85vh"
+        justifyContent={isSmallScreen ? "flex-start" : "center"}
+        alignItems="center"
+        height={isSmallScreen ? "65vh" : "85vh"}
+        marginTop={isSmallScreen && 5}
+        marginBottom={isSmallScreen && 5}
       >
         <Container maxWidth="md">
           <Typography variant="h4" style={dealHeadingStyle}>
             Add Deal
           </Typography>
           <form autoComplete="off" onSubmit={handleSubmit}>
-            <Paper elevation={5} sx={{ padding: 10, marginBottom: 2 }}>
+            <Paper elevation={5} sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}>
               <Grid container spacing={3} justify="center">
                 <Grid item xs={12}>
                   <TextField
