@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import axios from "../api/axios";
+import { Button, Typography, Box } from "@mui/material";
+import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import InfoIcon from "@mui/icons-material/Info";
 
 const DealMarkers = () => {
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-
   const position = [42.00430265307896, 21.409471852749466];
 
   useEffect(() => {
@@ -43,13 +45,61 @@ const DealMarkers = () => {
     };
   }, []);
 
-  console.log(deals);
+  const coverImgStyle = {
+    width: "100%",
+    height: 250,
+    objectFit: "cover",
+  };
+
+  const popupStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexDirection: "column",
+    width: 200,
+    height: 450,
+  };
+
+  const getDirectionButtonStyle = {
+    backgroundColor: "black",
+    textTransform: "none",
+  };
+
+  const infoButtonStyle = {
+    textTransform: "none",
+  };
   return (
     <>
       {!isLoading &&
         deals.map((deal, index) => (
           <Marker key={index} position={deal.location}>
-            <Popup>{deal.locationName}</Popup>
+            <Popup>
+              <Box style={popupStyle}>
+                <Typography variant="h5" textAlign="center">
+                  {deal.locationName}
+                </Typography>
+                <img src={deal.image} alt="coverImage" style={coverImgStyle} />
+
+                <Typography variant="p" textAlign="center">
+                  {deal.price} ден.
+                </Typography>
+                <Button
+                  color="inherit"
+                  fullWidth
+                  variant="outlined"
+                  style={infoButtonStyle}
+                >
+                  <InfoIcon /> Deal info
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  style={getDirectionButtonStyle}
+                >
+                  Get Directions <ArrowRightAltIcon />
+                </Button>
+              </Box>
+            </Popup>
           </Marker>
         ))}
     </>
