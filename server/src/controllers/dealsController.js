@@ -1,4 +1,5 @@
 import { DealModel } from "../models/Deals.js";
+import mongoose from "mongoose";
 
 const getAllDeals = async (req, res) => {
   const deals = await DealModel.find();
@@ -52,6 +53,10 @@ const updateDeal = async (req, res) => {
     return res.status(400).json({ message: "ID is required." });
   }
 
+  if (!mongoose.Types.ObjectId.isValid(req.body.id)) {
+    return res.status(400).json({ message: "Invalid ID format." });
+  }
+
   const deal = await DealModel.findOne({ _id: req.body.id }).exec();
 
   if (!deal) {
@@ -75,6 +80,10 @@ const deleteDeal = async (req, res) => {
   if (!req?.body?.id)
     return res.status(400).json({ message: "ID is required." });
 
+  if (!mongoose.Types.ObjectId.isValid(req.body.id)) {
+    return res.status(400).json({ message: "Invalid ID format." });
+  }
+
   const deal = await DealModel.findOne({ _id: req.body.id }).exec();
 
   if (!deal) {
@@ -90,6 +99,10 @@ const getDeal = async (req, res) => {
   if (!req?.params?.id)
     return res.status(400).json({ message: "ID parameter is required." });
 
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    return res.status(400).json({ message: "Invalid ID format." });
+  }
+
   const deal = await DealModel.findOne({ _id: req.params.id }).exec();
 
   if (!deal) {
@@ -97,6 +110,7 @@ const getDeal = async (req, res) => {
       .status(204)
       .json({ message: `No deal matches ID ${req.params.id}.` });
   }
+
   res.json(deal);
 };
 

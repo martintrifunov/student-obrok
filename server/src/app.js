@@ -38,8 +38,6 @@ app.use(cookieParser());
 app.use("/api", authRouter);
 app.use("/api", refreshTokenRouter);
 app.use("/api", logoutRouter);
-
-app.use(verifyJWT);
 app.use("/api", dealsRouter);
 
 mongoose.connection.once("open", () => {
