@@ -22,6 +22,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
+import Dashboard from "../pages/Dashboard";
+import DashboardImageModal from "./DashboardImageModal";
 
 const DealsList = ({ theme, searchTerm }) => {
   const navigate = useNavigate();
@@ -148,7 +150,7 @@ const DealsList = ({ theme, searchTerm }) => {
   };
 
   const tldrStyle = {
-    maxWidth: isSmallScreen ? "200px" : "100px",
+    maxWidth: isSmallScreen ? "200px" : "300px",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -160,6 +162,7 @@ const DealsList = ({ theme, searchTerm }) => {
 
   const editButtonStyle = {
     backgroundColor: "black",
+    marginLeft: "3vw",
     textTransform: "none",
   };
 
@@ -208,6 +211,11 @@ const DealsList = ({ theme, searchTerm }) => {
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center" marginTop={2}>
+                        <DashboardImageModal
+                          variant={"contained"}
+                          image={deal.image}
+                          imageTitle={deal.imageTitle}
+                        />
                         <Button
                           variant="contained"
                           onClick={() => handleEditDeal(deal._id)}
@@ -285,13 +293,16 @@ const DealsList = ({ theme, searchTerm }) => {
                         <TableRow key={deal._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{deal.locationName}</TableCell>
-                          <TableCell>{deal.location.join(", ")}</TableCell>
                           <TableCell style={tldrStyle}>
                             {deal.description}
                           </TableCell>
+                          <TableCell>{deal.location.join(", ")}</TableCell>
                           <TableCell>{deal.price}</TableCell>
                           <TableCell style={tldrStyle}>
-                            {deal.imageTitle}
+                            <DashboardImageModal
+                              imageTitle={deal.imageTitle}
+                              image={deal.image}
+                            />
                           </TableCell>
                           <TableCell>
                             <IconButton
