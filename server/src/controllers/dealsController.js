@@ -70,7 +70,7 @@ const updateDeal = async (req, res) => {
   if (req.body?.description) deal.description = req.body.description;
   if (req.body?.price) deal.price = req.body.price;
   if (req.body?.image) deal.image = req.body.image;
-  if (req.body?.imageTitle) deal.image = req.body.imageTitle;
+  if (req.body?.imageTitle) deal.imageTitle = req.body.imageTitle;
 
   const result = await deal.save();
   res.json(result);
