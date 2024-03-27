@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Marker, useMap } from "react-leaflet";
 import L from "leaflet";
-import myLocationMarker from "../assets/icons/my_location_marker.svg"
+import myLocationMarker from "../assets/icons/my_location_marker.svg";
 
-const LocateUser = () => {
+const LocateUser = ({ onUserLocation }) => {
   const map = useMap();
   const [position, setPosition] = useState(null);
   const firstFlyBy = useRef(true);
@@ -18,6 +18,7 @@ const LocateUser = () => {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
         setPosition([latitude, longitude]);
+        onUserLocation([latitude, longitude]);
         if (firstFlyBy.current) {
           map.flyTo([latitude, longitude], map.getZoom());
           firstFlyBy.current = false;
@@ -28,7 +29,9 @@ const LocateUser = () => {
     return () => clearInterval(intervalId); // cleanup on unmount
   }, [map]);
 
-  return position === null ? null : <Marker position={position}  icon={userIcon} />;
+  return position === null ? null : (
+    <Marker position={position} icon={userIcon} />
+  );
 };
 
 export default LocateUser;

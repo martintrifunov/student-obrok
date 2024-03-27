@@ -7,13 +7,11 @@ import MapDealInfoModal from "./MapDealInfoModal";
 import L from "leaflet";
 import dealLocationMarker from "../assets/icons/deal_location_marker.svg";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { divIcon } from "leaflet";
 
-const DealMarkers = () => {
+const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
   const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const position = [42.00430265307896, 21.409471852749466];
 
   const dealIcon = L.icon({
     iconUrl: dealLocationMarker,
@@ -72,6 +70,13 @@ const DealMarkers = () => {
   const getDirectionButtonStyle = {
     backgroundColor: "black",
     textTransform: "none",
+    color: "white",
+  };
+
+  const getDisabledDirectionButtonStyle = {
+    backgroundColor: "darkgray",
+    textTransform: "none",
+    color: "white",
   };
 
   const clusterIcon = (cluster) => {
@@ -104,9 +109,15 @@ const DealMarkers = () => {
                   </Typography>
                   <MapDealInfoModal deal={deal} />
                   <Button
+                    disabled={isDisabledRoutingButton}
                     fullWidth
                     variant="contained"
-                    style={getDirectionButtonStyle}
+                    style={
+                      isDisabledRoutingButton
+                        ? getDisabledDirectionButtonStyle
+                        : getDirectionButtonStyle
+                    }
+                    onClick={() => onDealLocation(deal.location)}
                   >
                     Get Directions <ArrowRightAltIcon />
                   </Button>
