@@ -84,6 +84,7 @@ const AddOrEditDealForm = () => {
     let dealData = {};
 
     if (params?.dealId) dealData.id = params.dealId;
+    if (deal.title) dealData.title = deal.title;
     if (deal.location) dealData.location = deal.location;
     if (deal.locationName) dealData.locationName = deal.locationName;
     if (deal.description) dealData.description = deal.description;
@@ -144,12 +145,14 @@ const AddOrEditDealForm = () => {
   const addDealButtonStyle = {
     textTransform: "none",
     backgroundColor: "black",
+    marginBottom: 20
   };
 
   const cancelButtonStyle = {
     color: "black",
     textTransform: "none",
     marginRight: "1vw",
+    marginBottom: 20
   };
 
   const dealHeadingStyle = {
@@ -168,13 +171,38 @@ const AddOrEditDealForm = () => {
         marginTop={isSmallScreen && 5}
         marginBottom={isSmallScreen && 5}
       >
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{maxHeight: "90%"}}>
           <Typography variant="h4" style={dealHeadingStyle}>
             Add Deal
           </Typography>
           <form autoComplete="off" onSubmit={handleSubmit}>
-            <Paper elevation={5} sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}>
+            <Paper
+              elevation={5}
+              sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
+            >
               <Grid container spacing={3} justify="center">
+                <Grid item xs={12}>
+                  <TextField
+                    id="title"
+                    name="title"
+                    label="Title"
+                    variant="outlined"
+                    fullWidth
+                    required
+                    value={deal?.title || ""}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-focused fieldset": {
+                          borderColor: "black",
+                        },
+                      },
+                      "& label.Mui-focused": {
+                        color: "black",
+                      },
+                    }}
+                    onChange={handleChange}
+                  />
+                </Grid>
                 <Grid item xs={12}>
                   <TextField
                     id="locationName"

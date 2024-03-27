@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const DealSchema = new mongoose.Schema({
+  title: { type: String, required: true },
   locationName: { type: String, required: true },
   location: [{ type: Number, required: true }],
   description: { type: String, required: true },

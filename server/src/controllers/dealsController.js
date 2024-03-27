@@ -10,6 +10,10 @@ const getAllDeals = async (req, res) => {
 };
 
 const createNewDeal = async (req, res) => {
+  if (!req?.body?.title) {
+    return res.status(400).json({ message: "Title is required!" });
+  }
+
   if (!req?.body?.locationName) {
     return res.status(400).json({ message: "Location name is required!" });
   }
@@ -34,6 +38,7 @@ const createNewDeal = async (req, res) => {
 
   try {
     const result = await DealModel.create({
+      title: req.body.title,
       locationName: req.body.locationName,
       location: req.body.location,
       description: req.body.description,
@@ -65,6 +70,7 @@ const updateDeal = async (req, res) => {
       .json({ message: `No deal matches ID ${req.body.id}.` });
   }
 
+  if (req.body?.title) deal.title = req.body.title;
   if (req.body?.locationName) deal.locationName = req.body.locationName;
   if (req.body?.location) deal.location = req.body.location;
   if (req.body?.description) deal.description = req.body.description;

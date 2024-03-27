@@ -35,7 +35,7 @@ const MapDealInfoModal = ({ deal }) => {
     textTransform: "none",
     width: 200,
   };
-  
+
   const imageStyle = {
     maxWidth: "50%",
     height: "auto",
@@ -76,7 +76,7 @@ const MapDealInfoModal = ({ deal }) => {
                 component="h2"
                 textAlign="center"
               >
-                Deal Title
+                {deal.title}
               </Typography>
               <img src={deal.image} style={imageStyle} alt="coverImage" />
               <Typography

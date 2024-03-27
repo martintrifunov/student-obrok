@@ -192,6 +192,11 @@ const DealsList = ({ theme, searchTerm }) => {
                     <CardContent>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="h6" style={{ fontWeight: "bold" }}>
+                          {deal.title}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" justifyContent="center">
+                        <Typography variant="body2">
                           {deal.locationName}
                         </Typography>
                       </Box>
@@ -272,13 +277,14 @@ const DealsList = ({ theme, searchTerm }) => {
               <TableHead>
                 <TableRow>
                   <TableCell style={tableHeaderCellStyle}>#</TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Title</TableCell>
                   <TableCell style={tableHeaderCellStyle}>
                     Location Name
                   </TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Location</TableCell>
                   <TableCell style={tableHeaderCellStyle}>
                     Description
                   </TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Location</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Price</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Actions</TableCell>
@@ -292,6 +298,7 @@ const DealsList = ({ theme, searchTerm }) => {
                       .map((deal, index) => (
                         <TableRow key={deal._id}>
                           <TableCell>{index + 1}</TableCell>
+                          <TableCell>{deal.title}</TableCell>
                           <TableCell>{deal.locationName}</TableCell>
                           <TableCell style={tldrStyle}>
                             {deal.description}
