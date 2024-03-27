@@ -3,7 +3,7 @@ import { Marker, Popup } from "react-leaflet";
 import axios from "../api/axios";
 import { Button, Typography, Box } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
-import InfoIcon from "@mui/icons-material/Info";
+import MapDealInfoModal from "./MapDealInfoModal";
 
 const DealMarkers = () => {
   const [deals, setDeals] = useState([]);
@@ -65,9 +65,6 @@ const DealMarkers = () => {
     textTransform: "none",
   };
 
-  const infoButtonStyle = {
-    textTransform: "none",
-  };
   return (
     <>
       {!isLoading &&
@@ -83,14 +80,7 @@ const DealMarkers = () => {
                 <Typography variant="p" textAlign="center">
                   {deal.price} ден.
                 </Typography>
-                <Button
-                  color="inherit"
-                  fullWidth
-                  variant="outlined"
-                  style={infoButtonStyle}
-                >
-                  <InfoIcon /> Deal info
-                </Button>
+                <MapDealInfoModal deal={deal} />
                 <Button
                   fullWidth
                   variant="contained"

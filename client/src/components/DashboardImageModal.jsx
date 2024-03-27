@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -15,19 +15,19 @@ const style = {
   width: "80%",
   height: "80%",
   bgcolor: "background.paper",
-  border: "2px solid #000",
   boxShadow: 24,
   p: 4,
 };
 
 const imageStyle = {
-  objectFit: "cover",
-  maxWidth: "80%",
-  maxHeight: "80%",
+  maxWidth: "50%",
+  height: "auto",
+  display: "block",
+  margin: "0 auto",
 };
 
 const DashboardImageModal = ({ imageTitle, image, variant }) => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
