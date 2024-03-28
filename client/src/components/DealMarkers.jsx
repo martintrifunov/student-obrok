@@ -96,7 +96,7 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
               <Popup>
                 <Box style={popupStyle}>
                   <Typography variant="h5" textAlign="center">
-                    {deal.locationName}
+                    {deal.title}
                   </Typography>
                   <img
                     src={deal.image}

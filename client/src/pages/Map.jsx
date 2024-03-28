@@ -8,6 +8,7 @@ import RoutingEngine from "../components/RoutingEngine";
 import { Button } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
+import CreditMarker from "../components/CreditMarker";
 
 const Map = () => {
   const position = [42.00430265307896, 21.409471852749466];
@@ -63,6 +64,7 @@ const Map = () => {
             onDealLocation={handleDealLocation}
             isDisabledRoutingButton={isDisabledRoutingButton}
           />
+          <CreditMarker />
           <LocateUser
             onUserLocation={handleUserLocation}
             setIsLoading={setIsLoading}
