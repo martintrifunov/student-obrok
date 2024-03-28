@@ -37,7 +37,7 @@ const MapDealInfoModal = ({ deal }) => {
   };
 
   const imageStyle = {
-    maxWidth: "50%",
+    maxWidth: isSmallScreen ? "100%" : "50%",
     height: "auto",
     display: "block",
     margin: "0 auto",
@@ -72,7 +72,7 @@ const MapDealInfoModal = ({ deal }) => {
             <Box sx={style}>
               <Typography
                 id="transition-modal-title"
-                variant="h4"
+                variant={isSmallScreen ? "h5" : "h4"}
                 component="h2"
                 textAlign="center"
               >

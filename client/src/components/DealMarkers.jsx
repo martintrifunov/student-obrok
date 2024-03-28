@@ -54,7 +54,7 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
 
   const coverImgStyle = {
     width: "100%",
-    height: 250,
+    maxHeight: "230px",
     objectFit: "cover",
   };
 
@@ -71,12 +71,14 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
     backgroundColor: "black",
     textTransform: "none",
     color: "white",
+    marginTop: 15,
   };
 
   const getDisabledDirectionButtonStyle = {
-    backgroundColor: "darkgray",
+    backgroundColor: "#424242",
     textTransform: "none",
     color: "white",
+    marginTop: 15,
   };
 
   const clusterIcon = (cluster) => {
@@ -103,24 +105,28 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
                     alt="coverImage"
                     style={coverImgStyle}
                   />
-
-                  <Typography variant="p" textAlign="center">
-                    {deal.price} ден.
+                  <Typography variant="h5" textAlign="center">
+                    {deal.locationName}
                   </Typography>
-                  <MapDealInfoModal deal={deal} />
-                  <Button
-                    disabled={isDisabledRoutingButton}
-                    fullWidth
-                    variant="contained"
-                    style={
-                      isDisabledRoutingButton
-                        ? getDisabledDirectionButtonStyle
-                        : getDirectionButtonStyle
-                    }
-                    onClick={() => onDealLocation(deal.location)}
-                  >
-                    Get Directions <ArrowRightAltIcon />
-                  </Button>
+                  <Typography variant="h6" textAlign="center">
+                    <strong>{deal.price}</strong> ден.
+                  </Typography>
+                  <Box>
+                    <MapDealInfoModal deal={deal} />
+                    <Button
+                      disabled={isDisabledRoutingButton}
+                      fullWidth
+                      variant="contained"
+                      style={
+                        isDisabledRoutingButton
+                          ? getDisabledDirectionButtonStyle
+                          : getDirectionButtonStyle
+                      }
+                      onClick={() => onDealLocation(deal.location)}
+                    >
+                      Get Directions <ArrowRightAltIcon />
+                    </Button>
+                  </Box>
                 </Box>
               </Popup>
             </Marker>
