@@ -9,6 +9,7 @@ const GlobalLoadingProgress = () => {
       justifyContent="center"
       alignItems="center"
       height="100vh"
+      zIndex="1001"
     >
       <Typography variant="h6">Студентски Оброк</Typography>
       <Box width="15%" marginTop="10px">
