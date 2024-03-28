@@ -18,7 +18,11 @@ const createNewDeal = async (req, res) => {
     return res.status(400).json({ message: "Location name is required!" });
   }
 
-  if (!req?.body?.location) {
+  if (
+    !req?.body?.location ||
+    req?.body?.location[0] === "" ||
+    req?.body?.location[1] === ""
+  ) {
     return res
       .status(400)
       .json({ message: "Location coordinates are required!" });

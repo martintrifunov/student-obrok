@@ -28,7 +28,7 @@ const AddOrEditDealForm = () => {
   const navigate = useNavigate();
   const params = useParams();
   const [deal, setDeal] = useState({});
-  const [error, setError] = useState("");
+  const [errorBag, setErrorBag] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -113,7 +113,35 @@ const AddOrEditDealForm = () => {
       await axiosPrivate.post("/deals", transformedData);
       return navigate("/dashboard");
     } catch (error) {
-      return setError("This field is required!");
+      switch (error.response.data.message) {
+        case "Title is required!":
+          setErrorBag("Title is required!");
+          break;
+
+        case "Location name is required!":
+          setErrorBag("Location name is required!");
+          break;
+
+        case "Location coordinates are required!":
+          setErrorBag("Location coordinates are required!");
+          break;
+
+        case "Description is required!":
+          setErrorBag("Description is required!");
+          break;
+
+        case "Price is required!":
+          setErrorBag("Price is required!");
+          break;
+
+        case "Cover image is required!":
+          setErrorBag("Cover image is required!");
+          break;
+
+        default:
+          setErrorBag("Cover image is required!");
+          break;
+      }
     }
   };
 
@@ -182,13 +210,17 @@ const AddOrEditDealForm = () => {
             >
               <Grid container spacing={3} justify="center">
                 <Grid item xs={12}>
+                  {errorBag === "Title is required!" && (
+                    <Typography sx={{ color: "crimson" }}>
+                      {errorBag}
+                    </Typography>
+                  )}
                   <TextField
                     id="title"
                     name="title"
                     label="Title"
                     variant="outlined"
                     fullWidth
-                    required
                     value={deal?.title || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -204,13 +236,17 @@ const AddOrEditDealForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
+                  {errorBag === "Location name is required!" && (
+                    <Typography sx={{ color: "crimson" }}>
+                      {errorBag}
+                    </Typography>
+                  )}
                   <TextField
                     id="locationName"
                     name="locationName"
                     label="Location Name"
                     variant="outlined"
                     fullWidth
-                    required
                     value={deal?.locationName || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -226,6 +262,11 @@ const AddOrEditDealForm = () => {
                   />
                 </Grid>
                 <Grid item xs={6}>
+                  {errorBag === "Location coordinates are required!" && (
+                    <Typography sx={{ color: "crimson", whiteSpace: "nowrap" }}>
+                      {errorBag}
+                    </Typography>
+                  )}
                   <TextField
                     id="latitude"
                     name="latitude"
@@ -233,7 +274,6 @@ const AddOrEditDealForm = () => {
                     variant="outlined"
                     type="number"
                     fullWidth
-                    required
                     value={deal?.location?.[0] || ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -249,6 +289,9 @@ const AddOrEditDealForm = () => {
                   />
                 </Grid>
                 <Grid item xs={6}>
+                  {errorBag === "Location coordinates are required!" && (
+                    <Box mt={3}></Box>
+                  )}
                   <TextField
                     id="longitude"
                     name="longitude"
@@ -257,7 +300,6 @@ const AddOrEditDealForm = () => {
                     type="number"
                     value={deal?.location?.[1] || ""}
                     fullWidth
-                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -272,6 +314,11 @@ const AddOrEditDealForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
+                  {errorBag === "Description is required!" && (
+                    <Typography sx={{ color: "crimson" }}>
+                      {errorBag}
+                    </Typography>
+                  )}
                   <TextField
                     id="description"
                     name="description"
@@ -280,7 +327,6 @@ const AddOrEditDealForm = () => {
                     fullWidth
                     value={deal?.description || ""}
                     multiline
-                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -296,6 +342,11 @@ const AddOrEditDealForm = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
+                  {errorBag === "Price is required!" && (
+                    <Typography sx={{ color: "crimson" }}>
+                      {errorBag}
+                    </Typography>
+                  )}
                   <TextField
                     id="price"
                     name="price"
@@ -303,7 +354,6 @@ const AddOrEditDealForm = () => {
                     variant="outlined"
                     type="number"
                     value={deal?.price || ""}
-                    required
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         "&.Mui-focused fieldset": {
@@ -349,8 +399,10 @@ const AddOrEditDealForm = () => {
                   </Grid>
                 )}
                 <Grid item xs={12}>
-                  {error && (
-                    <Typography sx={{ color: "crimson" }}>{error}</Typography>
+                  {errorBag === "Cover image is required!" && (
+                    <Typography sx={{ color: "crimson" }}>
+                      {errorBag}
+                    </Typography>
                   )}
                   <FileUploader
                     onSelectFile={onSelectFileHandler}
