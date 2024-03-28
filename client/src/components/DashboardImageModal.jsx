@@ -32,10 +32,16 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
   };
 
   const imageStyle = {
-    maxWidth: isSmallScreen ? "80%" : "40%",
+    maxWidth: isSmallScreen ? "80%" : "60%",
     height: "auto",
     display: "block",
     margin: "0 auto",
+  };
+
+  const tldrStyle = {
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   };
 
   return (
@@ -69,6 +75,7 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
                 variant="h6"
                 textAlign="center"
                 component="h2"
+                style={tldrStyle}
               >
                 {imageTitle}
               </Typography>

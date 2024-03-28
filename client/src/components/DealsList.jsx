@@ -196,22 +196,23 @@ const DealsList = ({ theme, searchTerm }) => {
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
-                          {deal.locationName}
+                          <strong>Location Name:</strong> {deal.locationName}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
-                          Location: {deal.location.join(", ")}
+                          <strong>Location:</strong> {deal.location.join(", ")}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2" style={tldrStyle}>
-                          Description: {deal.description}
+                          <strong>Description:</strong> {deal.description}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
-                          Price: {deal.price}
+                          <strong>Price:</strong>
+                          {deal.price}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center" marginTop={2}>
