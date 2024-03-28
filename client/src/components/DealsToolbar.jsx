@@ -14,6 +14,10 @@ const DealsToolbar = ({ theme, handleSearchChange }) => {
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
 
+  const handleAddDeal = () => {
+    navigate("/dashboard/deal");
+  };
+
   const gridStyle = {
     display: "flex",
     marginLeft: "1vw",
@@ -27,9 +31,6 @@ const DealsToolbar = ({ theme, handleSearchChange }) => {
     backgroundColor: "black",
   };
 
-  const handleAddDeal = () => {
-    navigate("/dashboard/deal");
-  };
   return (
     <Grid style={gridStyle}>
       <TextField

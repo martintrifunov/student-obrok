@@ -13,11 +13,6 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const dealIcon = L.icon({
-    iconUrl: dealLocationMarker,
-    iconSize: [38, 95],
-  });
-
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -51,6 +46,11 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
       controller.abort();
     };
   }, []);
+
+  const dealIcon = L.icon({
+    iconUrl: dealLocationMarker,
+    iconSize: [38, 95],
+  });
 
   const coverImgStyle = {
     width: "100%",

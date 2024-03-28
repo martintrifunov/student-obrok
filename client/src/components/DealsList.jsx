@@ -22,7 +22,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
-import Dashboard from "../pages/Dashboard";
 import DashboardImageModal from "./DashboardImageModal";
 
 const DealsList = ({ theme, searchTerm }) => {
@@ -135,6 +134,16 @@ const DealsList = ({ theme, searchTerm }) => {
     navigate(`/dashboard/deal/${dealId}`);
   };
 
+  const searchTermInDeal = (deal, term) => {
+    return Object.values(deal).some((value) =>
+      value.toString().toLowerCase().includes(term.toLowerCase())
+    );
+  };
+
+  const filteredDeals = deals.filter((deal) =>
+    searchTermInDeal(deal, searchTerm)
+  );
+
   const tableStyle = {
     width: "98vw",
     marginLeft: "auto",
@@ -170,16 +179,6 @@ const DealsList = ({ theme, searchTerm }) => {
     marginLeft: "3vw",
     textTransform: "none",
   };
-
-  const searchTermInDeal = (deal, term) => {
-    return Object.values(deal).some((value) =>
-      value.toString().toLowerCase().includes(term.toLowerCase())
-    );
-  };
-
-  const filteredDeals = deals.filter((deal) =>
-    searchTermInDeal(deal, searchTerm)
-  );
 
   return (
     <>

@@ -4,7 +4,7 @@ import AttachmentIcon from "@mui/icons-material/Attachment";
 import DeleteIcon from "@mui/icons-material/Delete";
 import "../assets/file-uploader.css";
 
-let FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
+const FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
   const hiddenFileInput = useRef(null);
   const [file, setFile] = useState(null);
 

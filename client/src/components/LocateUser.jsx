@@ -8,11 +8,6 @@ const LocateUser = ({ onUserLocation, setIsLoading }) => {
   const [position, setPosition] = useState(null);
   const firstFlyBy = useRef(true);
 
-  const userIcon = L.icon({
-    iconUrl: myLocationMarker,
-    iconSize: [38, 95],
-  });
-
   useEffect(() => {
     firstFlyBy.current && setIsLoading(true);
     const intervalId = setInterval(() => {
@@ -30,6 +25,11 @@ const LocateUser = ({ onUserLocation, setIsLoading }) => {
 
     return () => clearInterval(intervalId); // cleanup on unmount
   }, [map]);
+
+  const userIcon = L.icon({
+    iconUrl: myLocationMarker,
+    iconSize: [38, 95],
+  });
 
   return position === null ? null : (
     <Marker position={position} icon={userIcon} />

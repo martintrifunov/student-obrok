@@ -28,6 +28,49 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      const response = await axios.post(
+        "/login",
+        JSON.stringify({
+          username,
+          password,
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      const accessToken = response?.data?.accessToken;
+
+      setAuth({ username, accessToken });
+      setUsername("");
+      setPassword("");
+
+      navigate(from, { replace: true });
+    } catch (err) {
+      if (!err?.response) {
+        setError("No Server Response");
+      } else if (err.response?.status === 400) {
+        setError("Missing Username or Password");
+      } else if (err.response?.status === 401) {
+        setError("Unauthorized");
+      } else {
+        setError("Login Failed");
+      }
+    }
+  };
+
+  const togglePersist = () => {
+    setPersist((prev) => !prev);
+  };
+
+  useEffect(() => {
+    localStorage.setItem("persist", persist);
+  }, [persist]);
+
   const paperStyle = {
     display: "flex",
     flexDirection: "column",
@@ -72,49 +115,6 @@ const Login = () => {
     justifyContent: "flex-end",
     alignItems: "flex-end",
   };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    try {
-      const response = await axios.post(
-        "/login",
-        JSON.stringify({
-          username,
-          password,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
-      );
-
-      const accessToken = response?.data?.accessToken;
-
-      setAuth({ username, accessToken });
-      setUsername("");
-      setPassword("");
-
-      navigate(from, { replace: true });
-    } catch (err) {
-      if (!err?.response) {
-        setError("No Server Response");
-      } else if (err.response?.status === 400) {
-        setError("Missing Username or Password");
-      } else if (err.response?.status === 401) {
-        setError("Unauthorized");
-      } else {
-        setError("Login Failed");
-      }
-    }
-  };
-
-  const togglePersist = () => {
-    setPersist((prev) => !prev);
-  };
-
-  useEffect(() => {
-    localStorage.setItem("persist", persist);
-  }, [persist]);
 
   return (
     <ThemeProvider theme={theme}>
