@@ -1,22 +1,82 @@
+# version: "3.8"
+
+# services:
+#   student-obrok-client:
+#     build: ./src/client
+#     container_name: student-obrok-client
+#     ports:
+#       - "5173:5173"
+#     depends_on:
+#       - student-obrok-server
+#     networks:
+#       - student-obrok-network
+
+#   student-obrok-server:
+#     build: ./src/server
+#     container_name: student-obrok-server
+#     restart: always
+#     ports:
+#       - "8080:8080"
+#     depends_on: 
+#       - student-obrok-db
+#     networks:
+#       - student-obrok-network
+
+#   student-obrok-db:
+#     image: mongo:latest
+#     container_name: student-obrok-db
+#     restart: unless-stopped
+#     ports:
+#       - "6969:27017"
+#     volumes:
+#       - "/data/mongo-db:/data/db"
+#     networks:
+#       - student-obrok-network
+
+# networks:
+#   student-obrok-network:
+#     driver: bridge
 version: "3.8"
 
 services:
-  # student-obrok-client:
-  #   image: student-obrok-client:latest
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - student-obrok-server
-  # student-obrok-server:
-  #   image: student-obrok-server:latest
-  #   ports:
-  #     - "6969:6969"
-  #   depends_on: 
-  #     - student-obrok-db
-  student-obrok-db:
-    image: mongo:latest
+  db:
+    image: "mongo:latest"
     restart: unless-stopped
-    ports:
-      - "6969:27017"
     volumes:
       - "/data/mongo-db:/data/db"
+  nginx:
+    depends_on:
+      - api
+      - client
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./src/nginx
+    ports:
+      - "3050:3051"
+  api:
+    build:
+      dockerfile: Dockerfile.dev
+      context: "./src/server"
+    volumes:
+      - /app/node_modules
+      - ./src/server:/app
+    restart: always
+    depends_on: 
+      - db
+    # environment:
+    #   - PGUSER=postgres
+    #   - PGHOST=postgres
+    #   - PGDATABASE=postgres
+    #   - PGPASSWORD=postgres_password
+    #   - PGPORT=5432
+  client:
+    stdin_open: true
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./src/client
+    volumes:
+      - /app/node_modules
+      - ./src/client:/app
+    depends_on:
+      - api

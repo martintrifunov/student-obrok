@@ -8,7 +8,6 @@ import connectDB from "./config/connectDB.js";
 import credentials from "./middleware/credentials.js";
 import corsOptions from "./config/corsOptions.js";
 import cookieParser from "cookie-parser";
-import verifyJWT from "./middleware/verifyJWT.js";
 import { refreshTokenRouter } from "./routes/api/refresh.js";
 import { logoutRouter } from "./routes/api/logout.js";
 const PORT = process.env.PORT || 8080;
