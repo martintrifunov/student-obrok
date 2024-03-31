@@ -8,4 +8,6 @@ RUN npm install
 
 COPY . .
 
-CMD ["npm", "run", "server"]
+EXPOSE 5000
+
+ENTRYPOINT [ "node", "./src/app.js" ]

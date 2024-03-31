@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  # nginx:
+  #   depends_on:
+  #     - api
+  #     - client
+  #     - db
+  #   restart: always
+  #   build:
+  #     dockerfile: Dockerfile.dev
+  #     context: ./src/nginx
+  #   ports:
+  #     - "3050:3051"
+  
+  client:
+    stdin_open: true
+    tty: true
+    build:
+      dockerfile: Dockerfile.prod
+      context: ./src/client
+    volumes:
+      - /app/node_modules
+      - ./src/client:/app
+    ports:
+      - 3500:3500
+    depends_on:
+      - api
+
+  api:
+    build:
+      dockerfile: Dockerfile.prod
+      context: "./src/server"
+    volumes:
+      - /app/node_modules
+      - ./src/server:/app
+    restart: always
+    ports:
+      - 5000:5000
+    depends_on: 
+      - db
+    # environment:
+    #   - PGUSER=postgres
+    #   - PGHOST=postgres
+    #   - PGDATABASE=postgres
+    #   - PGPASSWORD=postgres_password
+    #   - PGPORT=5432
+
+  db:
+    image: "mongo:latest"
+    restart: unless-stopped
+    volumes:
+      - "/data/mongo-db:/data/db"
+    ports:
+      - 6969:2717

@@ -10,7 +10,7 @@ import corsOptions from "./config/corsOptions.js";
 import cookieParser from "cookie-parser";
 import { refreshTokenRouter } from "./routes/api/refresh.js";
 import { logoutRouter } from "./routes/api/logout.js";
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 
