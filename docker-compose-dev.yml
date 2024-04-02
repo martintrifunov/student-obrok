@@ -10,6 +10,8 @@ services:
     volumes:
       - /app/node_modules
       - ./src/client:/app
+    env_file:
+      - ./src/client/.env
     depends_on:
       - api
     ports: 
@@ -22,22 +24,22 @@ services:
     volumes:
       - /app/node_modules
       - ./src/server:/app
+    env_file:
+      - ./src/server/.env
     restart: always
     depends_on: 
       - db
-    # environment:
-    #   - PGUSER=postgres
-    #   - PGHOST=postgres
-    #   - PGDATABASE=postgres
-    #   - PGPASSWORD=postgres_password
-    #   - PGPORT=5432
     ports: 
       - 5000:5000
 
   db:
-    image: "mongo:latest"
-    restart: unless-stopped
+    image: mongo:latest
+    ports:
+      - "6969:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 123
+      MONGO_INITDB_DATABASE: studentObrokDb
     volumes:
-      - "/data/mongo-db:/data/db"
-    ports: 
-      - 6969:2717
+      - "/data/studentObrokDb:/data/db"
