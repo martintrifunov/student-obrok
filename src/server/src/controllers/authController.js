@@ -10,10 +10,11 @@ const handleLogin = async (req, res) => {
       .status(400)
       .json({ message: "Username and password are required." });
 
-  const foundUser = await UserModel.findOne({ username }).exec();
+  const foundUser = await UserModel.findOne({ username: username.toString() }).exec();
   if (!foundUser) return res.sendStatus(401); //Unauthorized
+
   // evaluate password
-  const match = await bcrypt.compare(password, foundUser.password);
+  const match = await bcrypt.compare(password.toString(), foundUser.password);
   if (match) {
     // create JWTs
     const accessToken = jwt.sign(
