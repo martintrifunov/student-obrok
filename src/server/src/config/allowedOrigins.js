@@ -1,7 +1,7 @@
 const allowedOrigins = [
-    'http://localhost:3500',
-    'http://localhost:5000',
-    'http://localhost:6969'
+  process.env.CLIENT_ORIGIN,
+  process.env.SERVER_ORIGIN,
+  process.env.DATABASE_ORIGIN,
 ];
 
 export default allowedOrigins;

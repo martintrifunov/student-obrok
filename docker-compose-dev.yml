@@ -29,6 +29,9 @@ services:
       PORT: "${PORT}"
       ADMIN_USERNAME: "${ADMIN_USERNAME}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      CLIENT_ORIGIN: "${CLIENT_ORIGIN}"
+      SERVER_ORIGIN: "${SERVER_ORIGIN}"
+      DATABASE_ORIGIN: "${DATABASE_ORIGIN}"
     restart: always
     depends_on: 
       - db
