@@ -12,6 +12,7 @@ import corsOptions from "./config/corsOptions.js";
 import cookieParser from "cookie-parser";
 import { refreshTokenRouter } from "./routes/api/refresh.js";
 import { logoutRouter } from "./routes/api/logout.js";
+import { vendorsRouter } from "./routes/api/vendors.js";
 const PORT = process.env.PORT || 5000;
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api", authRouter);
 app.use("/api", refreshTokenRouter);
 app.use("/api", logoutRouter);
 app.use("/api", dealsRouter);
+app.use("/api", vendorsRouter);
 
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
