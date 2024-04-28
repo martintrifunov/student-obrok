@@ -23,14 +23,15 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
-const DealsList = ({ theme, searchTerm }) => {
+const VendorstList = ({ theme, searchTerm }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
-  const [deals, setDeals] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [isRemoving, setIsRemoving] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -40,10 +41,10 @@ const DealsList = ({ theme, searchTerm }) => {
     const controller = new AbortController();
     setIsLoading(true);
 
-    const fetchDeal = async () => {
+    const fetchVendors = async () => {
       try {
         const response = await axios.get(
-          "/deals",
+          "/vendors",
           {
             signal: controller.signal,
           },
@@ -52,7 +53,7 @@ const DealsList = ({ theme, searchTerm }) => {
             withCredentials: true,
           }
         );
-        isMounted && setDeals(response.data);
+        isMounted && setVendors(response.data);
         setIsLoading(false);
       } catch (error) {
         setError(error.response.data.message);
@@ -60,7 +61,7 @@ const DealsList = ({ theme, searchTerm }) => {
       }
     };
 
-    fetchDeal();
+    fetchVendors();
 
     return () => {
       isMounted = false;
@@ -74,7 +75,9 @@ const DealsList = ({ theme, searchTerm }) => {
     const controller = new AbortController();
 
     if (isRemoving) {
-      let confirmed = confirm("Are you sure you want to remove this deal?");
+      let confirmed = confirm(
+        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the deals that are by this vendor."
+      );
 
       if (!confirmed) {
         return;
@@ -82,11 +85,11 @@ const DealsList = ({ theme, searchTerm }) => {
 
       setIsLoading(true);
 
-      const removeDeal = async (dealId) => {
+      const removeVendor = async (vendorId) => {
         try {
-          await axiosPrivate.delete("/deals", {
+          await axiosPrivate.delete("/vendors", {
             data: JSON.stringify({
-              id: dealId,
+              id: vendorId,
             }),
             signal: controller.signal,
           });
@@ -96,10 +99,10 @@ const DealsList = ({ theme, searchTerm }) => {
         }
       };
 
-      const fetchDeal = async () => {
+      const fetchVendors = async () => {
         try {
           const response = await axios.get(
-            "/deals",
+            "/vendors",
             {
               signal: controller.signal,
             },
@@ -108,14 +111,14 @@ const DealsList = ({ theme, searchTerm }) => {
               withCredentials: true,
             }
           );
-          isMounted && setDeals(response.data);
+          isMounted && setVendors(response.data);
           setIsLoading(false);
         } catch (error) {
           setError(error.response.data.message);
         }
       };
 
-      removeDeal(isRemoving).then(fetchDeal);
+      removeVendor(isRemoving).then(fetchVendors);
     }
 
     return () => {
@@ -129,18 +132,18 @@ const DealsList = ({ theme, searchTerm }) => {
     setPage(newPage);
   };
 
-  const handleEditDeal = (dealId) => {
-    navigate(`/dashboard/deal/${dealId}`);
+  const handleEditVendor = (dealId) => {
+    navigate(`/dashboard/vendor/${dealId}`);
   };
 
-  const searchTermInDeal = (deal, term) => {
+  const searchTermInVendor = (deal, term) => {
     return Object.values(deal).some((value) =>
       value?.toString().toLowerCase().includes(term.toLowerCase())
     );
   };
 
-  const filteredDeals = deals.filter((deal) =>
-    searchTermInDeal(deal, searchTerm)
+  const filteredVendors = vendors.filter((deal) =>
+    searchTermInVendor(deal, searchTerm)
   );
 
   const tableStyle = {
@@ -155,13 +158,6 @@ const DealsList = ({ theme, searchTerm }) => {
     width: "100vw",
     display: "flex",
     justifyContent: "center",
-  };
-
-  const tldrStyle = {
-    maxWidth: isSmallScreen ? "200px" : "300px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
   };
 
   const tableHeaderCellStyle = {
@@ -179,60 +175,65 @@ const DealsList = ({ theme, searchTerm }) => {
     textTransform: "none",
   };
 
+  console.log(vendors);
   return (
     <>
       {isSmallScreen ? (
         <Grid container spacing={2}>
           {!isLoading
-            ? filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
-                <Grid item xs={12} key={deal._id}>
-                  <Card sx={{ marginTop: 2 }}>
-                    <CardContent>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                          {deal.title}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2" style={tldrStyle}>
-                          <strong>Description:</strong> {deal.description}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2">
-                          <strong>Price:</strong>
-                          {deal.price}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center" marginTop={2}>
-                        <DashboardImageModal
-                          variant={"contained"}
-                          image={deal.image}
-                          imageTitle={deal.imageTitle}
-                        />
-                        <Button
-                          variant="contained"
-                          onClick={() => handleEditDeal(deal._id)}
-                          style={editButtonStyle}
+            ? filteredVendors
+                .slice(page * 5, page * 5 + 5)
+                .map((vendor, index) => (
+                  <Grid item xs={12} key={vendor._id}>
+                    <Card sx={{ marginTop: 2 }}>
+                      <CardContent>
+                        <Box display="flex" justifyContent="center">
+                          <Typography
+                            variant="h6"
+                            style={{ fontWeight: "bold" }}
+                          >
+                            {vendor.name}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" justifyContent="center">
+                          <Typography variant="body2">
+                            <strong>Location:</strong>{" "}
+                            {vendor.location.join(", ")}
+                          </Typography>
+                        </Box>
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          marginTop={2}
                         >
-                          <EditIcon />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="inherit"
-                          onClick={() => setIsRemoving(deal._id)}
-                          style={removeButtonStyle}
-                        >
-                          <DeleteIcon />
-                          Remove
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))
-            : Array(Math.min(5, filteredDeals.length))
+                          <DashboardImageModal
+                            variant={"contained"}
+                            image={vendor.image}
+                            imageTitle={vendor.imageTitle}
+                          />
+                          <Button
+                            variant="contained"
+                            onClick={() => handleEditVendor(vendor._id)}
+                            style={editButtonStyle}
+                          >
+                            <EditIcon />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="inherit"
+                            onClick={() => setIsRemoving(vendor._id)}
+                            style={removeButtonStyle}
+                          >
+                            <DeleteIcon />
+                            Remove
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+            : Array(Math.min(5, filteredVendors.length))
                 .fill()
                 .map((_, index) => (
                   <Grid item xs={12} key={index}>
@@ -266,12 +267,10 @@ const DealsList = ({ theme, searchTerm }) => {
               <TableHead>
                 <TableRow>
                   <TableCell style={tableHeaderCellStyle}>#</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Title</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>
-                    Description
-                  </TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Price</TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Name</TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Location</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Deals</TableCell>
                   <TableCell
                     style={{ ...tableHeaderCellStyle, textAlign: "right" }}
                   >
@@ -282,21 +281,28 @@ const DealsList = ({ theme, searchTerm }) => {
               <TableBody>
                 {!isLoading ? (
                   <>
-                    {filteredDeals
+                    {filteredVendors
                       .slice(page * 5, page * 5 + 5)
-                      .map((deal, index) => (
-                        <TableRow key={deal._id}>
+                      .map((vendor, index) => (
+                        <TableRow key={vendor._id}>
                           <TableCell>{index + 1}</TableCell>
-                          <TableCell>{deal.title}</TableCell>
-                          <TableCell style={tldrStyle}>
-                            {deal.description}
-                          </TableCell>
-                          <TableCell>{deal.price}</TableCell>
+                          <TableCell>{vendor.name}</TableCell>
+                          <TableCell>{vendor.location.join(", ")}</TableCell>
                           <TableCell>
                             <DashboardImageModal
-                              imageTitle={deal.imageTitle}
-                              image={deal.image}
+                              imageTitle={vendor.imageTitle}
+                              image={vendor.image}
                             />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              color="inherit"
+                              sx={{ textTransform: "none" }}
+                              onClick={() => handleEditVendor(vendor._id)}
+                            >
+                              <LocalOfferIcon sx={{ marginRight: 1 }} />
+                              View
+                            </Button>
                           </TableCell>
                           <TableCell style={{ textAlign: "right" }}>
                             <IconButton
@@ -316,7 +322,7 @@ const DealsList = ({ theme, searchTerm }) => {
                       ))}
                   </>
                 ) : (
-                  Array(Math.min(5, filteredDeals.length))
+                  Array(Math.min(5, filteredVendors.length))
                     .fill()
                     .map((_, index) => (
                       <TableRow key={index}>
@@ -338,7 +344,7 @@ const DealsList = ({ theme, searchTerm }) => {
             </Table>
             <TablePagination
               component="div"
-              count={deals.length}
+              count={vendors.length}
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={5}
@@ -351,4 +357,4 @@ const DealsList = ({ theme, searchTerm }) => {
   );
 };
 
-export default DealsList;
+export default VendorstList;

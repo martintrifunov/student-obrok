@@ -6,17 +6,10 @@ import {
   InputAdornment,
   useMediaQuery,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import { useNavigate } from "react-router-dom";
 
-const DealsToolbar = ({ theme, handleSearchChange }) => {
+const VendorSearchBar = ({ theme, handleSearchChange }) => {
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const navigate = useNavigate();
-
-  const handleAddDeal = () => {
-    navigate("/dashboard/deal");
-  };
 
   const gridStyle = {
     display: "flex",
@@ -26,16 +19,11 @@ const DealsToolbar = ({ theme, handleSearchChange }) => {
     marginTop: "10vh",
   };
 
-  const buttonStyle = {
-    textTransform: "none",
-    backgroundColor: "black",
-  };
-
   return (
     <Grid style={gridStyle}>
       <TextField
         hiddenLabel
-        placeholder="Search deals..."
+        placeholder="Search vendors..."
         variant="outlined"
         onChange={handleSearchChange}
         sx={{
@@ -58,16 +46,8 @@ const DealsToolbar = ({ theme, handleSearchChange }) => {
           ),
         }}
       />
-      <Button
-        variant="contained"
-        style={buttonStyle}
-        onClick={() => handleAddDeal()}
-      >
-        <AddIcon />
-        Add Deal
-      </Button>
     </Grid>
   );
 };
 
-export default DealsToolbar;
+export default VendorSearchBar;
