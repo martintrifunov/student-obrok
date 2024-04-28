@@ -1,12 +1,18 @@
+import { DealModel } from "../models/Deals.js";
 import { VendorModel } from "../models/Vendors.js";
 import mongoose from "mongoose";
 
 const getAllVendors = async (req, res) => {
-  const vendors = await VendorModel.find().populate("deals");
+  try {
+    const vendors = await VendorModel.find().populate("deals");
 
-  if (!vendors) return res.status(204).json({ message: "No vendors found." });
+    if (!vendors) return res.status(204).json({ message: "No vendors found." });
 
-  res.json(vendors);
+    res.status(200).json(vendors);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
 };
 
 const createNewVendor = async (req, res) => {
@@ -17,7 +23,9 @@ const createNewVendor = async (req, res) => {
   if (
     !req?.body?.location ||
     req?.body?.location[0] === "" ||
-    req?.body?.location[1] === ""
+    req?.body?.location[1] === "" ||
+    !req?.body.location[0] ||
+    !req?.body.location[1]
   ) {
     return res
       .status(400)
@@ -29,11 +37,9 @@ const createNewVendor = async (req, res) => {
   }
 
   if (req?.body?.deals) {
-    req.body.deals.forEach((deal) => {
-      if (!mongoose.Types.ObjectId.isValid(deal.id)) {
-        return res.status(400).json({ message: "Invalid Deal ID format." });
-      }
-    });
+    return res
+      .status(400)
+      .json({ message: "Can't attach deals when creating vendor!" });
   }
 
   try {
@@ -42,12 +48,13 @@ const createNewVendor = async (req, res) => {
       location: req.body.location,
       image: req.body.image,
       imageTitle: req.body.imageTitle,
-      deals: req.body.deals,
+      deals: null,
     });
 
     res.status(201).json(result);
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -60,30 +67,26 @@ const updateVendor = async (req, res) => {
     return res.status(400).json({ message: "Invalid ID format." });
   }
 
-  const vendor = await VendorModel.findOne({ _id: req.body.id }).exec();
+  try {
+    const vendor = await VendorModel.findOne({ _id: req.body.id }).exec();
 
-  if (!vendor) {
-    return res
-      .status(204)
-      .json({ message: `No vendor matches ID ${req.body.id}.` });
+    if (!vendor) {
+      return res
+        .status(404)
+        .json({ message: `No vendor matches ID ${req.body.id}.` });
+    }
+
+    if (req.body?.name) vendor.name = req.body.name;
+    if (req.body?.location) vendor.location = req.body.location;
+    if (req.body?.image) vendor.image = req.body.image;
+    if (req.body?.imageTitle) vendor.imageTitle = req.body.imageTitle;
+
+    const result = await vendor.save();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
   }
-
-  if (req.body?.name) vendor.name = req.body.name;
-  if (req.body?.location) vendor.location = req.body.location;
-  if (req.body?.image) vendor.image = req.body.image;
-  if (req.body?.imageTitle) vendor.imageTitle = req.body.imageTitle;
-  if (req.body?.deals) {
-    req.body.deals.forEach((deal) => {
-      if (!mongoose.Types.ObjectId.isValid(deal.id)) {
-        return res.status(400).json({ message: "Invalid Deal ID format." });
-      }
-    });
-
-    vendor.deals = req.body.deals;
-  }
-
-  const result = await vendor.save();
-  res.json(result);
 };
 
 const deleteVendor = async (req, res) => {
@@ -94,15 +97,29 @@ const deleteVendor = async (req, res) => {
     return res.status(400).json({ message: "Invalid ID format." });
   }
 
-  const vendor = await VendorModel.findOne({ _id: req.body.id }).exec();
+  try {
+    const vendor = await VendorModel.findOne({ _id: req.body.id }).exec();
 
-  if (!vendor) {
-    return res
-      .status(204)
-      .json({ message: `No vendor matches ID ${req.body.id}.` });
+    if (!vendor) {
+      return res
+        .status(404)
+        .json({ message: `No vendor matches ID ${req.body.id}.` });
+    }
+
+    if (vendor.deals && vendor.deals.length > 0) {
+      // Retrieve all deal IDs associated with the vendor
+      const dealIds = vendor.deals;
+
+      // Delete all deal documents corresponding to the retrieved deal IDs
+      await DealModel.deleteMany({ _id: { $in: dealIds } }).exec();
+    }
+
+    const result = await vendor.deleteOne();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
   }
-  const result = await vendor.deleteOne();
-  res.json(result);
 };
 
 const getVendor = async (req, res) => {
@@ -113,17 +130,22 @@ const getVendor = async (req, res) => {
     return res.status(400).json({ message: "Invalid ID format." });
   }
 
-  const vendor = await VendorModel.findOne({ _id: req.params.id })
-    .populate("deals")
-    .exec();
+  try {
+    const vendor = await VendorModel.findOne({ _id: req.params.id })
+      .populate("deals")
+      .exec();
 
-  if (!vendor) {
-    return res
-      .status(204)
-      .json({ message: `No vendor matches ID ${req.params.id}.` });
+    if (!vendor) {
+      return res
+        .status(404)
+        .json({ message: `No vendor matches ID ${req.params.id}.` });
+    }
+
+    res.status(200).json(vendor);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
   }
-
-  res.json(vendor);
 };
 
 const vendorsController = {
