@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { MapContainer, TileLayer } from "react-leaflet";
-import DealMarkers from "../components/DealMarkers";
 import "leaflet/dist/leaflet.css";
 import "../assets/map.css";
 import LocateUser from "../components/LocateUser";
@@ -9,11 +8,12 @@ import { Button } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import CreditMarker from "../components/CreditMarker";
+import VendorMarkers from "../components/VendorMarkers";
 
 const Map = () => {
   const position = [42.00430265307896, 21.409471852749466];
   const [userLocation, setUserLocation] = useState(null);
-  const [dealLocation, setDealLocation] = useState(null);
+  const [vendorLocation, setVendorLocation] = useState(null);
   const [isDisabledRoutingButton, changeIsDisabledRoutingButton] =
     useState(false);
   const [route, setRoute] = useState(null);
@@ -23,15 +23,15 @@ const Map = () => {
     setUserLocation(location);
   };
 
-  const handleDealLocation = (location) => {
+  const handleVendorLocation = (location) => {
     setRoute({ start: userLocation, end: location });
-    setDealLocation(location);
+    setVendorLocation(location);
     changeIsDisabledRoutingButton(true);
   };
 
   const handleCancelRoute = () => {
     setRoute(null);
-    setDealLocation(null);
+    setVendorLocation(null);
     changeIsDisabledRoutingButton(false);
   };
 
@@ -60,8 +60,8 @@ const Map = () => {
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <DealMarkers
-            onDealLocation={handleDealLocation}
+          <VendorMarkers
+            onVendorLocation={handleVendorLocation}
             isDisabledRoutingButton={isDisabledRoutingButton}
           />
           <CreditMarker />
