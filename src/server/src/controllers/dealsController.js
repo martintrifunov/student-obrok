@@ -2,7 +2,7 @@ import { DealModel } from "../models/Deals.js";
 import mongoose from "mongoose";
 
 const getAllDeals = async (req, res) => {
-  const deals = await DealModel.find();
+  const deals = await DealModel.find().populate("vendor");
 
   if (!deals) return res.status(204).json({ message: "No deals found." });
 
@@ -12,20 +12,6 @@ const getAllDeals = async (req, res) => {
 const createNewDeal = async (req, res) => {
   if (!req?.body?.title) {
     return res.status(400).json({ message: "Title is required!" });
-  }
-
-  if (!req?.body?.locationName) {
-    return res.status(400).json({ message: "Location name is required!" });
-  }
-
-  if (
-    !req?.body?.location ||
-    req?.body?.location[0] === "" ||
-    req?.body?.location[1] === ""
-  ) {
-    return res
-      .status(400)
-      .json({ message: "Location coordinates are required!" });
   }
 
   if (!req?.body?.description) {
@@ -40,6 +26,14 @@ const createNewDeal = async (req, res) => {
     return res.status(400).json({ message: "Cover image is required!" });
   }
 
+  if (!req?.body?.vendor) {
+    return res.status(400).json({ message: "Vendor is required!" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(req.body.vendor)) {
+    return res.status(400).json({ message: "Invalid Vendor ID format." });
+  }
+
   try {
     const result = await DealModel.create({
       title: req.body.title,
@@ -49,6 +43,7 @@ const createNewDeal = async (req, res) => {
       price: req.body.price,
       image: req.body.image,
       imageTitle: req.body.imageTitle,
+      vendor: req.body.vendor,
     });
 
     res.status(201).json(result);
@@ -75,12 +70,17 @@ const updateDeal = async (req, res) => {
   }
 
   if (req.body?.title) deal.title = req.body.title;
-  if (req.body?.locationName) deal.locationName = req.body.locationName;
-  if (req.body?.location) deal.location = req.body.location;
   if (req.body?.description) deal.description = req.body.description;
   if (req.body?.price) deal.price = req.body.price;
   if (req.body?.image) deal.image = req.body.image;
   if (req.body?.imageTitle) deal.imageTitle = req.body.imageTitle;
+  if (req.body?.vendor) {
+    if (!mongoose.Types.ObjectId.isValid(req.body.vendor.id)) {
+      return res.status(400).json({ message: "Invalid Vendor ID format." });
+    }
+
+    deal.vendor = req.body.vendor;
+  }
 
   const result = await deal.save();
   res.json(result);
@@ -113,7 +113,9 @@ const getDeal = async (req, res) => {
     return res.status(400).json({ message: "Invalid ID format." });
   }
 
-  const deal = await DealModel.findOne({ _id: req.params.id }).exec();
+  const deal = await DealModel.findOne({ _id: req.params.id })
+    .populate("vendor")
+    .exec();
 
   if (!deal) {
     return res
