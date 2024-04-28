@@ -32,9 +32,68 @@ const VendorstList = ({ theme, searchTerm }) => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [vendors, setVendors] = useState([]);
-  const [isRemoving, setIsRemoving] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [triggerFetch, setTriggerFetch] = useState(false);
+
+  const handleRemoveVendor = async (vendorId) => {
+    let confirmed = window.confirm(
+      "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the deals that are by this vendor."
+    );
+  
+    if (!confirmed) {
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      await axiosPrivate.delete("/vendors", {
+        data: JSON.stringify({
+          id: vendorId,
+        }),
+      });
+      // Trigger a re-render to fetch the updated list of vendors
+      setTriggerFetch(!triggerFetch);
+    } catch (error) {
+      setError(error.response.data.message);
+      navigate("/login", { state: { from: location }, replace: true });
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    setIsLoading(true);
+
+    const fetchVendors = async () => {
+      try {
+        const response = await axios.get(
+          "/vendors",
+          {
+            signal: controller.signal,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        isMounted && setVendors(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error.response.data.message);
+        navigate("/login", { state: { from: location }, replace: true });
+      }
+    };
+
+    fetchVendors();
+
+    return () => {
+      isMounted = false;
+      setIsLoading(false);
+      controller.abort();
+    };
+  }, [triggerFetch]);
 
   useEffect(() => {
     let isMounted = true;
@@ -69,64 +128,6 @@ const VendorstList = ({ theme, searchTerm }) => {
       controller.abort();
     };
   }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    if (isRemoving) {
-      let confirmed = confirm(
-        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the deals that are by this vendor."
-      );
-
-      if (!confirmed) {
-        return;
-      }
-
-      setIsLoading(true);
-
-      const removeVendor = async (vendorId) => {
-        try {
-          await axiosPrivate.delete("/vendors", {
-            data: JSON.stringify({
-              id: vendorId,
-            }),
-            signal: controller.signal,
-          });
-        } catch (error) {
-          setError(error.response.data.message);
-          navigate("/login", { state: { from: location }, replace: true });
-        }
-      };
-
-      const fetchVendors = async () => {
-        try {
-          const response = await axios.get(
-            "/vendors",
-            {
-              signal: controller.signal,
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-              withCredentials: true,
-            }
-          );
-          isMounted && setVendors(response.data);
-          setIsLoading(false);
-        } catch (error) {
-          setError(error.response.data.message);
-        }
-      };
-
-      removeVendor(isRemoving).then(fetchVendors);
-    }
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-      setIsLoading(false);
-    };
-  }, [isRemoving]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -175,7 +176,6 @@ const VendorstList = ({ theme, searchTerm }) => {
     textTransform: "none",
   };
 
-  console.log(vendors);
   return (
     <>
       {isSmallScreen ? (
@@ -222,7 +222,7 @@ const VendorstList = ({ theme, searchTerm }) => {
                           <Button
                             variant="outlined"
                             color="inherit"
-                            onClick={() => setIsRemoving(vendor._id)}
+                            onClick={() => handleRemoveVendor(vendor._id)}
                             style={removeButtonStyle}
                           >
                             <DeleteIcon />
@@ -313,7 +313,7 @@ const VendorstList = ({ theme, searchTerm }) => {
                             </IconButton>
                             <IconButton
                               color="inherit"
-                              onClick={() => setIsRemoving(vendor._id)}
+                              onClick={() => handleRemoveVendor(vendor._id)}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -326,7 +326,7 @@ const VendorstList = ({ theme, searchTerm }) => {
                     .fill()
                     .map((_, index) => (
                       <TableRow key={index}>
-                        {Array(7)
+                        {Array(6)
                           .fill()
                           .map((_, index) => (
                             <TableCell key={index}>

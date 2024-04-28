@@ -4,6 +4,7 @@ import SearchIcon from "@mui/icons-material/Search";
 
 const DealSearchBar = ({ theme, handleSearchChange }) => {
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <TextField
@@ -21,6 +22,8 @@ const DealSearchBar = ({ theme, handleSearchChange }) => {
           color: "black",
         },
         width: isMediumScreen ? "50%" : "15%",
+        marginTop: isSmallScreen && "5vh",
+        marginLeft: "1vw",
       }}
       size="small"
       InputProps={{

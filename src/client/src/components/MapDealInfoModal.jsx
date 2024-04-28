@@ -22,7 +22,7 @@ const MapDealInfoModal = ({ deals }) => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const dealsPerPage = 3;
-  const totalPages = Math.ceil(deals.length / dealsPerPage);
+  const totalPages = deals !== null ? Math.ceil(deals.length / dealsPerPage) : 0;
 
   const handleChange = (event, value) => {
     setPage(value);
@@ -77,7 +77,7 @@ const MapDealInfoModal = ({ deals }) => {
           <Fade in={open}>
             <Box sx={style}>
               {deals
-                .slice((page - 1) * dealsPerPage, page * dealsPerPage)
+                ?.slice((page - 1) * dealsPerPage, page * dealsPerPage)
                 .map((deal, index) => (
                   <div key={index}>
                     <Typography

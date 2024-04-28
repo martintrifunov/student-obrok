@@ -31,9 +31,68 @@ const DealsList = ({ theme, searchTerm }) => {
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [deals, setDeals] = useState([]);
-  const [isRemoving, setIsRemoving] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [triggerFetch, setTriggerFetch] = useState(false);
+
+  const handleRemoveDeal = async (dealId) => {
+    let confirmed = window.confirm(
+      "Are you sure you want to remove this deal?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await axiosPrivate.delete("/deals", {
+        data: JSON.stringify({
+          id: dealId,
+        }),
+      });
+      // Trigger a re-render to fetch the updated list of deals
+      setTriggerFetch(!triggerFetch);
+    } catch (error) {
+      setError(error.response.data.message);
+      navigate("/login", { state: { from: location }, replace: true });
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    setIsLoading(true);
+
+    const fetchDeal = async () => {
+      try {
+        const response = await axios.get(
+          "/deals",
+          {
+            signal: controller.signal,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        );
+        isMounted && setDeals(response.data);
+        setIsLoading(false);
+      } catch (error) {
+        setError(error.response.data.message);
+        navigate("/login", { state: { from: location }, replace: true });
+      }
+    };
+
+    fetchDeal();
+
+    return () => {
+      isMounted = false;
+      setIsLoading(false);
+      controller.abort();
+    };
+  }, [triggerFetch]);
 
   useEffect(() => {
     let isMounted = true;
@@ -68,62 +127,6 @@ const DealsList = ({ theme, searchTerm }) => {
       controller.abort();
     };
   }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    if (isRemoving) {
-      let confirmed = confirm("Are you sure you want to remove this deal?");
-
-      if (!confirmed) {
-        return;
-      }
-
-      setIsLoading(true);
-
-      const removeDeal = async (dealId) => {
-        try {
-          await axiosPrivate.delete("/deals", {
-            data: JSON.stringify({
-              id: dealId,
-            }),
-            signal: controller.signal,
-          });
-        } catch (error) {
-          setError(error.response.data.message);
-          navigate("/login", { state: { from: location }, replace: true });
-        }
-      };
-
-      const fetchDeal = async () => {
-        try {
-          const response = await axios.get(
-            "/deals",
-            {
-              signal: controller.signal,
-            },
-            {
-              headers: { "Content-Type": "application/json" },
-              withCredentials: true,
-            }
-          );
-          isMounted && setDeals(response.data);
-          setIsLoading(false);
-        } catch (error) {
-          setError(error.response.data.message);
-        }
-      };
-
-      removeDeal(isRemoving).then(fetchDeal);
-    }
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-      setIsLoading(false);
-    };
-  }, [isRemoving]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -221,7 +224,7 @@ const DealsList = ({ theme, searchTerm }) => {
                         <Button
                           variant="outlined"
                           color="inherit"
-                          onClick={() => setIsRemoving(deal._id)}
+                          onClick={() => handleRemoveDeal(deal._id)}
                           style={removeButtonStyle}
                         >
                           <DeleteIcon />
@@ -301,13 +304,13 @@ const DealsList = ({ theme, searchTerm }) => {
                           <TableCell style={{ textAlign: "right" }}>
                             <IconButton
                               color="inherit"
-                              onClick={() => handleEditVendor(vendor._id)}
+                              onClick={() => handleEditVendor(deal._id)}
                             >
                               <EditIcon />
                             </IconButton>
                             <IconButton
                               color="inherit"
-                              onClick={() => setIsRemoving(vendor._id)}
+                              onClick={() => handleRemoveDeal(deal._id)}
                             >
                               <DeleteIcon />
                             </IconButton>
@@ -320,7 +323,7 @@ const DealsList = ({ theme, searchTerm }) => {
                     .fill()
                     .map((_, index) => (
                       <TableRow key={index}>
-                        {Array(7)
+                        {Array(6)
                           .fill()
                           .map((_, index) => (
                             <TableCell key={index}>
