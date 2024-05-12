@@ -24,16 +24,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
 
-const DealsList = ({ theme, searchTerm }) => {
+const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
-  const [deals, setDeals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [triggerFetch, setTriggerFetch] = useState(false);
 
   const handleRemoveDeal = async (dealId) => {
     let confirmed = window.confirm(
@@ -52,47 +50,19 @@ const DealsList = ({ theme, searchTerm }) => {
           id: dealId,
         }),
       });
-      // Trigger a re-render to fetch the updated list of deals
-      setTriggerFetch(!triggerFetch);
+
+      const dealsResponse = await axios.get("/deals", {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+
+      setDeals(dealsResponse.data);
+      setIsLoading(false);
     } catch (error) {
       setError(error.response.data.message);
       navigate("/login", { state: { from: location }, replace: true });
     }
   };
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchDeal = async () => {
-      try {
-        const response = await axios.get(
-          "/deals",
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
-        );
-        isMounted && setDeals(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error.response.data.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchDeal();
-
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, [triggerFetch]);
 
   useEffect(() => {
     let isMounted = true;
@@ -275,6 +245,7 @@ const DealsList = ({ theme, searchTerm }) => {
                   </TableCell>
                   <TableCell style={tableHeaderCellStyle}>Price</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
+                  <TableCell style={tableHeaderCellStyle}>Vendor</TableCell>
                   <TableCell
                     style={{ ...tableHeaderCellStyle, textAlign: "right" }}
                   >
@@ -301,10 +272,12 @@ const DealsList = ({ theme, searchTerm }) => {
                               image={deal.image}
                             />
                           </TableCell>
+                          <TableCell>{deal.vendor.name}</TableCell>
+
                           <TableCell style={{ textAlign: "right" }}>
                             <IconButton
                               color="inherit"
-                              onClick={() => handleEditVendor(deal._id)}
+                              onClick={() => handleEditDeal(deal._id)}
                             >
                               <EditIcon />
                             </IconButton>

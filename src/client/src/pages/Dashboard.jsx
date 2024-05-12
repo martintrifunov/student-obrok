@@ -11,6 +11,8 @@ const Dashboard = () => {
   const theme = createTheme();
   const [dealSearchTerm, setDealSearchTerm] = useState("");
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
+  const [deals, setDeals] = useState([]);
+  const [vendors, setVendors] = useState([]);
 
   const handleDealSearchChange = (event) => {
     setDealSearchTerm(event.target.value);
@@ -28,12 +30,23 @@ const Dashboard = () => {
           theme={theme}
           handleSearchChange={handleVendorSearchChange}
         />
-        <VendorstList theme={theme} searchTerm={vendorSearchTerm} />
+        <VendorstList
+          theme={theme}
+          searchTerm={vendorSearchTerm}
+          setDeals={setDeals}
+          vendors={vendors}
+          setVendors={setVendors}
+        />
         <DealSearchBar
           theme={theme}
           handleSearchChange={handleDealSearchChange}
         />
-        <DealsList theme={theme} searchTerm={dealSearchTerm} />
+        <DealsList
+          theme={theme}
+          searchTerm={dealSearchTerm}
+          deals={deals}
+          setDeals={setDeals}
+        />
       </Grid>
     </ThemeProvider>
   );

@@ -8,6 +8,7 @@ import RequireAuth from "./RequireAuth";
 import AddOrEditDealForm from "../pages/AddOrEditDealForm";
 import Layout from "./Layout";
 import PersistLogin from "./PersistLogin";
+import AddOrEditVendorForm from "../pages/AddOrEditVendorForm";
 
 const App = () => {
   return (
@@ -23,6 +24,11 @@ const App = () => {
               element={<AddOrEditDealForm />}
             />
             <Route path="/dashboard/deal" element={<AddOrEditDealForm />} />
+            <Route
+              path="/dashboard/vendor/:vendorId"
+              element={<AddOrEditVendorForm />}
+            />
+            <Route path="/dashboard/vendor" element={<AddOrEditVendorForm />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />
