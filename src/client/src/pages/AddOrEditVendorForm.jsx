@@ -19,16 +19,17 @@ import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 
 const AddOrEditVendorForm = () => {
   const axiosPrivate = useAxiosPrivate();
   const theme = createTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
   const navigate = useNavigate();
   const params = useParams();
   const [vendor, setVendor] = useState({});
   const [errorBag, setErrorBag] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -60,6 +61,7 @@ const AddOrEditVendorForm = () => {
           signal: controller.signal,
         });
         isMounted && setVendor(response.data);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
         navigate("/login", { state: { from: location }, replace: true });
@@ -67,12 +69,14 @@ const AddOrEditVendorForm = () => {
     };
 
     if (params?.vendorId) {
+      setIsLoading(true);
       fetchVendor();
     }
 
     return () => {
       isMounted = false;
       controller.abort();
+      setIsLoading(false);
     };
   }, []);
 
@@ -157,170 +161,181 @@ const AddOrEditVendorForm = () => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <DashboardHeader theme={theme} />
-      <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent={isSmallScreen ? "flex-start" : "center"}
-        alignItems="center"
-        height={isSmallScreen ? "65vh" : "85vh"}
-        marginTop={isSmallScreen && 5}
-        marginBottom={isSmallScreen && 5}
-      >
-        <Container maxWidth="md" sx={{ maxHeight: "90%" }}>
-          <Typography variant="h4" style={dealHeadingStyle}>
-            Add Vendor
-          </Typography>
-          <form autoComplete="off" onSubmit={handleSubmit}>
-            <Paper
-              elevation={5}
-              sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
-            >
-              <Grid container spacing={3} justify="center">
-                <Grid item xs={12}>
-                  {errorBag === "Name is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="name"
-                    name="name"
-                    label="Name"
-                    variant="outlined"
-                    fullWidth
-                    value={vendor?.name || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  {errorBag === "Location coordinates are required!" && (
-                    <Typography sx={{ color: "crimson", whiteSpace: "nowrap" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="latitude"
-                    name="latitude"
-                    label="Latitude"
-                    variant="outlined"
-                    type="number"
-                    fullWidth
-                    value={vendor?.location?.[0] || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  {errorBag === "Location coordinates are required!" && (
-                    <Box mt={3}></Box>
-                  )}
-                  <TextField
-                    id="longitude"
-                    name="longitude"
-                    label="Longitude"
-                    variant="outlined"
-                    type="number"
-                    value={vendor?.location?.[1] || ""}
-                    fullWidth
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                {vendor?.imageTitle && (
-                  <Grid item xs={12}>
-                    <TextField
-                      id="image"
-                      label="Cover Image"
-                      variant="outlined"
-                      type="text"
-                      value={vendor?.imageTitle || ""}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "&.Mui-focused fieldset": {
-                            borderColor: "black",
+    <>
+      {isLoading ? (
+        <GlobalLoadingProgress />
+      ) : (
+        <ThemeProvider theme={theme}>
+          <DashboardHeader theme={theme} />
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent={isSmallScreen ? "flex-start" : "center"}
+            alignItems="center"
+            height={isSmallScreen ? "65vh" : "85vh"}
+            marginTop={isSmallScreen && 5}
+            marginBottom={isSmallScreen && 5}
+          >
+            <Container maxWidth="md" sx={{ maxHeight: "90%" }}>
+              <Typography variant="h4" style={dealHeadingStyle}>
+                Add Vendor
+              </Typography>
+              <form autoComplete="off" onSubmit={handleSubmit}>
+                <Paper
+                  elevation={5}
+                  sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
+                >
+                  <Grid container spacing={3} justify="center">
+                    <Grid item xs={12}>
+                      {errorBag === "Name is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <TextField
+                        id="name"
+                        name="name"
+                        label="Name"
+                        variant="outlined"
+                        fullWidth
+                        value={vendor?.name || ""}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
                           },
-                        },
-                        "& label.Mui-focused": {
-                          color: "black",
-                        },
-                      }}
-                      fullWidth
-                      disabled
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <ImageIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      {errorBag === "Location coordinates are required!" && (
+                        <Typography
+                          sx={{ color: "crimson", whiteSpace: "nowrap" }}
+                        >
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <TextField
+                        id="latitude"
+                        name="latitude"
+                        label="Latitude"
+                        variant="outlined"
+                        type="number"
+                        fullWidth
+                        value={vendor?.location?.[0] || ""}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
+                          },
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      {errorBag === "Location coordinates are required!" && (
+                        <Box mt={3}></Box>
+                      )}
+                      <TextField
+                        id="longitude"
+                        name="longitude"
+                        label="Longitude"
+                        variant="outlined"
+                        type="number"
+                        value={vendor?.location?.[1] || ""}
+                        fullWidth
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
+                          },
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    {vendor?.imageTitle && (
+                      <Grid item xs={12}>
+                        <TextField
+                          id="image"
+                          label="Cover Image"
+                          variant="outlined"
+                          type="text"
+                          value={vendor?.imageTitle || ""}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&.Mui-focused fieldset": {
+                                borderColor: "black",
+                              },
+                            },
+                            "& label.Mui-focused": {
+                              color: "black",
+                            },
+                            "&:hover .Mui-disabled": {
+                              cursor: "not-allowed",
+                            },
+                          }}
+                          fullWidth
+                          disabled
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <ImageIcon />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+                    )}
+                    <Grid item xs={12}>
+                      {errorBag === "Cover image is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <FileUploader
+                        onSelectFile={onSelectFileHandler}
+                        onDeleteFile={onDeleteFileHandler}
+                        accept={".jpeg, .jpg, .png, .webp"}
+                      />
+                    </Grid>
                   </Grid>
-                )}
-                <Grid item xs={12}>
-                  {errorBag === "Cover image is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <FileUploader
-                    onSelectFile={onSelectFileHandler}
-                    onDeleteFile={onDeleteFileHandler}
-                    accept={".jpeg, .jpg, .png, .webp"}
-                  />
+                </Paper>
+                <Grid item xs={12} container justifyContent="flex-end">
+                  <Button
+                    variant="text"
+                    style={cancelButtonStyle}
+                    onClick={() => handleCancel()}
+                  >
+                    <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    style={addVendorButtonStyle}
+                    type="submit"
+                  >
+                    <SaveIcon sx={{ marginRight: "5px" }} /> Submit
+                  </Button>
                 </Grid>
-              </Grid>
-            </Paper>
-            <Grid item xs={12} container justifyContent="flex-end">
-              <Button
-                variant="text"
-                style={cancelButtonStyle}
-                onClick={() => handleCancel()}
-              >
-                <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                style={addVendorButtonStyle}
-                type="submit"
-              >
-                <SaveIcon sx={{ marginRight: "5px" }} /> Submit
-              </Button>
-            </Grid>
-          </form>
-        </Container>
-      </Box>
-    </ThemeProvider>
+              </form>
+            </Container>
+          </Box>
+        </ThemeProvider>
+      )}
+    </>
   );
 };
 

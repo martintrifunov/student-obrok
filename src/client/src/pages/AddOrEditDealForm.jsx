@@ -10,6 +10,10 @@ import {
   ThemeProvider,
   InputAdornment,
   useMediaQuery,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import { Container } from "@mui/system";
@@ -19,29 +23,26 @@ import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import axios from "../api/axios";
+import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 
 const AddOrEditDealForm = () => {
+  const navigate = useNavigate();
   const axiosPrivate = useAxiosPrivate();
   const theme = createTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
-  const navigate = useNavigate();
   const params = useParams();
   const [deal, setDeal] = useState({});
+  const [vendors, setVendors] = useState([]);
   const [errorBag, setErrorBag] = useState("");
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    if (name === "longitude") {
-      setDeal({
-        ...deal,
-        location: [deal?.location?.[0] || "", value],
-      });
-    } else if (name === "latitude") {
-      setDeal({
-        ...deal,
-        location: [value, deal?.location?.[1] || ""],
-      });
+    if (name === "vendor") {
+      setSelectedVendorId(value);
     } else {
       setDeal({
         ...deal,
@@ -60,19 +61,38 @@ const AddOrEditDealForm = () => {
           signal: controller.signal,
         });
         isMounted && setDeal(response.data);
+        isMounted && setIsEditing(true);
+        setIsLoading(false);
       } catch (error) {
         console.error(error);
         navigate("/login", { state: { from: location }, replace: true });
       }
     };
 
+    const fetchVendors = async () => {
+      try {
+        const response = await axios.get("/vendors", {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        });
+        isMounted && setVendors(response.data);
+      } catch (error) {
+        console.error(error);
+        navigate("/login", { state: { from: location }, replace: true });
+      }
+    };
+
+    fetchVendors();
+
     if (params?.dealId) {
+      setIsLoading(true);
       fetchDeal();
     }
 
     return () => {
       isMounted = false;
       controller.abort();
+      setIsLoading(false);
     };
   }, []);
 
@@ -85,12 +105,10 @@ const AddOrEditDealForm = () => {
 
     if (params?.dealId) dealData.id = params.dealId;
     if (deal.title) dealData.title = deal.title;
-    if (deal.location) dealData.location = deal.location;
-    if (deal.locationName) dealData.locationName = deal.locationName;
     if (deal.description) dealData.description = deal.description;
     if (deal.price) dealData.price = deal.price;
-    if (deal.image) dealData.image = deal.image;
-    if (deal.imageTitle) dealData.imageTitle = deal.imageTitle;
+    if (deal?.image) dealData.image = deal.image;
+    if (deal?.imageTitle) dealData.imageTitle = deal.imageTitle;
 
     return dealData;
   };
@@ -99,6 +117,10 @@ const AddOrEditDealForm = () => {
     event.preventDefault();
 
     const transformedData = transformDealData();
+
+    if (selectedVendorId) {
+      transformedData.vendor = selectedVendorId;
+    }
 
     if (params?.dealId) {
       try {
@@ -113,35 +135,7 @@ const AddOrEditDealForm = () => {
       await axiosPrivate.post("/deals", transformedData);
       return navigate("/dashboard");
     } catch (error) {
-      switch (error.response.data.message) {
-        case "Title is required!":
-          setErrorBag("Title is required!");
-          break;
-
-        case "Location name is required!":
-          setErrorBag("Location name is required!");
-          break;
-
-        case "Location coordinates are required!":
-          setErrorBag("Location coordinates are required!");
-          break;
-
-        case "Description is required!":
-          setErrorBag("Description is required!");
-          break;
-
-        case "Price is required!":
-          setErrorBag("Price is required!");
-          break;
-
-        case "Cover image is required!":
-          setErrorBag("Cover image is required!");
-          break;
-
-        default:
-          setErrorBag("Cover image is required!");
-          break;
-      }
+      setErrorBag(error.response.data.message);
     }
   };
 
@@ -188,251 +182,227 @@ const AddOrEditDealForm = () => {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <DashboardHeader theme={theme} />
-      <Box
-        display="flex"
-        flexDirection="column"
-        justifyContent={isSmallScreen ? "flex-start" : "center"}
-        alignItems="center"
-        height={isSmallScreen ? "65vh" : "85vh"}
-        marginTop={isSmallScreen && 5}
-        marginBottom={isSmallScreen && 5}
-      >
-        <Container maxWidth="md" sx={{ maxHeight: "90%" }}>
-          <Typography variant="h4" style={dealHeadingStyle}>
-            Add Deal
-          </Typography>
-          <form autoComplete="off" onSubmit={handleSubmit}>
-            <Paper
-              elevation={5}
-              sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
-            >
-              <Grid container spacing={3} justify="center">
-                <Grid item xs={12}>
-                  {errorBag === "Title is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="title"
-                    name="title"
-                    label="Title"
-                    variant="outlined"
-                    fullWidth
-                    value={deal?.title || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  {errorBag === "Location name is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="locationName"
-                    name="locationName"
-                    label="Location Name"
-                    variant="outlined"
-                    fullWidth
-                    value={deal?.locationName || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  {errorBag === "Location coordinates are required!" && (
-                    <Typography sx={{ color: "crimson", whiteSpace: "nowrap" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="latitude"
-                    name="latitude"
-                    label="Latitude"
-                    variant="outlined"
-                    type="number"
-                    fullWidth
-                    value={deal?.location?.[0] || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  {errorBag === "Location coordinates are required!" && (
-                    <Box mt={3}></Box>
-                  )}
-                  <TextField
-                    id="longitude"
-                    name="longitude"
-                    label="Longitude"
-                    variant="outlined"
-                    type="number"
-                    value={deal?.location?.[1] || ""}
-                    fullWidth
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  {errorBag === "Description is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="description"
-                    name="description"
-                    label="Description"
-                    variant="outlined"
-                    fullWidth
-                    value={deal?.description || ""}
-                    multiline
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    inputProps={{ style: { resize: "none" } }}
-                    onChange={handleChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  {errorBag === "Price is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <TextField
-                    id="price"
-                    name="price"
-                    label="Price"
-                    variant="outlined"
-                    type="number"
-                    value={deal?.price || ""}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: "black",
-                        },
-                      },
-                      "& label.Mui-focused": {
-                        color: "black",
-                      },
-                    }}
-                    fullWidth
-                    onChange={handleChange}
-                  />
-                </Grid>
-                {deal?.imageTitle && (
-                  <Grid item xs={12}>
-                    <TextField
-                      id="image"
-                      label="Cover Image"
-                      variant="outlined"
-                      type="text"
-                      value={deal?.imageTitle || ""}
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          "&.Mui-focused fieldset": {
-                            borderColor: "black",
+    <>
+      {isLoading ? (
+        <GlobalLoadingProgress />
+      ) : (
+        <ThemeProvider theme={theme}>
+          <DashboardHeader theme={theme} />
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent={isSmallScreen ? "flex-start" : "center"}
+            alignItems="center"
+            height={isSmallScreen ? "65vh" : "85vh"}
+            marginTop={isSmallScreen && 5}
+            marginBottom={isSmallScreen && 5}
+          >
+            <Container maxWidth="md" sx={{ maxHeight: "90%" }}>
+              <Typography variant="h4" style={dealHeadingStyle}>
+                Add Deal
+              </Typography>
+              <form autoComplete="off" onSubmit={handleSubmit}>
+                <Paper
+                  elevation={5}
+                  sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
+                >
+                  <Grid container spacing={3} justify="center">
+                    <Grid item xs={12}>
+                      {errorBag === "Title is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <TextField
+                        id="title"
+                        name="title"
+                        label="Title"
+                        variant="outlined"
+                        fullWidth
+                        value={deal?.title || ""}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
                           },
-                        },
-                        "& label.Mui-focused": {
-                          color: "black",
-                        },
-                      }}
-                      fullWidth
-                      disabled
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <ImageIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      {errorBag === "Description is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <TextField
+                        id="description"
+                        name="description"
+                        label="Description"
+                        variant="outlined"
+                        fullWidth
+                        value={deal?.description || ""}
+                        multiline
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
+                          },
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        inputProps={{ style: { resize: "none" } }}
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      {errorBag === "Price is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <TextField
+                        id="price"
+                        name="price"
+                        label="Price"
+                        variant="outlined"
+                        type="number"
+                        value={deal?.price || ""}
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
+                              borderColor: "black",
+                            },
+                          },
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        fullWidth
+                        onChange={handleChange}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      {errorBag ===
+                        ("Vendor is required!" ||
+                          "Vendor can't be changed.") && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <FormControl fullWidth>
+                        <InputLabel
+                          id="vendor-select-label"
+                          sx={{
+                            "&.Mui-focused": {
+                              color: "black",
+                            },
+                            marginTop: !!selectedVendorId && "-8px",
+                          }}
+                          shrink={!!selectedVendorId}
+                        >
+                          Vendor
+                        </InputLabel>
+                        <Select
+                          labelId="vendor-select-label"
+                          id="vendor-select"
+                          name="vendor"
+                          value={selectedVendorId || ""}
+                          onChange={handleChange}
+                          disabled={isEditing}
+                          sx={{
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                              borderColor: !isEditing && "black",
+                            },
+                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "black",
+                            },
+                            "&:hover .Mui-disabled": {
+                              cursor: "not-allowed",
+                            },
+                          }}
+                        >
+                          {vendors.map((vendor) => (
+                            <MenuItem key={vendor._id} value={vendor._id}>
+                              {vendor.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    {deal?.imageTitle && (
+                      <Grid item xs={12}>
+                        <TextField
+                          id="image"
+                          label="Cover Image"
+                          variant="outlined"
+                          type="text"
+                          value={deal?.imageTitle || ""}
+                          sx={{
+                            "& .MuiOutlinedInput-root": {
+                              "&.Mui-focused fieldset": {
+                                borderColor: "black",
+                              },
+                            },
+                            "& label.Mui-focused": {
+                              color: "black",
+                            },
+                          }}
+                          fullWidth
+                          disabled
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <ImageIcon />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+                      </Grid>
+                    )}
+                    <Grid item xs={12}>
+                      {errorBag === "Cover image is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <FileUploader
+                        onSelectFile={onSelectFileHandler}
+                        onDeleteFile={onDeleteFileHandler}
+                        accept={".jpeg, .jpg, .png, .webp"}
+                      />
+                    </Grid>
                   </Grid>
-                )}
-                <Grid item xs={12}>
-                  {errorBag === "Cover image is required!" && (
-                    <Typography sx={{ color: "crimson" }}>
-                      {errorBag}
-                    </Typography>
-                  )}
-                  <FileUploader
-                    onSelectFile={onSelectFileHandler}
-                    onDeleteFile={onDeleteFileHandler}
-                    accept={".jpeg, .jpg, .png, .webp"}
-                  />
+                </Paper>
+                <Grid item xs={12} container justifyContent="flex-end">
+                  <Button
+                    variant="text"
+                    style={cancelButtonStyle}
+                    onClick={() => handleCancel()}
+                  >
+                    <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    style={addDealButtonStyle}
+                    type="submit"
+                  >
+                    <SaveIcon sx={{ marginRight: "5px" }} /> Submit
+                  </Button>
                 </Grid>
-              </Grid>
-            </Paper>
-            <Grid item xs={12} container justifyContent="flex-end">
-              <Button
-                variant="text"
-                style={cancelButtonStyle}
-                onClick={() => handleCancel()}
-              >
-                <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                style={addDealButtonStyle}
-                type="submit"
-              >
-                <SaveIcon sx={{ marginRight: "5px" }} /> Submit
-              </Button>
-            </Grid>
-          </form>
-        </Container>
-      </Box>
-    </ThemeProvider>
+              </form>
+            </Container>
+          </Box>
+        </ThemeProvider>
+      )}
+    </>
   );
 };
 
