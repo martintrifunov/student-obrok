@@ -5,11 +5,11 @@ import { Button, Typography, Box } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import MapDealInfoModal from "./MapDealInfoModal";
 import L from "leaflet";
-import dealLocationMarker from "../assets/icons/deal_location_marker.svg";
+import vendorlocationMarker from "../assets/icons/vendor_location_marker.svg";
 import MarkerClusterGroup from "react-leaflet-cluster";
 
-const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
-  const [deals, setDeals] = useState([]);
+const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
+  const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -18,10 +18,10 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
     const controller = new AbortController();
     setIsLoading(true);
 
-    const fetchDeals = async () => {
+    const fetchVendors = async () => {
       try {
         const response = await axios.get(
-          "/deals",
+          "/vendors",
           {
             signal: controller.signal,
           },
@@ -30,7 +30,7 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
             withCredentials: true,
           }
         );
-        isMounted && setDeals(response.data);
+        isMounted && setVendors(response.data);
         setIsLoading(false);
       } catch (error) {
         setError(error.response.data.message);
@@ -38,7 +38,7 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
       }
     };
 
-    fetchDeals();
+    fetchVendors();
 
     return () => {
       isMounted = false;
@@ -48,7 +48,7 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
   }, []);
 
   const dealIcon = L.icon({
-    iconUrl: dealLocationMarker,
+    iconUrl: vendorlocationMarker,
     iconSize: [38, 95],
   });
 
@@ -84,8 +84,8 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
   const clusterIcon = (cluster) => {
     return L.divIcon({
       html: `<div style="height: 2rem; width: 2rem; border-radius: 50%; background-color: crimson; color: white; transform: translate(-25%, -25%); display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem">${cluster.getChildCount()}</div>`,
-      className: "marker-cluster", // optional, define a class for the divIcon if you want to style it via CSS
-      iconSize: L.point(33, 33, true), // size of the icon
+      className: "marker-cluster",
+      iconSize: L.point(33, 33, true),
     });
   };
 
@@ -93,26 +93,20 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
     <>
       {!isLoading && (
         <MarkerClusterGroup chunkedLoading iconCreateFunction={clusterIcon}>
-          {deals.map((deal, index) => (
-            <Marker key={index} position={deal.location} icon={dealIcon}>
+          {vendors.map((vendor, index) => (
+            <Marker key={index} position={vendor.location} icon={dealIcon}>
               <Popup>
                 <Box style={popupStyle}>
                   <Typography variant="h5" textAlign="center">
-                    {deal.title}
+                    {vendor.name}
                   </Typography>
                   <img
-                    src={deal.image}
+                    src={vendor.image}
                     alt="coverImage"
                     style={coverImgStyle}
                   />
-                  <Typography variant="h5" textAlign="center">
-                    {deal.locationName}
-                  </Typography>
-                  <Typography variant="h6" textAlign="center">
-                    <strong>{deal.price}</strong> ден.
-                  </Typography>
                   <Box>
-                    <MapDealInfoModal deal={deal} />
+                    <MapDealInfoModal deals={vendor.deals} />
                     <Button
                       disabled={isDisabledRoutingButton}
                       fullWidth
@@ -122,9 +116,10 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
                           ? getDisabledDirectionButtonStyle
                           : getDirectionButtonStyle
                       }
-                      onClick={() => onDealLocation(deal.location)}
+                      onClick={() => onVendorLocation(vendor.location)}
                     >
-                      Get Directions <ArrowRightAltIcon />
+                      Get Directions
+                      <ArrowRightAltIcon sx={{ marginLeft: 0.5 }} />
                     </Button>
                   </Box>
                 </Box>
@@ -137,4 +132,4 @@ const DealMarkers = ({ onDealLocation, isDisabledRoutingButton }) => {
   );
 };
 
-export default DealMarkers;
+export default VendorMarkers;

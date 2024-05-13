@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Typography,
   Table,
@@ -20,18 +20,19 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
 
-const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
+const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [isLoading, setIsLoading] = useState(false);
+  const params = useParams();
 
   const handleRemoveDeal = async (dealId) => {
     let confirmed = window.confirm(
@@ -51,52 +52,18 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
         }),
       });
 
-      const dealsResponse = await axios.get("/deals", {
+      const dealsResponse = await axios.get(`/vendors/${params.vendorId}`, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
 
-      setDeals(dealsResponse.data);
+      setDeals(dealsResponse.data.deals);
       setIsLoading(false);
     } catch (error) {
       setError(error.response.data.message);
       navigate("/login", { state: { from: location }, replace: true });
     }
   };
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchDeal = async () => {
-      try {
-        const response = await axios.get(
-          "/deals",
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          }
-        );
-        isMounted && setDeals(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error.response.data.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchDeal();
-
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -189,6 +156,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           style={editButtonStyle}
                         >
                           <EditIcon />
+                          Edit
                         </Button>
                         <Button
                           variant="outlined"
@@ -197,6 +165,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           style={removeButtonStyle}
                         >
                           <DeleteIcon />
+                          Remove
                         </Button>
                       </Box>
                     </CardContent>
@@ -243,7 +212,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                   </TableCell>
                   <TableCell style={tableHeaderCellStyle}>Price</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Vendor</TableCell>
                   <TableCell
                     style={{ ...tableHeaderCellStyle, textAlign: "right" }}
                   >
@@ -270,8 +238,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                               image={deal.image}
                             />
                           </TableCell>
-                          <TableCell>{deal.vendor.name}</TableCell>
-
                           <TableCell style={{ textAlign: "right" }}>
                             <IconButton
                               color="inherit"
@@ -325,4 +291,4 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
   );
 };
 
-export default DealsList;
+export default VendorDealsList;

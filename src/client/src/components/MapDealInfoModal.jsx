@@ -8,13 +8,26 @@ import Typography from "@mui/material/Typography";
 import InfoIcon from "@mui/icons-material/Info";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme, useMediaQuery } from "@mui/material";
+import Pagination from "@mui/material/Pagination";
 
-const MapDealInfoModal = ({ deal }) => {
+const MapDealInfoModal = ({ deals }) => {
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setPage(1);
+  };
   const theme = createTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const dealsPerPage = 2;
+  const totalPages =
+    deals !== null ? Math.ceil(deals.length / dealsPerPage) : 0;
+
+  const handleChange = (event, value) => {
+    setPage(value);
+  };
 
   const style = {
     display: "flex",
@@ -36,11 +49,10 @@ const MapDealInfoModal = ({ deal }) => {
     width: 200,
   };
 
-  const imageStyle = {
-    maxWidth: isSmallScreen ? "100%" : "50%",
-    height: "auto",
-    display: "block",
-    margin: "0 auto",
+  const coverImgStyle = {
+    width: "100%",
+    maxHeight: "230px",
+    objectFit: "cover",
   };
 
   return (
@@ -52,8 +64,9 @@ const MapDealInfoModal = ({ deal }) => {
           variant="outlined"
           style={infoButtonStyle}
           onClick={handleOpen}
+          disabled={deals === null}
         >
-          <InfoIcon /> Deal info
+          <InfoIcon sx={{ marginRight: 0.5 }} /> View Deals
         </Button>
         <Modal
           aria-labelledby="transition-modal-title"
@@ -70,40 +83,52 @@ const MapDealInfoModal = ({ deal }) => {
         >
           <Fade in={open}>
             <Box sx={style}>
-              <Typography
-                id="transition-modal-title"
-                variant={isSmallScreen ? "h5" : "h4"}
-                component="h2"
-                textAlign="center"
+              {deals
+                ?.slice((page - 1) * dealsPerPage, page * dealsPerPage)
+                .map((deal, index) => (
+                  <div key={index}>
+                    <Typography
+                      id={`deal-title-${index}`}
+                      variant={isSmallScreen ? "h5" : "h4"}
+                      component="h2"
+                      textAlign="center"
+                    >
+                      {deal.title}
+                    </Typography>
+                    {deal?.image && (
+                      <img
+                        src={deal.image}
+                        alt="coverImage"
+                        style={coverImgStyle}
+                      />
+                    )}
+
+                    <Typography
+                      id={`deal-description-${index}`}
+                      variant="p"
+                      sx={{ mt: 2, fontSize: isSmallScreen && "14px" }}
+                      textAlign="left"
+                    >
+                      {deal.description}
+                    </Typography>
+                    <Typography
+                      id={`deal-price-${index}`}
+                      variant="h6"
+                      textAlign="center"
+                      sx={{ mt: 2 }}
+                    >
+                      {deal.price} ден.
+                    </Typography>
+                  </div>
+                ))}
+              <Box
+                sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}
               >
-                {deal.title}
-              </Typography>
-              <img src={deal.image} style={imageStyle} alt="coverImage" />
-              <Typography
-                id="transition-modal-description"
-                variant="p"
-                sx={{ mt: 2, fontSize: isSmallScreen && "14px" }}
-                textAlign="left"
-              >
-                {deal.description}
-              </Typography>
-              <Box>
-                <Typography
-                  id="transition-modal-description"
-                  variant="h6"
-                  sx={{ mt: 2 }}
-                  textAlign="center"
-                >
-                  {deal.locationName}
-                </Typography>
-                <Typography
-                  id="transition-modal-description"
-                  variant="h6"
-                  textAlign="center"
-                  sx={{ mt: 2 }}
-                >
-                  {deal.price} ден.
-                </Typography>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handleChange}
+                />
               </Box>
             </Box>
           </Fade>

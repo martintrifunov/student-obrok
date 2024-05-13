@@ -10,10 +10,6 @@ import {
   ThemeProvider,
   InputAdornment,
   useMediaQuery,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import ImageIcon from "@mui/icons-material/Image";
 import { Container } from "@mui/system";
@@ -23,29 +19,33 @@ import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import axios from "../api/axios";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 
-const AddOrEditDealForm = () => {
-  const navigate = useNavigate();
+const AddOrEditVendorForm = () => {
   const axiosPrivate = useAxiosPrivate();
   const theme = createTheme();
-  const params = useParams();
-  const [deal, setDeal] = useState({});
-  const [vendors, setVendors] = useState([]);
-  const [errorBag, setErrorBag] = useState("");
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [selectedVendorId, setSelectedVendorId] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+  const params = useParams();
+  const [vendor, setVendor] = useState({});
+  const [errorBag, setErrorBag] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    if (name === "vendor") {
-      setSelectedVendorId(value);
+    if (name === "longitude") {
+      setVendor({
+        ...vendor,
+        location: [vendor?.location?.[0] || "", value],
+      });
+    } else if (name === "latitude") {
+      setVendor({
+        ...vendor,
+        location: [value, vendor?.location?.[1] || ""],
+      });
     } else {
-      setDeal({
-        ...deal,
+      setVendor({
+        ...vendor,
         [name]: value,
       });
     }
@@ -55,13 +55,12 @@ const AddOrEditDealForm = () => {
     let isMounted = true;
     const controller = new AbortController();
 
-    const fetchDeal = async () => {
+    const fetchVendor = async () => {
       try {
-        const response = await axiosPrivate(`/deals/${params.dealId}`, {
+        const response = await axiosPrivate(`/vendors/${params.vendorId}`, {
           signal: controller.signal,
         });
-        isMounted && setDeal(response.data);
-        isMounted && setIsEditing(true);
+        isMounted && setVendor(response.data);
         setIsLoading(false);
       } catch (error) {
         console.error(error);
@@ -69,24 +68,9 @@ const AddOrEditDealForm = () => {
       }
     };
 
-    const fetchVendors = async () => {
-      try {
-        const response = await axios.get("/vendors", {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
-        isMounted && setVendors(response.data);
-      } catch (error) {
-        console.error(error);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchVendors();
-
-    if (params?.dealId) {
+    if (params?.vendorId) {
       setIsLoading(true);
-      fetchDeal();
+      fetchVendor();
     }
 
     return () => {
@@ -100,31 +84,26 @@ const AddOrEditDealForm = () => {
     navigate("/dashboard");
   };
 
-  const transformDealData = () => {
-    let dealData = {};
+  const transformVendorData = () => {
+    let vendorData = {};
 
-    if (params?.dealId) dealData.id = params.dealId;
-    if (deal.title) dealData.title = deal.title;
-    if (deal.description) dealData.description = deal.description;
-    if (deal.price) dealData.price = deal.price;
-    if (deal?.image) dealData.image = deal.image;
-    if (deal?.imageTitle) dealData.imageTitle = deal.imageTitle;
+    if (params?.vendorId) vendorData.id = params.vendorId;
+    if (vendor.name) vendorData.name = vendor.name;
+    if (vendor.location) vendorData.location = vendor.location;
+    if (vendor.image) vendorData.image = vendor.image;
+    if (vendor.imageTitle) vendorData.imageTitle = vendor.imageTitle;
 
-    return dealData;
+    return vendorData;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const transformedData = transformDealData();
+    const transformedData = transformVendorData();
 
-    if (selectedVendorId) {
-      transformedData.vendor = selectedVendorId;
-    }
-
-    if (params?.dealId) {
+    if (params?.vendorId) {
       try {
-        await axiosPrivate.put("/deals", transformedData);
+        await axiosPrivate.put("/vendors", transformedData);
         return navigate("/dashboard");
       } catch (error) {
         return console.error(error);
@@ -132,7 +111,7 @@ const AddOrEditDealForm = () => {
     }
 
     try {
-      await axiosPrivate.post("/deals", transformedData);
+      await axiosPrivate.post("/vendors", transformedData);
       return navigate("/dashboard");
     } catch (error) {
       setErrorBag(error.response.data.message);
@@ -144,11 +123,11 @@ const AddOrEditDealForm = () => {
     const fileName = file.name;
     const convertedImage = await convertToBase64(file);
 
-    setDeal({ ...deal, image: convertedImage, imageTitle: fileName });
+    setVendor({ ...vendor, image: convertedImage, imageTitle: fileName });
   };
 
   const onDeleteFileHandler = () => {
-    setDeal({ ...deal, image: "", imageTitle: "" });
+    setVendor({ ...vendor, image: "", imageTitle: "" });
   };
 
   const convertToBase64 = (file) => {
@@ -164,7 +143,7 @@ const AddOrEditDealForm = () => {
     });
   };
 
-  const addDealButtonStyle = {
+  const addVendorButtonStyle = {
     textTransform: "none",
     backgroundColor: "black",
     marginBottom: 20,
@@ -199,7 +178,7 @@ const AddOrEditDealForm = () => {
           >
             <Container maxWidth="md" sx={{ maxHeight: "90%" }}>
               <Typography variant="h4" style={dealHeadingStyle}>
-                Add Deal
+                Add Vendor
               </Typography>
               <form autoComplete="off" onSubmit={handleSubmit}>
                 <Paper
@@ -208,18 +187,18 @@ const AddOrEditDealForm = () => {
                 >
                   <Grid container spacing={3} justify="center">
                     <Grid item xs={12}>
-                      {errorBag === "Title is required!" && (
+                      {errorBag === "Name is required!" && (
                         <Typography sx={{ color: "crimson" }}>
                           {errorBag}
                         </Typography>
                       )}
                       <TextField
-                        id="title"
-                        name="title"
-                        label="Title"
+                        id="name"
+                        name="name"
+                        label="Name"
                         variant="outlined"
                         fullWidth
-                        value={deal?.title || ""}
+                        value={vendor?.name || ""}
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&.Mui-focused fieldset": {
@@ -233,47 +212,22 @@ const AddOrEditDealForm = () => {
                         onChange={handleChange}
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      {errorBag === "Description is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
+                    <Grid item xs={6}>
+                      {errorBag === "Location coordinates are required!" && (
+                        <Typography
+                          sx={{ color: "crimson", whiteSpace: "nowrap" }}
+                        >
                           {errorBag}
                         </Typography>
                       )}
                       <TextField
-                        id="description"
-                        name="description"
-                        label="Description"
-                        variant="outlined"
-                        fullWidth
-                        value={deal?.description || ""}
-                        multiline
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-focused fieldset": {
-                              borderColor: "black",
-                            },
-                          },
-                          "& label.Mui-focused": {
-                            color: "black",
-                          },
-                        }}
-                        inputProps={{ style: { resize: "none" } }}
-                        onChange={handleChange}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      {errorBag === "Price is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <TextField
-                        id="price"
-                        name="price"
-                        label="Price"
+                        id="latitude"
+                        name="latitude"
+                        label="Latitude"
                         variant="outlined"
                         type="number"
-                        value={deal?.price || ""}
+                        fullWidth
+                        value={vendor?.location?.[0] || ""}
                         sx={{
                           "& .MuiOutlinedInput-root": {
                             "&.Mui-focused fieldset": {
@@ -284,66 +238,42 @@ const AddOrEditDealForm = () => {
                             color: "black",
                           },
                         }}
-                        fullWidth
                         onChange={handleChange}
                       />
                     </Grid>
-                    <Grid item xs={12}>
-                      {errorBag ===
-                        ("Vendor is required!" ||
-                          "Vendor can't be changed.") && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
+                    <Grid item xs={6}>
+                      {errorBag === "Location coordinates are required!" && (
+                        <Box mt={3}></Box>
                       )}
-                      <FormControl fullWidth>
-                        <InputLabel
-                          id="vendor-select-label"
-                          sx={{
-                            "&.Mui-focused": {
-                              color: "black",
-                            },
-                            marginTop: !!selectedVendorId && "-8px",
-                          }}
-                          shrink={!!selectedVendorId}
-                        >
-                          Vendor
-                        </InputLabel>
-                        <Select
-                          labelId="vendor-select-label"
-                          id="vendor-select"
-                          name="vendor"
-                          value={selectedVendorId || ""}
-                          onChange={handleChange}
-                          disabled={isEditing}
-                          sx={{
-                            "&:hover .MuiOutlinedInput-notchedOutline": {
-                              borderColor: !isEditing && "black",
-                            },
-                            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      <TextField
+                        id="longitude"
+                        name="longitude"
+                        label="Longitude"
+                        variant="outlined"
+                        type="number"
+                        value={vendor?.location?.[1] || ""}
+                        fullWidth
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&.Mui-focused fieldset": {
                               borderColor: "black",
                             },
-                            "&:hover .Mui-disabled": {
-                              cursor: "not-allowed",
-                            },
-                          }}
-                        >
-                          {vendors.map((vendor) => (
-                            <MenuItem key={vendor._id} value={vendor._id}>
-                              {vendor.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                          },
+                          "& label.Mui-focused": {
+                            color: "black",
+                          },
+                        }}
+                        onChange={handleChange}
+                      />
                     </Grid>
-                    {deal?.imageTitle && (
+                    {vendor?.imageTitle && (
                       <Grid item xs={12}>
                         <TextField
                           id="image"
                           label="Cover Image"
                           variant="outlined"
                           type="text"
-                          value={deal?.imageTitle || ""}
+                          value={vendor?.imageTitle || ""}
                           sx={{
                             "& .MuiOutlinedInput-root": {
                               "&.Mui-focused fieldset": {
@@ -352,6 +282,9 @@ const AddOrEditDealForm = () => {
                             },
                             "& label.Mui-focused": {
                               color: "black",
+                            },
+                            "&:hover .Mui-disabled": {
+                              cursor: "not-allowed",
                             },
                           }}
                           fullWidth
@@ -391,7 +324,7 @@ const AddOrEditDealForm = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    style={addDealButtonStyle}
+                    style={addVendorButtonStyle}
                     type="submit"
                   >
                     <SaveIcon sx={{ marginRight: "5px" }} /> Submit
@@ -406,4 +339,4 @@ const AddOrEditDealForm = () => {
   );
 };
 
-export default AddOrEditDealForm;
+export default AddOrEditVendorForm;

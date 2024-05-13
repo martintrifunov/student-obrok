@@ -8,6 +8,8 @@ import RequireAuth from "./RequireAuth";
 import AddOrEditDealForm from "../pages/AddOrEditDealForm";
 import Layout from "./Layout";
 import PersistLogin from "./PersistLogin";
+import AddOrEditVendorForm from "../pages/AddOrEditVendorForm";
+import VendorDeals from "../pages/VendorDeals";
 
 const App = () => {
   return (
@@ -22,7 +24,16 @@ const App = () => {
               path="/dashboard/deal/:dealId"
               element={<AddOrEditDealForm />}
             />
+            <Route
+              path="/dashboard/deals/:vendorId"
+              element={<VendorDeals />}
+            />
             <Route path="/dashboard/deal" element={<AddOrEditDealForm />} />
+            <Route
+              path="/dashboard/vendor/:vendorId"
+              element={<AddOrEditVendorForm />}
+            />
+            <Route path="/dashboard/vendor" element={<AddOrEditVendorForm />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

@@ -52,6 +52,7 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
           variant={variant || ""}
           sx={{ textTransform: "none" }}
           onClick={handleOpen}
+          disabled={imageTitle === null}
         >
           <RemoveRedEyeIcon sx={{ marginRight: 1 }} /> View
         </Button>
