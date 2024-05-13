@@ -113,6 +113,10 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
     navigate(`/dashboard/vendor/${vendorId}`);
   };
 
+  const handleNavigateToDeals = (vendorId) => {
+    navigate(`/dashboard/deals/${vendorId}`);
+  };
+
   const searchTermInVendor = (deal, term) => {
     return Object.values(deal).some((value) =>
       value?.toString().toLowerCase().includes(term.toLowerCase())
@@ -272,9 +276,10 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                           </TableCell>
                           <TableCell>
                             <Button
+                              disabled={!vendor.deals}
                               color="inherit"
                               sx={{ textTransform: "none" }}
-                              onClick={() => handleEditVendor(vendor._id)}
+                              onClick={() => handleNavigateToDeals(vendor._id)}
                             >
                               <LocalOfferIcon sx={{ marginRight: 1 }} />
                               View
