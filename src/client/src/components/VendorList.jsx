@@ -149,6 +149,7 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
     backgroundColor: "black",
     marginLeft: "3vw",
     textTransform: "none",
+    color: "white",
   };
 
   const removeButtonStyle = {
@@ -193,11 +194,18 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                           />
                           <Button
                             variant="contained"
+                            onClick={() => handleNavigateToDeals(vendor._id)}
+                            style={editButtonStyle}
+                            disabled={!vendor.deals}
+                          >
+                            <LocalOfferIcon sx={{ marginRight: 1 }} /> View
+                          </Button>
+                          <Button
+                            variant="contained"
                             onClick={() => handleEditVendor(vendor._id)}
                             style={editButtonStyle}
                           >
                             <EditIcon />
-                            Edit
                           </Button>
                           <Button
                             variant="outlined"
@@ -206,7 +214,6 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                             style={removeButtonStyle}
                           >
                             <DeleteIcon />
-                            Remove
                           </Button>
                         </Box>
                       </CardContent>

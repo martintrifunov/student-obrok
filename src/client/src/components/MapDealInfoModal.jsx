@@ -21,8 +21,9 @@ const MapDealInfoModal = ({ deals }) => {
   const theme = createTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const dealsPerPage = 3;
-  const totalPages = deals !== null ? Math.ceil(deals.length / dealsPerPage) : 0;
+  const dealsPerPage = 2;
+  const totalPages =
+    deals !== null ? Math.ceil(deals.length / dealsPerPage) : 0;
 
   const handleChange = (event, value) => {
     setPage(value);
@@ -46,6 +47,12 @@ const MapDealInfoModal = ({ deals }) => {
   const infoButtonStyle = {
     textTransform: "none",
     width: 200,
+  };
+
+  const coverImgStyle = {
+    width: "100%",
+    maxHeight: "230px",
+    objectFit: "cover",
   };
 
   return (
@@ -88,6 +95,14 @@ const MapDealInfoModal = ({ deals }) => {
                     >
                       {deal.title}
                     </Typography>
+                    {deal?.image && (
+                      <img
+                        src={deal.image}
+                        alt="coverImage"
+                        style={coverImgStyle}
+                      />
+                    )}
+
                     <Typography
                       id={`deal-description-${index}`}
                       variant="p"

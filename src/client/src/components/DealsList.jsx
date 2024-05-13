@@ -189,7 +189,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           style={editButtonStyle}
                         >
                           <EditIcon />
-                          Edit
                         </Button>
                         <Button
                           variant="outlined"
@@ -198,7 +197,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           style={removeButtonStyle}
                         >
                           <DeleteIcon />
-                          Remove
                         </Button>
                       </Box>
                     </CardContent>

@@ -84,8 +84,8 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const clusterIcon = (cluster) => {
     return L.divIcon({
       html: `<div style="height: 2rem; width: 2rem; border-radius: 50%; background-color: crimson; color: white; transform: translate(-25%, -25%); display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 1rem">${cluster.getChildCount()}</div>`,
-      className: "marker-cluster", // optional, define a class for the divIcon if you want to style it via CSS
-      iconSize: L.point(33, 33, true), // size of the icon
+      className: "marker-cluster",
+      iconSize: L.point(33, 33, true),
     });
   };
 
