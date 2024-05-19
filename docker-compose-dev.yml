@@ -1,4 +1,12 @@
-services:  
+services:
+  osrm:
+    image: osrm/osrm-backend 
+    volumes:
+      - ./data/map:/data
+    command: osrm-routed --algorithm mld /data/macedonia-latest.osrm
+    ports:
+      - "5001:5000"
+ 
   client:
     stdin_open: true
     tty: true
