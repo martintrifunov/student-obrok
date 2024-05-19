@@ -33,3 +33,7 @@ coverage
 
 # Benchmarking
 benchmarks/graphs
+
+#OSRM
+*.osm.pbf
+*.osrm.*

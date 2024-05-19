@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-routing-machine";
+const OSRM_URL = import.meta.env.VITE_OSRM_API_URL;
+
 
 const RoutingEngine = ({ start, end }) => {
   const map = useMap();
@@ -14,6 +16,9 @@ const RoutingEngine = ({ start, end }) => {
         lineOptions: {
           styles: [{ color: "#6FA1EC", weight: 5 }],
         },
+        router: L.Routing.osrmv1({
+          serviceUrl: OSRM_URL
+        }),
         createMarker: function () {
           return null;
         },
