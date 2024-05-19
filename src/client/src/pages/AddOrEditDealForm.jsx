@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ReactQuill from "react-quill-new";
 import {
   Button,
   Grid,
@@ -25,6 +26,8 @@ import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import axios from "../api/axios";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
+import "../assets/quill.css";
+import "react-quill-new/dist/quill.snow.css";
 
 const AddOrEditDealForm = () => {
   const navigate = useNavigate();
@@ -38,9 +41,31 @@ const AddOrEditDealForm = () => {
   const [selectedVendorId, setSelectedVendorId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link"],
+      ["clean"],
+    ],
+  };
 
   const handleChange = (event) => {
+    if (event.target === undefined) {
+      return setDeal({
+        ...deal,
+        description: `${event}`,
+      });
+    }
+
     const { name, value } = event.target;
+
     if (name === "vendor") {
       setSelectedVendorId(value);
     } else {
@@ -234,34 +259,6 @@ const AddOrEditDealForm = () => {
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      {errorBag === "Description is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <TextField
-                        id="description"
-                        name="description"
-                        label="Description"
-                        variant="outlined"
-                        fullWidth
-                        value={deal?.description || ""}
-                        multiline
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-focused fieldset": {
-                              borderColor: "black",
-                            },
-                          },
-                          "& label.Mui-focused": {
-                            color: "black",
-                          },
-                        }}
-                        inputProps={{ style: { resize: "none" } }}
-                        onChange={handleChange}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
                       {errorBag === "Price is required!" && (
                         <Typography sx={{ color: "crimson" }}>
                           {errorBag}
@@ -377,6 +374,24 @@ const AddOrEditDealForm = () => {
                         onDeleteFile={onDeleteFileHandler}
                         accept={".jpeg, .jpg, .png, .webp"}
                       />
+                    </Grid>
+                    <Grid item xs={12}>
+                      {errorBag === "Description is required!" && (
+                        <Typography sx={{ color: "crimson" }}>
+                          {errorBag}
+                        </Typography>
+                      )}
+                      <div className="editor">
+                        <ReactQuill
+                          id="description"
+                          value={deal?.description || ""}
+                          onChange={(event) => handleChange(event)}
+                          name="description"
+                          theme="snow"
+                          className="editor-input"
+                          modules={modules}
+                        />
+                      </div>
                     </Grid>
                   </Grid>
                 </Paper>
