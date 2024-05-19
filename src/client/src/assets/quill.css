@@ -1,0 +1,28 @@
+.editor {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-input {
+  width: 100%;
+  height: 250px;
+}
+
+@media (max-width: 768px) {
+  /* Adjust the breakpoint as needed */
+  .editor-input {
+    height: 250px;
+    margin-bottom: 12vh;
+  }
+}
+
+@media (max-width: 320px) {
+    /* Styles for folded Galaxy Fold */
+    .editor-input {
+        height: 250px;
+        margin-bottom: 20vh;
+    }
+  }

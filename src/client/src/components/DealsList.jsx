@@ -23,6 +23,7 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
+import parse from "html-react-parser";
 
 const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
   const navigate = useNavigate();
@@ -168,7 +169,8 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2" style={tldrStyle}>
-                          <strong>Description:</strong> {deal.description}
+                          <strong>Description:</strong>
+                          {parse(deal.description)}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center">
@@ -261,7 +263,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{deal.title}</TableCell>
                           <TableCell style={tldrStyle}>
-                            {deal.description}
+                            {parse(deal.description)}
                           </TableCell>
                           <TableCell>{deal.price}</TableCell>
                           <TableCell>

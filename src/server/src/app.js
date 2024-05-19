@@ -3,7 +3,6 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
 import { authRouter } from "./routes/api/auth.js";
 import { dealsRouter } from "./routes/api/deals.js";
 import connectDB from "./config/connectDB.js";
@@ -38,7 +37,6 @@ app.use(cookieParser());
 
 //Data Sanitization
 app.use(mongoSanitize());
-app.use(xss());
 
 //Routes
 app.use("/api", authRouter);

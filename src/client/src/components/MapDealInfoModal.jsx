@@ -9,6 +9,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme, useMediaQuery } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
+import parse from "html-react-parser";
 
 const MapDealInfoModal = ({ deals }) => {
   const [open, setOpen] = useState(false);
@@ -109,7 +110,7 @@ const MapDealInfoModal = ({ deals }) => {
                       sx={{ mt: 2, fontSize: isSmallScreen && "14px" }}
                       textAlign="left"
                     >
-                      {deal.description}
+                      {parse(deal.description)}
                     </Typography>
                     <Typography
                       id={`deal-price-${index}`}
