@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -6,7 +6,7 @@ import Fade from "@mui/material/Fade";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { ThemeProvider } from "@emotion/react";
-import { createTheme, useMediaQuery } from "@mui/material";
+import { createTheme } from "@mui/material";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 
 const DashboardImageModal = ({ imageTitle, image, variant }) => {
@@ -14,30 +14,37 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const theme = createTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const imageRef = useRef(null);
 
   const style = {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
     position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: isSmallScreen ? "90%" : "80%",
-    height: isSmallScreen ? "85%" : "80%",
     bgcolor: "background.paper",
     boxShadow: 24,
     p: 4,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  };
+
+  const boxStyle = {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "auto",
+    height: "auto",
+    maxWidth: "90vw",
+    maxHeight: "90vh",
   };
 
   const imageStyle = {
-    maxWidth: isSmallScreen ? "80%" : "60%",
+    maxWidth: "100%",
     height: "auto",
     display: "block",
-    margin: "0 auto",
+    border: "5px solid white",
   };
-
   const tldrStyle = {
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -80,14 +87,13 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
               >
                 {imageTitle}
               </Typography>
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                width="100%"
-                height="100%"
-              >
-                <img src={image} style={imageStyle} alt="coverImage" />
+              <Box sx={boxStyle}>
+                <img
+                  src={image}
+                  ref={imageRef}
+                  style={imageStyle}
+                  alt="coverImage"
+                />
               </Box>
             </Box>
           </Fade>

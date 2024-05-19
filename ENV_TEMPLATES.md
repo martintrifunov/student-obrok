@@ -22,3 +22,4 @@ For the root directory .env file you're gonna need:
 
 For the /src/client directory .env file:
 - VITE_BASE_API_URL
+- VITE_OSRM_API_URL
