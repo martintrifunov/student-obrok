@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Marker, Popup } from "react-leaflet";
 import axios from "../api/axios";
-import { Button, Typography, Box } from "@mui/material";
+import { Button, Typography, Box, styled } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import MapDealInfoModal from "./MapDealInfoModal";
 import L from "leaflet";
@@ -11,7 +11,7 @@ import MarkerClusterGroup from "react-leaflet-cluster";
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [_, setError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -47,39 +47,10 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
     };
   }, []);
 
-  const dealIcon = L.icon({
+  const vendorIcon = L.icon({
     iconUrl: vendorlocationMarker,
     iconSize: [38, 95],
   });
-
-  const coverImgStyle = {
-    width: "100%",
-    maxHeight: "230px",
-    objectFit: "cover",
-  };
-
-  const popupStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexDirection: "column",
-    width: 200,
-    height: 450,
-  };
-
-  const getDirectionButtonStyle = {
-    backgroundColor: "black",
-    textTransform: "none",
-    color: "white",
-    marginTop: 15,
-  };
-
-  const getDisabledDirectionButtonStyle = {
-    backgroundColor: "#424242",
-    textTransform: "none",
-    color: "white",
-    marginTop: 15,
-  };
 
   const clusterIcon = (cluster) => {
     return L.divIcon({
@@ -94,35 +65,30 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
       {!isLoading && (
         <MarkerClusterGroup chunkedLoading iconCreateFunction={clusterIcon}>
           {vendors.map((vendor, index) => (
-            <Marker key={index} position={vendor.location} icon={dealIcon}>
+            <Marker key={index} position={vendor.location} icon={vendorIcon}>
               <Popup>
-                <Box style={popupStyle}>
+                <VendorPopup>
                   <Typography variant="h5" textAlign="center">
                     {vendor.name}
                   </Typography>
                   <img
                     src={vendor.image}
                     alt="coverImage"
-                    style={coverImgStyle}
+                    className="vendor-cover-image"
                   />
                   <Box>
                     <MapDealInfoModal deals={vendor.deals} />
-                    <Button
+                    <GetDirectionsButton
                       disabled={isDisabledRoutingButton}
                       fullWidth
                       variant="contained"
-                      style={
-                        isDisabledRoutingButton
-                          ? getDisabledDirectionButtonStyle
-                          : getDirectionButtonStyle
-                      }
                       onClick={() => onVendorLocation(vendor.location)}
                     >
                       Get Directions
                       <ArrowRightAltIcon sx={{ marginLeft: 0.5 }} />
-                    </Button>
+                    </GetDirectionsButton>
                   </Box>
-                </Box>
+                </VendorPopup>
               </Popup>
             </Marker>
           ))}
@@ -131,5 +97,31 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
     </>
   );
 };
+
+const VendorPopup = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  flexDirection: "column",
+  width: 200,
+  height: 350,
+
+  "& .vendor-cover-image": {
+    width: "100%",
+    maxHeight: "230px",
+    objectFit: "cover",
+  },
+}));
+
+const GetDirectionsButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "black",
+  textTransform: "none",
+  color: "white",
+  marginTop: 15,
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+}));
 
 export default VendorMarkers;

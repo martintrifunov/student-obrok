@@ -10,6 +10,7 @@ import {
   Typography,
   Checkbox,
   FormControlLabel,
+  styled,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import axios from "../api/axios";
@@ -22,8 +23,6 @@ const Login = () => {
   const location = useLocation();
   const from = location.state?.from?.pathName || "/dashboard";
   const theme = createTheme();
-  const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -71,141 +70,126 @@ const Login = () => {
     localStorage.setItem("persist", persist);
   }, [persist]);
 
-  const paperStyle = {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    padding: 20,
-    height: isMediumScreen ? "70vh" : "70vh",
-    width: isMediumScreen ? "85vw" : "30vw",
-    margin: "15vh auto",
-  };
+  return (
+    <ThemeProvider theme={theme}>
+      <LoginContainer elevation={5}>
+        <Grid align="center" sx={{ display: "flex", height: "25vh" }}>
+          <VerifiedUserIcon className="login-logo" />
+        </Grid>
+        <form onSubmit={handleSubmit}>
+          {error && <Error variant="p">{error}</Error>}
+          <TextField
+            label="Username"
+            placeholder="Enter username..."
+            sx={{
+              marginTop: "25px",
+              marginBottom: "25px",
+              "& .MuiOutlinedInput-root": {
+                "&.Mui-focused fieldset": {
+                  borderColor: "black",
+                },
+              },
+              "& label.Mui-focused": {
+                color: "black",
+              },
+            }}
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            autoComplete="username"
+            fullWidth
+          />
+          <TextField
+            label="Password"
+            placeholder="Enter password..."
+            type="password"
+            sx={{
+              marginBottom: "25px",
+              "& .MuiOutlinedInput-root": {
+                "&.Mui-focused fieldset": {
+                  borderColor: "black",
+                },
+              },
+              "& label.Mui-focused": {
+                color: "black",
+              },
+            }}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            fullWidth
+            autoComplete="current-password"
+          />
+          <LoginButton type="submit" variant="contained" fullWidth>
+            Sign In
+          </LoginButton>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={persist}
+                onChange={togglePersist}
+                inputProps={{ "aria-label": "controlled" }}
+                sx={{
+                  color: persist ? "black" : "default",
+                  "&.Mui-checked": {
+                    color: "black",
+                  },
+                }}
+              />
+            }
+            label="Trust this device"
+          />
+        </form>
+        <Grid className="maco-auth">
+          <Typography variant="p" sx={{ fontSize: 10 }}>
+            Secured with <strong>macoAuth</strong>
+          </Typography>
+          <Typography variant="p" sx={{ fontSize: 10 }}>
+            using love & kittens
+          </Typography>
+        </Grid>
+      </LoginContainer>
+    </ThemeProvider>
+  );
+};
 
-  const iconStyle = {
-    height: "100%",
-    alignItems: "center",
-    fontSize: isSmallScreen ? 75 : 100,
-    marginBottom: 0,
-    paddingBottom: 0,
-  };
-
-  const buttonStyle = {
-    color: "white",
-    backgroundColor: "black",
-    padding: 20,
-  };
-
-  const errorStyle = {
-    color: "crimson",
-    display: "flex",
-    width: "100%",
-    justifyContent: "center",
-  };
-
-  const iconDiv = {
-    display: "flex",
-    height: "25vh",
-  };
-
-  const macoStyle = {
+const LoginContainer = styled(Paper)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "flex-start",
+  alignItems: "center",
+  padding: 20,
+  height: useMediaQuery(theme.breakpoints.down("md")) ? "70vh" : "70vh",
+  width: useMediaQuery(theme.breakpoints.down("md")) ? "85vw" : "30vw",
+  margin: "15vh auto",
+  "& .maco-auth": {
     display: "flex",
     flexDirection: "column",
     width: "100%",
     justifyContent: "flex-end",
     alignItems: "flex-end",
-  };
+  },
+  "& .login-logo": {
+    height: "100%",
+    alignItems: "center",
+    fontSize: useMediaQuery(theme.breakpoints.down("sm")) ? 75 : 100,
+    marginBottom: 0,
+    paddingBottom: 0,
+  },
+}));
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Grid>
-        <Paper elevation={5} style={paperStyle}>
-          <Grid align="center" style={iconDiv}>
-            <VerifiedUserIcon style={iconStyle} />
-          </Grid>
-          <form onSubmit={handleSubmit}>
-            {error && (
-              <Typography variant="p" style={errorStyle}>
-                {error}
-              </Typography>
-            )}
-            <TextField
-              label="Username"
-              placeholder="Enter username..."
-              sx={{
-                marginTop: "25px",
-                marginBottom: "25px",
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: "black",
-                  },
-                },
-                "& label.Mui-focused": {
-                  color: "black",
-                },
-              }}
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              autoComplete="username"
-              fullWidth
-            />
-            <TextField
-              label="Password"
-              placeholder="Enter password..."
-              type="password"
-              sx={{
-                marginBottom: "25px",
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: "black",
-                  },
-                },
-                "& label.Mui-focused": {
-                  color: "black",
-                },
-              }}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              fullWidth
-              autoComplete="current-password"
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              style={buttonStyle}
-              fullWidth
-            >
-              Sign In
-            </Button>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={persist}
-                  onChange={togglePersist}
-                  inputProps={{ "aria-label": "controlled" }}
-                  sx={{
-                    color: persist ? "black" : "default",
-                    "&.Mui-checked": {
-                      color: "black",
-                    },
-                  }}
-                />
-              }
-              label="Trust this device"
-            />
-          </form>
-          <Grid style={macoStyle}>
-            <Typography variant="p" sx={{ fontSize: 10 }}>
-              Secured with <strong>macoAuth</strong>
-            </Typography>
-            <Typography variant="p" sx={{ fontSize: 10 }}>
-              using love & kittens
-            </Typography>
-          </Grid>
-        </Paper>
-      </Grid>
-    </ThemeProvider>
-  );
-};
+const LoginButton = styled(Button)(({ theme }) => ({
+  color: "white",
+  backgroundColor: "black",
+  padding: 20,
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+}));
+
+const Error = styled(Typography)(({ theme }) => ({
+  color: "crimson",
+  display: "flex",
+  width: "100%",
+  justifyContent: "center",
+}));
 
 export default Login;

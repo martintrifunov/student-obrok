@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@emotion/react";
-import { Grid, createTheme } from "@mui/material";
+import { Grid, createTheme, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import VendorDealsList from "../components/VendorDealsList";
 import { useParams } from "react-router-dom";
@@ -12,7 +12,7 @@ const VendorDeals = () => {
   const theme = createTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [vendor, setVendor] = useState([]);
-  const [error, setError] = useState("");
+  const [_, setError] = useState("");
   const [deals, setDeals] = useState([]);
   const params = useParams();
   const [dealSearchTerm, setDealSearchTerm] = useState("");
@@ -56,13 +56,6 @@ const VendorDeals = () => {
     setDealSearchTerm(event.target.value);
   };
 
-  const gridStyle = {
-    display: "flex",
-    marginRight: "1vw",
-    justifyContent: "space-between",
-    marginTop: "10vh",
-  };
-
   return (
     <>
       {isLoading ? (
@@ -70,12 +63,12 @@ const VendorDeals = () => {
       ) : (
         <ThemeProvider theme={theme}>
           <DashboardHeader theme={theme} />
-          <Grid style={gridStyle}>
+          <DealsToolbarGrid>
             <DealSearchBar
               theme={theme}
               handleSearchChange={handleDealSearchChange}
             />
-          </Grid>
+          </DealsToolbarGrid>
 
           <VendorDealsList
             theme={theme}
@@ -90,5 +83,12 @@ const VendorDeals = () => {
     </>
   );
 };
+
+const DealsToolbarGrid = styled(Grid)(({ theme }) => ({
+  display: "flex",
+  marginRight: "1vw",
+  justifyContent: "space-between",
+  marginTop: "10vh",
+}));
 
 export default VendorDeals;

@@ -30,59 +30,6 @@ const MapDealInfoModal = ({ deals }) => {
     setPage(value);
   };
 
-  const ModalContent = styled(Box)(({ theme }) => ({
-    display: "flex",
-    flexDirection: "column",
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: isSmallScreen ? "90%" : "40%",
-    height: isSmallScreen ? "85%" : "80%",
-    backgroundColor: "white",
-    boxShadow: 24,
-    padding: 40,
-
-    "& .modal": {
-      display: "flex",
-      flexDirection: "column",
-      width: "100%",
-      height: "100%",
-    },
-
-    "& .top-section": {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-    },
-
-    "& .image-container": {
-      marginBottom: theme.spacing(2),
-    },
-    "& .image": {
-      width: "100%",
-      maxHeight: "250px",
-      objectFit: "cover",
-    },
-    "& .image-icon": {
-      width: "100%",
-      height: "250px",
-    },
-    "& .title": {
-      marginBottom: theme.spacing(2),
-    },
-
-    "& .middle-section": {
-      overflowY: "auto",
-      height: "100%",
-    },
-    "& .bottom-section": {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-    },
-  }));
-
   return (
     <ThemeProvider theme={theme}>
       <Box>
@@ -176,5 +123,55 @@ const MapDealInfoModal = ({ deals }) => {
     </ThemeProvider>
   );
 };
+
+const ModalContent = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: useMediaQuery(theme.breakpoints.down("sm")) ? "90%" : "40%",
+  height: useMediaQuery(theme.breakpoints.down("sm")) ? "85%" : "80%",
+  backgroundColor: "white",
+  boxShadow: 24,
+  padding: 40,
+  borderRadius: 20,
+  "& .modal": {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+  },
+  "& .top-section": {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  "& .image-container": {
+    marginBottom: theme.spacing(2),
+  },
+  "& .image": {
+    width: "100%",
+    maxHeight: "250px",
+    objectFit: "cover",
+  },
+  "& .image-icon": {
+    width: "100%",
+    height: "250px",
+  },
+  "& .title": {
+    marginBottom: theme.spacing(2),
+  },
+  "& .middle-section": {
+    overflowY: "auto",
+    height: "100%",
+  },
+  "& .bottom-section": {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+}));
 
 export default MapDealInfoModal;

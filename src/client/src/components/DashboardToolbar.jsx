@@ -1,10 +1,10 @@
 import React from "react";
-import { Button, Grid, Box, useMediaQuery } from "@mui/material";
+import { Button, Grid, Box, useMediaQuery, styled } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import VendorSearchBar from "./VendorSearchBar";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import StoreIcon from '@mui/icons-material/Store';
+import StoreIcon from "@mui/icons-material/Store";
 
 const DashboardToolbar = ({ theme, handleSearchChange }) => {
   const navigate = useNavigate();
@@ -18,26 +18,12 @@ const DashboardToolbar = ({ theme, handleSearchChange }) => {
     navigate("/dashboard/vendor");
   };
 
-  const gridStyle = {
-    display: "flex",
-    marginLeft: "1vw",
-    marginRight: "1vw",
-    justifyContent: "space-between",
-    marginTop: "10vh",
-  };
-
-  const buttonStyle = {
-    textTransform: "none",
-    backgroundColor: "black",
-  };
-
   return (
-    <Grid style={gridStyle}>
+    <ToolbarGrid>
       <VendorSearchBar theme={theme} handleSearchChange={handleSearchChange} />
       <Box>
-        <Button
+        <RegisterVendorButton
           variant="contained"
-          style={{ ...buttonStyle, marginRight: 10 }}
           onClick={() => handleRegisterVendor()}
         >
           {!isSmallScreen ? (
@@ -48,12 +34,8 @@ const DashboardToolbar = ({ theme, handleSearchChange }) => {
           ) : (
             <StoreIcon />
           )}
-        </Button>
-        <Button
-          variant="contained"
-          style={buttonStyle}
-          onClick={() => handleAddDeal()}
-        >
+        </RegisterVendorButton>
+        <AddDealButton variant="contained" onClick={() => handleAddDeal()}>
           {!isSmallScreen ? (
             <>
               <AddIcon />
@@ -62,10 +44,37 @@ const DashboardToolbar = ({ theme, handleSearchChange }) => {
           ) : (
             <LocalOfferIcon />
           )}
-        </Button>
+        </AddDealButton>
       </Box>
-    </Grid>
+    </ToolbarGrid>
   );
 };
+
+const ToolbarGrid = styled(Grid)(({ theme }) => ({
+  display: "flex",
+  marginLeft: "1vw",
+  marginRight: "1vw",
+  justifyContent: "space-between",
+  marginTop: "10vh",
+}));
+
+const RegisterVendorButton = styled(Button)(({ theme }) => ({
+  textTransform: "none",
+  backgroundColor: "black",
+  marginRight: 10,
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+}));
+
+const AddDealButton = styled(Button)(({ theme }) => ({
+  textTransform: "none",
+  backgroundColor: "black",
+
+  "&:hover": {
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+  },
+}));
 
 export default DashboardToolbar;

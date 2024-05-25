@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   Box,
   Button,
+  styled,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,8 +24,6 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
-import parse from "html-react-parser";
-import { maxHeight } from "@mui/system";
 
 const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
   const navigate = useNavigate();
@@ -118,35 +117,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
     searchTermInDeal(deal, searchTerm)
   );
 
-  const tableStyle = {
-    width: "98vw",
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: 20,
-    borderRadius: 10,
-  };
-  const errorStyle = {
-    color: "crimson",
-    width: "100vw",
-    display: "flex",
-    justifyContent: "center",
-  };
-
-  const tableHeaderCellStyle = {
-    color: "gray",
-  };
-
-  const editButtonStyle = {
-    backgroundColor: "black",
-    marginLeft: "3vw",
-    textTransform: "none",
-  };
-
-  const removeButtonStyle = {
-    marginLeft: "3vw",
-    textTransform: "none",
-  };
-
   return (
     <>
       {isSmallScreen ? (
@@ -161,7 +131,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           {deal.title}
                         </Typography>
                       </Box>
-  
+
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
                           <strong>Price:</strong>
@@ -170,25 +140,23 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                       </Box>
                       <Box display="flex" justifyContent="center" marginTop={2}>
                         <DashboardImageModal
-                          variant={"contained"}
+                          variant="contained"
                           image={deal.image}
                           imageTitle={deal.imageTitle}
                         />
-                        <Button
+                        <EditDealButton
                           variant="contained"
                           onClick={() => handleEditDeal(deal._id)}
-                          style={editButtonStyle}
                         >
                           <EditIcon />
-                        </Button>
-                        <Button
+                        </EditDealButton>
+                        <RemoveDealButton
                           variant="outlined"
                           color="inherit"
                           onClick={() => handleRemoveDeal(deal._id)}
-                          style={removeButtonStyle}
                         >
                           <DeleteIcon />
-                        </Button>
+                        </RemoveDealButton>
                       </Box>
                     </CardContent>
                   </Card>
@@ -209,12 +177,8 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
         </Grid>
       ) : (
         <>
-          {error && (
-            <Typography variant="p" style={errorStyle}>
-              {error}
-            </Typography>
-          )}
-          <TableContainer style={tableStyle}>
+          {error && <Error variant="p">{error}</Error>}
+          <DealsTableContainer>
             <Table
               sx={{
                 "& thead th": {
@@ -227,14 +191,12 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
             >
               <TableHead>
                 <TableRow>
-                  <TableCell style={tableHeaderCellStyle}>#</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Title</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Price</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Image</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Vendor</TableCell>
-                  <TableCell
-                    style={{ ...tableHeaderCellStyle, textAlign: "right" }}
-                  >
+                  <TableCell sx={{ color: "gray" }}>#</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Title</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Price</TableCell>
+                  <TableCell ssx={{ color: "gray" }}>Image</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Vendor</TableCell>
+                  <TableCell sx={{ color: "gray", textAlign: "right" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -303,11 +265,38 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
               rowsPerPage={5}
               rowsPerPageOptions={[]}
             />
-          </TableContainer>
+          </DealsTableContainer>
         </>
       )}
     </>
   );
 };
+
+const DealsTableContainer = styled(TableContainer)(() => ({
+  width: "98vw",
+  marginLeft: "auto",
+  marginRight: "auto",
+  marginTop: 20,
+  borderRadius: 10,
+}));
+
+const Error = styled(Typography)(() => ({
+  color: "crimson",
+  width: "100%",
+  display: "flex",
+  justifyContent: "center",
+}));
+
+const EditDealButton = styled(Button)(() => ({
+  backgroundColor: "black",
+  marginLeft: "3vw",
+  textTransform: "none",
+  color: "white",
+}));
+
+const RemoveDealButton = styled(Button)(() => ({
+  marginLeft: "3vw",
+  textTransform: "none",
+}));
 
 export default DealsList;

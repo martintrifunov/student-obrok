@@ -6,7 +6,7 @@ import Fade from "@mui/material/Fade";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { ThemeProvider } from "@emotion/react";
-import { createTheme } from "@mui/material";
+import { createTheme, styled } from "@mui/material";
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 
 const DashboardImageModal = ({ imageTitle, image, variant }) => {
@@ -16,44 +16,9 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
   const theme = createTheme();
   const imageRef = useRef(null);
 
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  };
-
-  const boxStyle = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "auto",
-    height: "auto",
-    maxWidth: "90vw",
-    maxHeight: "90vh",
-  };
-
-  const imageStyle = {
-    maxWidth: "100%",
-    height: "auto",
-    display: "block",
-    border: "5px solid white",
-  };
-  const tldrStyle = {
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  };
-
   return (
     <ThemeProvider theme={theme}>
-      <div>
+      <Box>
         <Button
           color="inherit"
           variant={variant || ""}
@@ -77,30 +42,66 @@ const DashboardImageModal = ({ imageTitle, image, variant }) => {
           }}
         >
           <Fade in={open}>
-            <Box sx={style}>
+            <ModalContent>
               <Typography
                 id="transition-modal-title"
                 variant="h6"
                 textAlign="center"
                 component="h2"
-                style={tldrStyle}
+                className="tldr"
               >
                 {imageTitle}
               </Typography>
-              <Box sx={boxStyle}>
+              <Box className="box">
                 <img
                   src={image}
                   ref={imageRef}
-                  style={imageStyle}
+                  className="image"
                   alt="coverImage"
                 />
               </Box>
-            </Box>
+            </ModalContent>
           </Fade>
         </Modal>
-      </div>
+      </Box>
     </ThemeProvider>
   );
 };
+
+const ModalContent = styled(Box)(({ theme }) => ({
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  backgroundColor: "white",
+  boxShadow: 24,
+  padding: 40,
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+
+  "& .box": {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "auto",
+    height: "auto",
+    maxWidth: "90vw",
+    maxHeight: "90vh",
+  },
+
+  "& .image": {
+    maxWidth: "100%",
+    height: "auto",
+    display: "block",
+    border: "5px solid white",
+  },
+
+  "& .tldr": {
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+}));
 
 export default DashboardImageModal;

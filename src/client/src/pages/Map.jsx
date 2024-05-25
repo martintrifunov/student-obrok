@@ -45,35 +45,6 @@ const Map = () => {
     navigate("/dashboard");
   };
 
-  const CancelRouteButton = styled(Button)(({ theme }) => ({
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    zIndex: 1000,
-    backgroundColor: "crimson",
-    textTransform: "none",
-    color: "white",
-
-    "&:hover": {
-      backgroundColor: "rgba(220, 20, 60, 0.8)",
-    },
-  }));
-
-  const DashboardButton = styled(Button)(({ theme }) => ({
-    position: "absolute",
-    bottom: "10px",
-    left: "10px",
-    zIndex: 1000,
-    textTransform: "none",
-    backgroundColor: "white",
-    color: "black",
-    padding: 10,
-
-    "&:hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.8)",
-    },
-  }));
-
   return (
     <>
       {isLoading && <GlobalLoadingProgress />}
@@ -119,5 +90,34 @@ const Map = () => {
     </>
   );
 };
+
+const CancelRouteButton = styled(Button)(({ theme }) => ({
+  position: "absolute",
+  top: "10px",
+  right: "10px",
+  zIndex: 1000,
+  backgroundColor: "crimson",
+  textTransform: "none",
+  color: "white",
+
+  "&:hover": {
+    backgroundColor: "rgba(220, 20, 60, 0.8)",
+  },
+}));
+
+const DashboardButton = styled(Button)(({ theme }) => ({
+  position: "absolute",
+  bottom: "10px",
+  left: "10px",
+  zIndex: 1000,
+  textTransform: "none",
+  backgroundColor: "white",
+  color: "black",
+  padding: 10,
+
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+  },
+}));
 
 export default Map;
