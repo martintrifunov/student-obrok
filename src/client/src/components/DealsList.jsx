@@ -24,6 +24,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../api/axios";
 import DashboardImageModal from "./DashboardImageModal";
 import parse from "html-react-parser";
+import { maxHeight } from "@mui/system";
 
 const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
   const navigate = useNavigate();
@@ -131,13 +132,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
     justifyContent: "center",
   };
 
-  const tldrStyle = {
-    maxWidth: isSmallScreen ? "200px" : "300px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  };
-
   const tableHeaderCellStyle = {
     color: "gray",
   };
@@ -167,12 +161,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           {deal.title}
                         </Typography>
                       </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2" style={tldrStyle}>
-                          <strong>Description:</strong>
-                          {parse(deal.description)}
-                        </Typography>
-                      </Box>
+  
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
                           <strong>Price:</strong>
@@ -240,9 +229,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                 <TableRow>
                   <TableCell style={tableHeaderCellStyle}>#</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Title</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>
-                    Description
-                  </TableCell>
                   <TableCell style={tableHeaderCellStyle}>Price</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Vendor</TableCell>
@@ -262,9 +248,6 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                         <TableRow key={deal._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{deal.title}</TableCell>
-                          <TableCell style={tldrStyle}>
-                            {parse(deal.description)}
-                          </TableCell>
                           <TableCell>{deal.price}</TableCell>
                           <TableCell>
                             <DashboardImageModal

@@ -97,13 +97,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
     justifyContent: "center",
   };
 
-  const tldrStyle = {
-    maxWidth: isSmallScreen ? "200px" : "300px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  };
-
   const tableHeaderCellStyle = {
     color: "gray",
   };
@@ -131,11 +124,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                       <Box display="flex" justifyContent="center">
                         <Typography variant="h6" style={{ fontWeight: "bold" }}>
                           {deal.title}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2" style={tldrStyle}>
-                          <strong>Description:</strong> {deal.description}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center">
@@ -207,9 +195,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                 <TableRow>
                   <TableCell style={tableHeaderCellStyle}>#</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Title</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>
-                    Description
-                  </TableCell>
                   <TableCell style={tableHeaderCellStyle}>Price</TableCell>
                   <TableCell style={tableHeaderCellStyle}>Image</TableCell>
                   <TableCell
@@ -228,9 +213,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                         <TableRow key={deal._id}>
                           <TableCell>{index + 1}</TableCell>
                           <TableCell>{deal.title}</TableCell>
-                          <TableCell style={tldrStyle}>
-                            {deal.description}
-                          </TableCell>
                           <TableCell>{deal.price}</TableCell>
                           <TableCell>
                             <DashboardImageModal
