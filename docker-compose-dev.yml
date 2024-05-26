@@ -38,8 +38,6 @@ services:
       ADMIN_USERNAME: "${ADMIN_USERNAME}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       CLIENT_ORIGIN: "${CLIENT_ORIGIN}"
-      SERVER_ORIGIN: "${SERVER_ORIGIN}"
-      DATABASE_ORIGIN: "${DATABASE_ORIGIN}"
     restart: always
     depends_on: 
       - db
@@ -56,4 +54,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
       MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE}"
     volumes:
-      - "/data/studentObrokDb:/data/db"
+      - student_obrok_db:/data/db
+
+volumes:
+  student_obrok_db:
