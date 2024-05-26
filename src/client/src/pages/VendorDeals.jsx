@@ -1,5 +1,5 @@
 import { ThemeProvider } from "@emotion/react";
-import { Grid, createTheme, styled } from "@mui/material";
+import { Grid, createTheme, styled, useMediaQuery } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import VendorDealsList from "../components/VendorDealsList";
 import { useParams } from "react-router-dom";
@@ -87,8 +87,8 @@ const VendorDeals = () => {
 const DealsToolbarGrid = styled(Grid)(({ theme }) => ({
   display: "flex",
   marginRight: "1vw",
-  justifyContent: "space-between",
-  marginTop: "10vh",
+  justifyContent: useMediaQuery(theme.breakpoints.down("sm")) ? "center" : "space-between",
+  marginTop: !useMediaQuery(theme.breakpoints.down("sm")) && "10vh",
 }));
 
 export default VendorDeals;

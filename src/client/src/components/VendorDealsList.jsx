@@ -100,7 +100,7 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                       </Box>
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
-                          <strong>Price:</strong>
+                          <strong>Price: </strong>
                           {deal.price}
                         </Typography>
                       </Box>
@@ -115,7 +115,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           onClick={() => handleEditDeal(deal._id)}
                         >
                           <EditIcon />
-                          Edit
                         </EditDealButton>
                         <RemoveDealButton
                           variant="outlined"
@@ -123,7 +122,6 @@ const VendorDealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           onClick={() => handleRemoveDeal(deal._id)}
                         >
                           <DeleteIcon />
-                          Remove
                         </RemoveDealButton>
                       </Box>
                     </CardContent>

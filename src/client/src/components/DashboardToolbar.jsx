@@ -21,7 +21,7 @@ const DashboardToolbar = ({ theme, handleSearchChange }) => {
   return (
     <ToolbarGrid>
       <VendorSearchBar theme={theme} handleSearchChange={handleSearchChange} />
-      <Box>
+      <ToolbarBox>
         <RegisterVendorButton
           variant="contained"
           onClick={() => handleRegisterVendor()}
@@ -45,7 +45,7 @@ const DashboardToolbar = ({ theme, handleSearchChange }) => {
             <LocalOfferIcon />
           )}
         </AddDealButton>
-      </Box>
+      </ToolbarBox>
     </ToolbarGrid>
   );
 };
@@ -55,7 +55,17 @@ const ToolbarGrid = styled(Grid)(({ theme }) => ({
   marginLeft: "1vw",
   marginRight: "1vw",
   justifyContent: "space-between",
-  marginTop: "10vh",
+  marginTop: useMediaQuery(theme.breakpoints.down("sm")) ? "5vh" : "10vh",
+}));
+
+const ToolbarBox = styled(Box)(({ theme }) => ({
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+    (min-height: 653px) and (max-height: 653px)`]: {
+      display: "flex",
+      justifyContent: "center",
+      marginLeft: 20
+  },
 }));
 
 const RegisterVendorButton = styled(Button)(({ theme }) => ({

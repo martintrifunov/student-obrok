@@ -153,26 +153,26 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                             {vendor.location.join(", ")}
                           </Typography>
                         </Box>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          marginTop={2}
-                        >
+
+                        <VendorButtonsGrid >
                           <DashboardImageModal
                             variant={"contained"}
                             image={vendor.image}
                             imageTitle={vendor.imageTitle}
+                            className="vendor-button"
                           />
                           <ViewVendorButton
                             variant="contained"
                             onClick={() => handleNavigateToDeals(vendor._id)}
                             disabled={!vendor.deals}
+                            className="vendor-button"
                           >
                             <LocalOfferIcon sx={{ marginRight: 1 }} /> View
                           </ViewVendorButton>
                           <EditVendorButton
                             variant="contained"
                             onClick={() => handleEditVendor(vendor._id)}
+                            className="vendor-button"
                           >
                             <EditIcon />
                           </EditVendorButton>
@@ -180,10 +180,11 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                             variant="outlined"
                             color="inherit"
                             onClick={() => handleRemoveVendor(vendor._id)}
+                            className="vendor-button"
                           >
                             <DeleteIcon />
                           </RemoveVendorButton>
-                        </Box>
+                        </VendorButtonsGrid>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -320,6 +321,22 @@ const Error = styled(Typography)(({ theme }) => ({
   width: "100%",
   display: "flex",
   justifyContent: "center",
+}));
+
+const VendorButtonsGrid = styled(Box)(({ theme }) => ({
+  display: "flex",
+  justifyContent: "center",
+  marginTop: 5,
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+    (min-height: 653px) and (max-height: 653px)`]: {
+    flexWrap: "wrap",
+
+  ".vendor-button:nth-of-type(2), .vendor-button:nth-of-type(3)": {
+      marginTop: 10 
+    }
+  },
 }));
 
 const EditVendorButton = styled(Button)(({ theme }) => ({

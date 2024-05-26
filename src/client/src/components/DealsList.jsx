@@ -121,6 +121,7 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
     <>
       {isSmallScreen ? (
         <Grid container spacing={2}>
+          <Box display="flex" justifyContent="center"></Box>
           {!isLoading
             ? filteredDeals.slice(page * 5, page * 5 + 5).map((deal, index) => (
                 <Grid item xs={12} key={deal._id}>
@@ -131,11 +132,16 @@ const DealsList = ({ theme, searchTerm, deals, setDeals }) => {
                           {deal.title}
                         </Typography>
                       </Box>
-
                       <Box display="flex" justifyContent="center">
                         <Typography variant="body2">
-                          <strong>Price:</strong>
+                          <strong>Price: </strong>
                           {deal.price}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" justifyContent="center">
+                        <Typography variant="body2">
+                          <strong>Vendor: </strong>
+                          {deal.vendor.name}
                         </Typography>
                       </Box>
                       <Box display="flex" justifyContent="center" marginTop={2}>
