@@ -16,6 +16,7 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import axios from "../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import { fontSize } from "@mui/system";
 
 const Login = () => {
   const { setAuth, persist, setPersist } = useAuth();
@@ -26,6 +27,8 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -157,9 +160,9 @@ const LoginContainer = styled(Paper)(({ theme }) => ({
   justifyContent: "flex-start",
   alignItems: "center",
   padding: 20,
-  height: useMediaQuery(theme.breakpoints.down("md")) ? "70vh" : "70vh",
+  height: "80vh",
   width: useMediaQuery(theme.breakpoints.down("md")) ? "85vw" : "30vw",
-  margin: "15vh auto",
+  margin: "10vh auto",
   "& .maco-auth": {
     display: "flex",
     flexDirection: "column",
@@ -170,9 +173,63 @@ const LoginContainer = styled(Paper)(({ theme }) => ({
   "& .login-logo": {
     height: "100%",
     alignItems: "center",
-    fontSize: useMediaQuery(theme.breakpoints.down("sm")) ? 75 : 100,
+    fontSize: useMediaQuery(theme.breakpoints.down("sm")) ? 125 : 130,
     marginBottom: 0,
     paddingBottom: 0,
+  },
+
+  // Surface Pro 7
+  [`@media (min-width: ${
+    theme.breakpoints.values.md + 1
+  }px) and (max-width: 1366px)`]: {
+    width: "80vw",
+    "& .login-logo": {
+      height: "100%",
+      alignItems: "center",
+      fontSize: 200,
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+    fontSize: 20,
+  },
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+  (min-height: 653px) and (max-height: 653px)`]: {
+    width: "85vw",
+    "& .login-logo": {
+      height: "100%",
+      alignItems: "center",
+      fontSize: 100,
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+  },
+
+  // Nest Hub
+  [`@media (min-width: 1024px) and (max-width: 1024px) and 
+    (min-height: 600px) and (max-height: 600px)`]: {
+    width: "45vw",
+    "& .login-logo": {
+      height: "100%",
+      alignItems: "center",
+      fontSize: 100,
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
+  },
+
+  // Nest Hub Max
+  [`@media (min-width: 1280px) and (max-width: 1280px) and 
+   (min-height: 800px) and (max-height: 800px)`]: {
+    width: "45vw",
+    "& .login-logo": {
+      height: "100%",
+      alignItems: "center",
+      fontSize: 100,
+      marginBottom: 0,
+      paddingBottom: 0,
+    },
   },
 }));
 
@@ -190,6 +247,12 @@ const Error = styled(Typography)(({ theme }) => ({
   display: "flex",
   width: "100%",
   justifyContent: "center",
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+    (min-height: 653px) and (max-height: 653px)`]: {
+    fontSize: 12,
+  },
 }));
 
 export default Login;
