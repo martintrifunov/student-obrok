@@ -203,15 +203,11 @@ const AddOrEditDealForm = () => {
             justifyContent={isSmallScreen ? "flex-start" : "center"}
             alignItems="center"
             height={isSmallScreen ? "65vh" : "85vh"}
-            marginTop={isSmallScreen && 5}
             marginBottom={isSmallScreen && 5}
           >
             <Container maxWidth="md" sx={{ maxHeight: "90%", marginTop: 10 }}>
               <form autoComplete="off" onSubmit={handleSubmit}>
-                <Paper
-                  elevation={5}
-                  sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
-                >
+                <DealForm elevation={5}>
                   <Grid container spacing={3} justify="center">
                     <Grid item xs={12}>
                       {errorBag === "Title is required!" && (
@@ -375,7 +371,7 @@ const AddOrEditDealForm = () => {
                       </div>
                     </Grid>
                   </Grid>
-                </Paper>
+                </DealForm>
                 <Grid item xs={12} container justifyContent="flex-end">
                   <CancelButton variant="text" onClick={() => handleCancel()}>
                     <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
@@ -396,6 +392,17 @@ const AddOrEditDealForm = () => {
     </>
   );
 };
+
+const DealForm = styled(Paper)(({ theme }) => ({
+  padding: useMediaQuery(theme.breakpoints.down("sm")) ? 25 : 50,
+  marginBottom: 25,
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+ (min-height: 653px) and (max-height: 653px)`]: {
+    padding: 25,
+  },
+}));
 
 const AddDealButton = styled(Button)(({ theme }) => ({
   textTransform: "none",

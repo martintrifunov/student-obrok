@@ -157,15 +157,11 @@ const AddOrEditVendorForm = () => {
             justifyContent={isSmallScreen ? "flex-start" : "center"}
             alignItems="center"
             height={isSmallScreen ? "65vh" : "85vh"}
-            marginTop={isSmallScreen && 5}
             marginBottom={isSmallScreen && 5}
           >
             <Container maxWidth="md" sx={{ maxHeight: "90%", marginTop: 10 }}>
               <form autoComplete="off" onSubmit={handleSubmit}>
-                <Paper
-                  elevation={5}
-                  sx={{ padding: isSmallScreen ? 5 : 10, marginBottom: 2 }}
-                >
+                <VendorForm elevation={5}>
                   <Grid container spacing={3} justify="center">
                     <Grid item xs={12}>
                       {errorBag === "Name is required!" && (
@@ -293,7 +289,7 @@ const AddOrEditVendorForm = () => {
                       />
                     </Grid>
                   </Grid>
-                </Paper>
+                </VendorForm>
                 <Grid item xs={12} container justifyContent="flex-end">
                   <CancelButton variant="text" onClick={() => handleCancel()}>
                     <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
@@ -315,7 +311,18 @@ const AddOrEditVendorForm = () => {
   );
 };
 
-const AddVendorButton = styled(Button)(({theme}) => ({
+const VendorForm = styled(Paper)(({ theme }) => ({
+  padding: useMediaQuery(theme.breakpoints.down("sm")) ? 25 : 50,
+  marginBottom: 25,
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+ (min-height: 653px) and (max-height: 653px)`]: {
+    padding: 25,
+  },
+}));
+
+const AddVendorButton = styled(Button)(({ theme }) => ({
   textTransform: "none",
   backgroundColor: "black",
   marginBottom: 20,
@@ -325,7 +332,7 @@ const AddVendorButton = styled(Button)(({theme}) => ({
   },
 }));
 
-const CancelButton = styled(Button)(({theme}) => ({
+const CancelButton = styled(Button)(({ theme }) => ({
   color: "black",
   textTransform: "none",
   marginRight: "1vw",
