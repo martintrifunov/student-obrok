@@ -5,7 +5,7 @@ services:
       - ./data/map:/data
     command: osrm-routed --algorithm mld /data/macedonia-latest.osrm
     ports:
-      - "5001:5000"
+      - 5001:5000
       
   client:
     stdin_open: true
@@ -39,8 +39,6 @@ services:
       ADMIN_USERNAME: "${ADMIN_USERNAME}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       CLIENT_ORIGIN: "${CLIENT_ORIGIN}"
-      SERVER_ORIGIN: "${SERVER_ORIGIN}"
-      DATABASE_ORIGIN: "${DATABASE_ORIGIN}"
     ports:
       - 5000:5000
     depends_on:
@@ -56,4 +54,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
       MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE}"
     volumes:
-      - "/data/studentObrokDb:/data/db"
+      - student_obrok_db:/data/db
+
+volumes:
+  student_obrok_db:

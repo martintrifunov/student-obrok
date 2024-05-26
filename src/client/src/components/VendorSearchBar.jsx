@@ -3,7 +3,9 @@ import { TextField, InputAdornment, useMediaQuery } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
 const DealSearchBar = ({ theme, handleSearchChange }) => {
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
+
 
   return (
     <TextField
@@ -20,7 +22,7 @@ const DealSearchBar = ({ theme, handleSearchChange }) => {
         "& label.Mui-focused": {
           color: "black",
         },
-        width: isMediumScreen ? "50%" : "15%",
+        width: isSmallScreen ? "50%" : "20%",
       }}
       size="small"
       InputProps={{

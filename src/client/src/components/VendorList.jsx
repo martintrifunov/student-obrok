@@ -16,6 +16,7 @@ import {
   useMediaQuery,
   Box,
   Button,
+  styled,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -127,36 +128,6 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
     searchTermInVendor(deal, searchTerm)
   );
 
-  const tableStyle = {
-    width: "98vw",
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: 20,
-    borderRadius: 10,
-  };
-  const errorStyle = {
-    color: "crimson",
-    width: "100vw",
-    display: "flex",
-    justifyContent: "center",
-  };
-
-  const tableHeaderCellStyle = {
-    color: "gray",
-  };
-
-  const editButtonStyle = {
-    backgroundColor: "black",
-    marginLeft: "3vw",
-    textTransform: "none",
-    color: "white",
-  };
-
-  const removeButtonStyle = {
-    marginLeft: "3vw",
-    textTransform: "none",
-  };
-
   return (
     <>
       {isSmallScreen ? (
@@ -182,40 +153,38 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                             {vendor.location.join(", ")}
                           </Typography>
                         </Box>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          marginTop={2}
-                        >
+
+                        <VendorButtonsGrid >
                           <DashboardImageModal
                             variant={"contained"}
                             image={vendor.image}
                             imageTitle={vendor.imageTitle}
+                            className="vendor-button"
                           />
-                          <Button
+                          <ViewVendorButton
                             variant="contained"
                             onClick={() => handleNavigateToDeals(vendor._id)}
-                            style={editButtonStyle}
                             disabled={!vendor.deals}
+                            className="vendor-button"
                           >
                             <LocalOfferIcon sx={{ marginRight: 1 }} /> View
-                          </Button>
-                          <Button
+                          </ViewVendorButton>
+                          <EditVendorButton
                             variant="contained"
                             onClick={() => handleEditVendor(vendor._id)}
-                            style={editButtonStyle}
+                            className="vendor-button"
                           >
                             <EditIcon />
-                          </Button>
-                          <Button
+                          </EditVendorButton>
+                          <RemoveVendorButton
                             variant="outlined"
                             color="inherit"
                             onClick={() => handleRemoveVendor(vendor._id)}
-                            style={removeButtonStyle}
+                            className="vendor-button"
                           >
                             <DeleteIcon />
-                          </Button>
-                        </Box>
+                          </RemoveVendorButton>
+                        </VendorButtonsGrid>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -235,12 +204,8 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
         </Grid>
       ) : (
         <>
-          {error && (
-            <Typography variant="p" style={errorStyle}>
-              {error}
-            </Typography>
-          )}
-          <TableContainer style={tableStyle}>
+          {error && <Error variant="p">{error}</Error>}
+          <VendorsTableContainer>
             <Table
               sx={{
                 "& thead th": {
@@ -253,14 +218,12 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
             >
               <TableHead>
                 <TableRow>
-                  <TableCell style={tableHeaderCellStyle}>#</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Name</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Location</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Image</TableCell>
-                  <TableCell style={tableHeaderCellStyle}>Deals</TableCell>
-                  <TableCell
-                    style={{ ...tableHeaderCellStyle, textAlign: "right" }}
-                  >
+                  <TableCell sx={{ color: "gray" }}>#</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Name</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Location</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Image</TableCell>
+                  <TableCell sx={{ color: "gray" }}>Deals</TableCell>
+                  <TableCell sx={{ color: "gray", textAlign: "right" }}>
                     Actions
                   </TableCell>
                 </TableRow>
@@ -338,11 +301,61 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
               rowsPerPage={5}
               rowsPerPageOptions={[]}
             />
-          </TableContainer>
+          </VendorsTableContainer>
         </>
       )}
     </>
   );
 };
+
+const VendorsTableContainer = styled(TableContainer)(({ theme }) => ({
+  width: "98vw",
+  marginLeft: "auto",
+  marginRight: "auto",
+  marginTop: 20,
+  borderRadius: 10,
+}));
+
+const Error = styled(Typography)(({ theme }) => ({
+  color: "crimson",
+  width: "100%",
+  display: "flex",
+  justifyContent: "center",
+}));
+
+const VendorButtonsGrid = styled(Box)(({ theme }) => ({
+  display: "flex",
+  justifyContent: "center",
+  marginTop: 5,
+
+  // Galaxy Fold
+  [`@media (min-width: 280px) and (max-width: 280px) and 
+    (min-height: 653px) and (max-height: 653px)`]: {
+    flexWrap: "wrap",
+
+  ".vendor-button:nth-of-type(2), .vendor-button:nth-of-type(3)": {
+      marginTop: 10 
+    }
+  },
+}));
+
+const EditVendorButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "black",
+  marginLeft: "3vw",
+  textTransform: "none",
+  color: "white",
+}));
+
+const ViewVendorButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "black",
+  marginLeft: "3vw",
+  textTransform: "none",
+  color: "white",
+}));
+
+const RemoveVendorButton = styled(Button)(({ theme }) => ({
+  marginLeft: "3vw",
+  textTransform: "none",
+}));
 
 export default VendorstList;

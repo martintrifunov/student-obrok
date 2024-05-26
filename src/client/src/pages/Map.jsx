@@ -4,20 +4,26 @@ import "leaflet/dist/leaflet.css";
 import "../assets/map.css";
 import LocateUser from "../components/LocateUser";
 import RoutingEngine from "../components/RoutingEngine";
-import { Button } from "@mui/material";
+import { Box, Button, createTheme, styled } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import CreditMarker from "../components/CreditMarker";
 import VendorMarkers from "../components/VendorMarkers";
+import useAuth from "../hooks/useAuth";
+import HomeIcon from "@mui/icons-material/Home";
+import { useNavigate } from "react-router-dom";
 
 const Map = () => {
   const position = [42.00430265307896, 21.409471852749466];
   const [userLocation, setUserLocation] = useState(null);
-  const [vendorLocation, setVendorLocation] = useState(null);
+  const [_, setVendorLocation] = useState(null);
   const [isDisabledRoutingButton, changeIsDisabledRoutingButton] =
     useState(false);
   const [route, setRoute] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { auth } = useAuth();
+  const theme = createTheme();
+  const navigate = useNavigate();
 
   const handleUserLocation = (location) => {
     setUserLocation(location);
@@ -35,20 +41,14 @@ const Map = () => {
     changeIsDisabledRoutingButton(false);
   };
 
-  const cancelRouteButtonStyle = {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    zIndex: 1000,
-    backgroundColor: "crimson",
-    textTransform: "none",
-    color: "white",
+  const handleDashboardClick = () => {
+    navigate("/dashboard");
   };
 
   return (
     <>
       {isLoading && <GlobalLoadingProgress />}
-      <div className="map-container">
+      <Box className="map-container">
         <MapContainer
           center={position}
           minZoom={10}
@@ -71,20 +71,53 @@ const Map = () => {
           />
           {route && (
             <>
-              <Button
+              <CancelRouteButton
                 variant="contained"
-                style={cancelRouteButtonStyle}
                 onClick={handleCancelRoute}
               >
                 <CloseIcon sx={{ marginRight: "5px" }} /> Cancel Route
-              </Button>
+              </CancelRouteButton>
               <RoutingEngine start={route?.start} end={route?.end} />
             </>
           )}
+          {auth?.accessToken && (
+            <DashboardButton variant="contained" onClick={handleDashboardClick}>
+              <HomeIcon sx={{ fontSize: 35 }} />
+            </DashboardButton>
+          )}
         </MapContainer>
-      </div>
+      </Box>
     </>
   );
 };
+
+const CancelRouteButton = styled(Button)(({ theme }) => ({
+  position: "absolute",
+  top: "10px",
+  right: "10px",
+  zIndex: 1000,
+  backgroundColor: "crimson",
+  textTransform: "none",
+  color: "white",
+
+  "&:hover": {
+    backgroundColor: "rgba(220, 20, 60, 0.8)",
+  },
+}));
+
+const DashboardButton = styled(Button)(({ theme }) => ({
+  position: "absolute",
+  bottom: "10px",
+  left: "10px",
+  zIndex: 1000,
+  textTransform: "none",
+  backgroundColor: "white",
+  color: "black",
+  padding: 10,
+
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+  },
+}));
 
 export default Map;
