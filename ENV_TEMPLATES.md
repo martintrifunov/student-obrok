@@ -16,8 +16,6 @@ For the root directory .env file you're gonna need:
 - MONGO_INITDB_ROOT_PASSWORD
 - MONGO_INITDB_DATABASE
 - CLIENT_ORIGIN
-- SERVER_ORIGIN
-- DATABASE_ORIGIN
 - PORT
 
 For the /src/client directory .env file:
