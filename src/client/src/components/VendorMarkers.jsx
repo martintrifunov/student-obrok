@@ -84,7 +84,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                       variant="contained"
                       onClick={() => onVendorLocation(vendor.location)}
                     >
-                      Get Directions
+                      Добиј насоки
                       <ArrowRightAltIcon sx={{ marginLeft: 0.5 }} />
                     </GetDirectionsButton>
                   </Box>
