@@ -11,6 +11,10 @@ router
   .put(verifyJWT, vendorsController.updateVendor)
   .delete(verifyJWT, vendorsController.deleteVendor);
 
+router
+  .route("/vendors/report")
+  .get(verifyJWT, vendorsController.generateReport);
+
 router.route("/vendors/:id").get(vendorsController.getVendor);
 
 export { router as vendorsRouter };

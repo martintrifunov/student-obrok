@@ -1,4 +1,4 @@
-import { Grid } from "@mui/material";
+import { Grid, styled, useMediaQuery } from "@mui/material";
 import React, { useState } from "react";
 import DashboardHeader from "../components/DashboardHeader";
 import { createTheme, ThemeProvider } from "@mui/material";
@@ -37,10 +37,12 @@ const Dashboard = () => {
           vendors={vendors}
           setVendors={setVendors}
         />
-        <DealSearchBar
-          theme={theme}
-          handleSearchChange={handleDealSearchChange}
-        />
+        <DealsToolbarGrid>
+          <DealSearchBar
+            theme={theme}
+            handleSearchChange={handleDealSearchChange}
+          />
+        </DealsToolbarGrid>
         <DealsList
           theme={theme}
           searchTerm={dealSearchTerm}
@@ -51,5 +53,13 @@ const Dashboard = () => {
     </ThemeProvider>
   );
 };
+
+const DealsToolbarGrid = styled(Grid)(({ theme }) => ({
+  display: "flex",
+  justifyContent: useMediaQuery(theme.breakpoints.down("sm"))
+    ? "center"
+    : "space-between",
+  alignItems: useMediaQuery(theme.breakpoints.down("sm")) && "center",
+}));
 
 export default Dashboard;

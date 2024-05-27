@@ -2,6 +2,8 @@ import { DealModel } from "../models/Deals.js";
 import { VendorModel } from "../models/Vendors.js";
 import mongoose from "mongoose";
 
+import { Parser } from "json2csv";
+
 const getAllVendors = async (req, res) => {
   try {
     const vendors = await VendorModel.find().populate("deals");
@@ -148,12 +150,48 @@ const getVendor = async (req, res) => {
   }
 };
 
+const generateReport = async (req, res) => {
+  try {
+    let vendors = [];
+    const vendorsData = await VendorModel.find({}).populate("deals");
+
+    vendorsData.forEach((vendor) => {
+      const { name, location, deals } = vendor;
+      let dealsData = "";
+
+      deals.forEach((deal) => {
+        const { title, price } = deal;
+
+        dealsData = dealsData.concat(`${title}, ${price} ден\n`);
+      });
+
+      vendors.push({ name, location, deals: dealsData });
+    });
+
+    const csvFields = ["Name", "Location", "Deals"];
+    const csvParser = new Parser({ csvFields });
+    const csvData = csvParser.parse(vendors);
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader(
+      "Content-Disposition",
+      "attatchment: filename=VendorsReport.csv"
+    );
+
+    res.status(200).end(csvData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 const vendorsController = {
   getAllVendors,
   createNewVendor,
   updateVendor,
   deleteVendor,
   getVendor,
+  generateReport,
 };
 
 export default vendorsController;
