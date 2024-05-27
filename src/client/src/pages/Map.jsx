@@ -75,7 +75,7 @@ const Map = () => {
                 variant="contained"
                 onClick={handleCancelRoute}
               >
-                <CloseIcon sx={{ marginRight: "5px" }} /> Cancel Route
+                <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
               </CancelRouteButton>
               <RoutingEngine start={route?.start} end={route?.end} />
             </>
