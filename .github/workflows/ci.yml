@@ -24,11 +24,11 @@ jobs:
           GITLAB_REMOTE_URL: ${{ secrets.GITLAB_REMOTE_URL }}
           GITLAB_MAIL: ${{ secrets.GITLAB_MAIL }}
           GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
-          GITLAB_DEPLOY_TOKEN: ${{ secrets.GITLAB_DEPLOY_TOKEN }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           git config --global user.email "${GITLAB_MAIL}"
           git config --global user.name "${GITLAB_USERNAME}"
           
-          git remote add gitlab "https://${GITLAB_USERNAME}:${GITLAB_DEPLOY_TOKEN}@gitlab.finki.ukim.mk/193254/student-obrok.git"
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.finki.ukim.mk/193254/student-obrok.git
 
           git push gitlab main:main --force
