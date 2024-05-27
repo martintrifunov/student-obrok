@@ -20,9 +20,10 @@ const DealSearchBar = ({ theme, handleSearchChange }) => {
         "& label.Mui-focused": {
           color: "black",
         },
-        width: isSmallScreen ? "50%" : "20%",
+        width: isSmallScreen ? "212px" : "20%",
         marginTop: isSmallScreen && "5vh",
         marginLeft: "1vw",
+        justifyContent: "end",
       }}
       size="small"
       InputProps={{
