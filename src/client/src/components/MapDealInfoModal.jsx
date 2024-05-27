@@ -43,7 +43,7 @@ const MapDealInfoModal = ({ deals }) => {
           onClick={handleOpen}
           disabled={deals === null}
         >
-          <InfoIcon sx={{ marginRight: 0.5 }} /> View Deals
+          <InfoIcon sx={{ marginRight: 0.5 }} /> Понуди
         </Button>
         <Modal
           aria-labelledby="transition-modal-title"
