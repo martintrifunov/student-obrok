@@ -28,7 +28,7 @@ import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import axios from "../api/axios";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import "../assets/quill.css";
-import "react-quill-new/dist/quill.snow.css";
+import "../assets/quill-snow.css";
 
 const AddOrEditDealForm = () => {
   const navigate = useNavigate();

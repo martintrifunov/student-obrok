@@ -35,5 +35,4 @@ coverage
 benchmarks/graphs
 
 #OSRM
-*.osm.pbf
-*.osrm.*
+data/map/*

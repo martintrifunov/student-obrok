@@ -4,7 +4,6 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 const OSRM_URL = import.meta.env.VITE_OSRM_API_URL;
 
-
 const RoutingEngine = ({ start, end }) => {
   const map = useMap();
   const routingControl = useRef(null);
