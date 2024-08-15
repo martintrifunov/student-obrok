@@ -45,6 +45,10 @@ const Map = () => {
     navigate("/dashboard");
   };
 
+  const disableRouting = () => {
+    changeIsDisabledRoutingButton(true);
+  };
+
   return (
     <>
       {isLoading && <GlobalLoadingProgress />}
@@ -68,6 +72,7 @@ const Map = () => {
           <LocateUser
             onUserLocation={handleUserLocation}
             setIsLoading={setIsLoading}
+            disableRouting={disableRouting}
           />
           {route && (
             <>
