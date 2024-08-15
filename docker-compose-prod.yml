@@ -1,5 +1,6 @@
 services:
   osrm:
+    container_name: obrok_osrm
     image: osrm/osrm-backend 
     volumes:
       - ./data/map:/data
@@ -8,6 +9,7 @@ services:
       - 5001:5000
       
   client:
+    container_name: obrok_client
     stdin_open: true
     tty: true
     build:
@@ -24,6 +26,7 @@ services:
       - api
 
   api:
+    container_name: obrok_api
     build:
       dockerfile: Dockerfile.prod
       context: "./src/server"
@@ -32,27 +35,28 @@ services:
       - ./src/server:/app
     restart: always
     environment:
-      ACCESS_TOKEN_SECRET: "${ACCESS_TOKEN_SECRET}"
-      REFRESH_TOKEN_SECRET: "${REFRESH_TOKEN_SECRET}"
-      DATABASE_URI: "${DATABASE_URI}"
-      PORT: "${PORT}"
-      ADMIN_USERNAME: "${ADMIN_USERNAME}"
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
-      CLIENT_ORIGIN: "${CLIENT_ORIGIN}"
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      DATABASE_URI: ${DATABASE_URI}
+      PORT: ${PORT}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN}
     ports:
       - 5000:5000
     depends_on:
       - db
 
   db:
+    container_name: obrok_db
     image: mongo:latest
     ports:
       - "6969:27017"
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
-      MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE}"
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     volumes:
       - student_obrok_db:/data/db
 
