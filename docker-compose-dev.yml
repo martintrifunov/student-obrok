@@ -29,14 +29,14 @@ services:
     container_name: obrok_api
     build:
       dockerfile: Dockerfile.dev
-      context: "./src/server"
+      context: ./src/server
     volumes:
       - /app/node_modules
       - ./src/server:/app
     environment:
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
-      DATABASE_URI: "${DATABASE_URI}"
+      DATABASE_URI: ${DATABASE_URI}
       PORT: ${PORT}
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
