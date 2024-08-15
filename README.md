@@ -12,12 +12,12 @@ Make sure to read the ENV_TEMPLATES.md
 
 Clone the project. <br>
 
-Run the command:
+Run the commands:
 ```bash
-#For development
-docker compose -f docker-compose-dev.yml up --build
-#For production
-docker compose -f docker-compose-prod.yml up --build
+#This will download and preprocess routing data for the map
+./init-route-data.sh
+#For development or production
+./init.sh dev|prod
 ```
 
 ### Without using docker (not recommended):
@@ -30,6 +30,8 @@ You can find what ENVs you need in each of the docker compose files. <br>
 
 Run the commands:
 ```bash
+#This will download and preprocess routing data for the map
+./init-route-data.sh
 #Install dependencies for the client & server
 cd src/client
 npm install
