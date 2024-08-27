@@ -17,7 +17,6 @@ For the root directory .env file you're gonna need:
 - MONGO_INITDB_DATABASE=obrok
 - CLIENT_ORIGIN=http://localhost:3500
 - PORT=5000
-- VM_INSTANCE_IP=your_actual_vm_ip_here
 
 For the /src/client directory .env file:
 - VITE_BASE_API_URL=http://localhost:5000/api
