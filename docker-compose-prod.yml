@@ -7,6 +7,20 @@ services:
     command: osrm-routed --algorithm mld /data/macedonia-latest.osrm
     ports:
       - 5001:5000
+
+  nginx:
+    image: nginx:alpine
+    container_name: obrok_nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf
+    environment:
+      VM_INSTANCE_IP: ${VM_INSTANCE_IP}
+    depends_on:
+      - client
+      - api
+      - osrm
       
   client:
     container_name: obrok_client
