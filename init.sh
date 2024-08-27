@@ -24,7 +24,7 @@ elif [ "$1" == "prod" ]; then
     docker compose -f docker-compose-prod.yml down
   else
     echo "Docker Compose (prod) is not running. Starting it up..."
-    docker compose -f docker-compose-prod.yml up --build
+    docker compose -f docker-compose-prod.yml up --build -d
   fi
 
 else
