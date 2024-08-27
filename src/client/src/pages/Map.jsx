@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import "../assets/map.css";
 import LocateUser from "../components/LocateUser";
 import RoutingEngine from "../components/RoutingEngine";
-import { Box, Button, createTheme, styled } from "@mui/material";
+import { Box, Button, styled } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import CreditMarker from "../components/CreditMarker";
@@ -22,7 +22,6 @@ const Map = () => {
   const [route, setRoute] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { auth } = useAuth();
-  const theme = createTheme();
   const navigate = useNavigate();
 
   const handleUserLocation = (location) => {
@@ -50,49 +49,45 @@ const Map = () => {
   };
 
   return (
-    <>
+    <Box className="map-container">
       {isLoading && <GlobalLoadingProgress />}
-      <Box className="map-container">
-        <MapContainer
-          center={position}
-          minZoom={10}
-          zoom={16}
-          maxZoom={18}
-          scrollWheelZoom={true}
-        >
-          <TileLayer
-            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <VendorMarkers
-            onVendorLocation={handleVendorLocation}
-            isDisabledRoutingButton={isDisabledRoutingButton}
-          />
-          <CreditMarker />
-          <LocateUser
-            onUserLocation={handleUserLocation}
-            setIsLoading={setIsLoading}
-            disableRouting={disableRouting}
-          />
-          {route && (
-            <>
-              <CancelRouteButton
-                variant="contained"
-                onClick={handleCancelRoute}
-              >
-                <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
-              </CancelRouteButton>
-              <RoutingEngine start={route?.start} end={route?.end} />
-            </>
-          )}
-          {auth?.accessToken && (
-            <DashboardButton variant="contained" onClick={handleDashboardClick}>
-              <HomeIcon sx={{ fontSize: 35 }} />
-            </DashboardButton>
-          )}
-        </MapContainer>
-      </Box>
-    </>
+      <MapContainer
+        center={position}
+        minZoom={10}
+        zoom={16}
+        maxZoom={18}
+        scrollWheelZoom={true}
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <VendorMarkers
+          onVendorLocation={handleVendorLocation}
+          isDisabledRoutingButton={isDisabledRoutingButton}
+        />
+        <CreditMarker />
+        <LocateUser
+          onUserLocation={handleUserLocation}
+          setIsLoading={setIsLoading}
+          disableRouting={disableRouting}
+        />
+        {route && (
+          <>
+            <CancelRouteButton variant="contained" onClick={handleCancelRoute}>
+              <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
+            </CancelRouteButton>
+            <RoutingEngine start={route?.start} end={route?.end} />
+          </>
+        )}
+        {auth?.accessToken && !isLoading && (
+          <DashboardButton variant="contained" onClick={handleDashboardClick}>
+            <HomeIcon sx={{ fontSize: 35 }} />
+          </DashboardButton>
+        )}
+      </MapContainer>
+    </Box>
   );
 };
 
