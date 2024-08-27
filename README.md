@@ -47,3 +47,14 @@ cd ..
 cd server
 npm run server
 ```
+
+### Configuring SLL for HTTPS:
+
+```bash
+#Make sure your prod env is running in the background and that you have cron installed & running
+./init.sh prod
+#Generate cert
+./renew_cert.sh obtain
+#Configure cron job to renew cert every day at midnight
+0 0 * * * ./renew_cert.sh renew
+```

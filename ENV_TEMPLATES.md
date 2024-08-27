@@ -18,6 +18,9 @@ For the root directory .env file you're gonna need:
 - CLIENT_ORIGIN=http://localhost:3500
 - PORT=5000
 
+If you want to configure SLL for HTTPS you're gonna need:
+- CERTBOT_EMAIL="your-email@example.com
+
 For the /src/client directory .env file:
 - VITE_BASE_API_URL=http://localhost:5000/api
 - VITE_OSRM_API_URL=http://localhost:5001/route/v1
