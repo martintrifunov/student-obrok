@@ -1,4 +1,28 @@
 services:
+  nginx:
+    container_name: obrok_nginx
+    build:
+      context: ./src/client
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    volumes:
+      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - api
+
+  certbot:
+    container_name: obrok_certbot
+    image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --keep-until-expiring --email ${CERTBOT_EMAIL} -d obrok.net --agree-tos
+
   osrm:
     container_name: obrok_osrm
     image: osrm/osrm-backend
@@ -8,44 +32,11 @@ services:
     ports:
       - 5001:5000
 
-  nginx:
-    image: nginx:alpine
-    container_name: obrok_nginx
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - ./src/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-    depends_on:
-      - client
-      - api
-      - osrm
-      - certbot
-      
-  client:
-    container_name: obrok_client
-    stdin_open: true
-    tty: true
-    build:
-      dockerfile: Dockerfile.prod
-      context: ./src/client
-    volumes:
-      - /app/node_modules
-      - ./src/client:/app
-    environment:
-      NODE_ENV: production
-    ports:
-      - 3500:3500
-    depends_on:
-      - api
-
   api:
     container_name: obrok_api
     build:
-      dockerfile: Dockerfile.prod
       context: ./src/server
+      dockerfile: Dockerfile.prod
     volumes:
       - /app/node_modules
       - ./src/server:/app
@@ -67,7 +58,7 @@ services:
     container_name: obrok_db
     image: mongo:latest
     ports:
-      - 27017:27017
+      - 6969:27017
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
@@ -75,13 +66,6 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     volumes:
       - student_obrok_db:/data/db
-
-  certbot:
-    image: certbot/certbot
-    container_name: obrok_certbot
-    volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
 
 volumes:
   student_obrok_db:
