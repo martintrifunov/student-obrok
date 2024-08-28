@@ -48,13 +48,24 @@ cd server
 npm run server
 ```
 
-### Configuring SLL for HTTPS:
+### Configuring a self renewing SLL for HTTPS:
 
 ```bash
 #Make sure your prod env is running in the background and that you have cron installed & running
 ./init.sh prod
-#Generate cert
-./renew_cert.sh obtain
-#Configure cron job to renew cert every day at midnight
-0 0 * * * ./renew_cert.sh renew
+
+#Find the Absolute Path
+cd /var/docker
+pwd
+
+#Verify the path
+ls /var/docker/docker-compose-prod.yml
+
+#Set Up the Cron Job to renew cert every 60 days at 5 am
+crontab -e
+0 5 1 */2 *  /usr/bin/docker compose -f /var/docker/docker-compose-prod.yml up certbot
+
+
+#If your Docker Compose file needs environment variables:
+0 5 1 */2 *  . /path/to/envfile && /usr/bin/docker compose -f /var/docker/docker-compose-prod.yml up certbot
 ```

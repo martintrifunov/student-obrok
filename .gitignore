@@ -36,3 +36,6 @@ benchmarks/graphs
 
 #OSRM
 data/map/*
+
+#OSRM
+data/certbot/*
