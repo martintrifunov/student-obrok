@@ -1,0 +1,19 @@
+services:
+  nginx:
+    container_name: obrok_nginx
+    restart: unless-stopped
+    volumes:
+      - ./apps/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    ports:
+      - 80:80
+      - 443:443
+
+  certbot:
+    container_name: obrok_certbot
+    image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email ${CERTBOT_EMAIL} -d obrok.net --agree-tos
