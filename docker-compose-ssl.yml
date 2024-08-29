@@ -1,9 +1,10 @@
 services:
   nginx:
     container_name: obrok_nginx
+    image: nginx:alpine
     restart: unless-stopped
     volumes:
-      - ./apps/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./apps/nginx/cold-start/nginx.conf:/etc/nginx/nginx.conf
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
     ports:
