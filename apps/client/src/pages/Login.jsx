@@ -16,7 +16,6 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import axios from "../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import { fontSize } from "@mui/system";
 
 const Login = () => {
   const { setAuth, persist, setPersist } = useAuth();
@@ -27,8 +26,6 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const isMediumScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleSubmit = async (event) => {
     event.preventDefault();

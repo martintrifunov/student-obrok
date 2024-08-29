@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-routing-machine";
-const OSRM_URL = import.meta.env.VITE_OSRM_API_URL;
+import { OSRM_URL } from "../api/consts";
 
 const RoutingEngine = ({ start, end }) => {
   const map = useMap();

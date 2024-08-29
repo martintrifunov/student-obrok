@@ -2,7 +2,7 @@
 
 # Check if the required argument is passed
 if [ -z "$1" ]; then
-  echo "Usage: ./init.sh [dev|prod]"
+  echo "Usage: ./init.sh [dev|prod|ssl]"
   exit 1
 fi
 
@@ -27,7 +27,17 @@ elif [ "$1" == "prod" ]; then
     docker compose -f docker-compose-prod.yml up --build -d
   fi
 
+elif [ "$1" == "ssl" ]; then
+  # Run the ssl Docker Compose commands
+  if docker compose -f docker-compose-ssl.yml ps | grep 'Up'; then
+    echo "Docker Compose (ssl) is running. Bringing it down..."
+    docker compose -f docker-compose-ssl.yml down
+  else
+    echo "Docker Compose (ssl) is not running. Starting it up..."
+    docker compose -f docker-compose-ssl.yml up --build
+  fi
+
 else
-  echo "Invalid argument. Use 'dev' or 'prod'."
+  echo "Invalid argument. Use 'dev', 'prod' or 'ssl'."
   exit 1
 fi

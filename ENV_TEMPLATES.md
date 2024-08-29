@@ -1,8 +1,8 @@
 # ENV TEMPLATES
 
-## Configuring ENV variables:
+## Configuring ENV variables & constants:
 
-Create a .env file in the root directory of the project & in the /src/client directory. <br>
+Create a .env file in the root directory of the project. <br>
 
 Add & configure every necessary ENV variable. <br>
 
@@ -21,6 +21,6 @@ For the root directory .env file you're gonna need:
 If you want to configure SLL for HTTPS you're gonna need:
 - CERTBOT_EMAIL="your-email@example.com
 
-For the /src/client directory .env file:
-- VITE_BASE_API_URL=http://localhost:5000/api
-- VITE_OSRM_API_URL=http://localhost:5001/route/v1
+For the client app you're not gonna need a .env file, just edit these constants in apps/client/src/api/consts.js
+- BASE_URL = "API URI EDIT ME";
+- OSRM_URL = "OSRM EDIT ME";

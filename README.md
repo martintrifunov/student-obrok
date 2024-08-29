@@ -16,8 +16,12 @@ Run the commands:
 ```bash
 #This will download and preprocess routing data for the map
 ./init-route-data.sh
+
+#If you're runnng a production env and need an SSL cert run this first then down the container.
+./init.sh ssl 
+
 #For development or production
-./init.sh dev|prod
+./init.sh [dev|prod]
 ```
 
 ### Without using docker (not recommended):
@@ -48,7 +52,7 @@ cd server
 npm run server
 ```
 
-### Configuring a self renewing SLL for HTTPS:
+### Configuring a self renewing SSL for HTTPS:
 
 ```bash
 #Make sure your prod env is running in the background and that you have cron installed & running
@@ -63,9 +67,8 @@ ls /var/docker/docker-compose-prod.yml
 
 #Set Up the Cron Job to renew cert every 60 days at 5 am
 crontab -e
-0 5 1 */2 *  /usr/bin/docker compose -f /var/docker/docker-compose-prod.yml up certbot
-
+0 5 1 */2 *  /usr/bin/docker compose -f /var/docker/docker-compose-ssl.yml up certbot
 
 #If your Docker Compose file needs environment variables:
-0 5 1 */2 *  . /path/to/envfile && /usr/bin/docker compose -f /var/docker/docker-compose-prod.yml up certbot
+0 5 1 */2 *  . /path/to/envfile && /usr/bin/docker compose -f /var/docker/docker-compose-ssl.yml up certbot
 ```
