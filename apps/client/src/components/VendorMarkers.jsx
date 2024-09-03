@@ -105,11 +105,16 @@ const VendorPopup = styled(Box)(({ theme }) => ({
   flexDirection: "column",
   width: 200,
   height: 350,
+  margin: "10px 0",
 
   "& .vendor-cover-image": {
-    width: "100%",
-    maxHeight: "230px",
+    width: "90%",
+    maxWidth: "180px",
+    height: "auto",
+    maxHeight: "180px",
     objectFit: "cover",
+    margin: "0 auto",
+    display: "block",
   },
 }));
 
