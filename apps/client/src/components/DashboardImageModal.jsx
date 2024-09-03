@@ -86,15 +86,19 @@ const ModalContent = styled(Box)(({ theme }) => ({
     alignItems: "center",
     width: "auto",
     height: "auto",
-    maxWidth: "90vw",
-    maxHeight: "90vh",
+    maxWidth: "85vw",
+    maxHeight: "85vh",
+    overflow: "hidden",
   },
 
   "& .image": {
     maxWidth: "100%",
+    maxHeight: "100%",
+    width: "auto",
     height: "auto",
     display: "block",
     border: "5px solid white",
+    objectFit: "contain",
   },
 
   "& .tldr": {
@@ -103,5 +107,4 @@ const ModalContent = styled(Box)(({ theme }) => ({
     textOverflow: "ellipsis",
   },
 }));
-
 export default DashboardImageModal;

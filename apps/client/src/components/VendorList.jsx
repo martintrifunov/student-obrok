@@ -89,8 +89,13 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
             withCredentials: true,
           }
         );
-        isMounted && setVendors(response.data);
-        setIsLoading(false);
+        if (isMounted) {
+          setVendors(response.data);
+
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 100);
+        }
       } catch (error) {
         setError(error.response.data.message);
         navigate("/login", { state: { from: location }, replace: true });
@@ -154,7 +159,7 @@ const VendorstList = ({ theme, searchTerm, setDeals, vendors, setVendors }) => {
                           </Typography>
                         </Box>
 
-                        <VendorButtonsGrid >
+                        <VendorButtonsGrid>
                           <DashboardImageModal
                             variant={"contained"}
                             image={vendor.image}
@@ -333,9 +338,9 @@ const VendorButtonsGrid = styled(Box)(({ theme }) => ({
     (min-height: 653px) and (max-height: 653px)`]: {
     flexWrap: "wrap",
 
-  ".vendor-button:nth-of-type(2), .vendor-button:nth-of-type(3)": {
-      marginTop: 10 
-    }
+    ".vendor-button:nth-of-type(2), .vendor-button:nth-of-type(3)": {
+      marginTop: 10,
+    },
   },
 }));
 

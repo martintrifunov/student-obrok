@@ -159,11 +159,13 @@ const generateReport = async (req, res) => {
       const { name, location, deals } = vendor;
       let dealsData = "";
 
-      deals.forEach((deal) => {
-        const { title, price } = deal;
+      if (deals !== null) {
+        deals.forEach((deal) => {
+          const { title, price } = deal;
 
-        dealsData = dealsData.concat(`${title}, ${price} ден\n`);
-      });
+          dealsData = dealsData.concat(`${title}, ${price} ден\n`);
+        });
+      }
 
       vendors.push({ name, location, deals: dealsData });
     });
