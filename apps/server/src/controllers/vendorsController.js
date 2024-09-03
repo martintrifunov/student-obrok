@@ -151,6 +151,8 @@ const getVendor = async (req, res) => {
 };
 
 const generateReport = async (req, res) => {
+  console.log("here");
+
   try {
     let vendors = [];
     const vendorsData = await VendorModel.find({}).populate("deals");
@@ -159,11 +161,13 @@ const generateReport = async (req, res) => {
       const { name, location, deals } = vendor;
       let dealsData = "";
 
-      deals.forEach((deal) => {
-        const { title, price } = deal;
+      if (deals !== null) {
+        deals.forEach((deal) => {
+          const { title, price } = deal;
 
-        dealsData = dealsData.concat(`${title}, ${price} ден\n`);
-      });
+          dealsData = dealsData.concat(`${title}, ${price} ден\n`);
+        });
+      }
 
       vendors.push({ name, location, deals: dealsData });
     });
