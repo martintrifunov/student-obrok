@@ -8,7 +8,7 @@ const GlobalLoadingProgress = () => {
       <Box width="15%" margin="10px">
         <LinearProgress color="inherit" />
       </Box>
-      <Typography variant="body1">Release: β 2024.08</Typography>
+      <Typography variant="body1">Release: β 2024.09</Typography>
     </GlobalLoadingOverlay>
   );
 };
