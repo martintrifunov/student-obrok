@@ -21,6 +21,6 @@ For the root directory .env file you're gonna need:
 If you want to configure SLL for HTTPS you're gonna need:
 - CERTBOT_EMAIL="your-email@example.com
 
-For the client app you're not gonna need a .env file, just edit these constants in apps/client/src/api/consts.js
+For the client app you're not gonna need a .env file, just create/edit a consts.js file in apps/client/src/api/ and add these values
 - BASE_URL = "API URI EDIT ME";
 - OSRM_URL = "OSRM EDIT ME";
