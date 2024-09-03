@@ -1,12 +1,12 @@
 services:
   osrm:
     container_name: obrok_osrm
-    image: osrm/osrm-backend 
+    image: osrm/osrm-backend
     volumes:
       - ./data/map:/data
-    command: osrm-routed --algorithm mld /data/macedonia-latest.osrm
+    command: osrm-routed --algorithm mld --port 5001 /data/macedonia-latest.osrm
     ports:
-      - 5001:5000
+      - 5001:5001
  
   client:
     container_name: obrok_client
@@ -14,10 +14,10 @@ services:
     tty: true
     build:
       dockerfile: Dockerfile.dev
-      context: ./src/client
+      context: ./apps/client
     volumes:
       - /app/node_modules
-      - ./src/client:/app
+      - ./apps/client:/app
     environment:
       NODE_ENV: development
     ports: 
