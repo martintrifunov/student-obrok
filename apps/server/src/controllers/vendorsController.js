@@ -151,8 +151,6 @@ const getVendor = async (req, res) => {
 };
 
 const generateReport = async (req, res) => {
-  console.log("here");
-
   try {
     let vendors = [];
     const vendorsData = await VendorModel.find({}).populate("deals");
