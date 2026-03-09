@@ -1,8 +1,10 @@
+// src/app.js
 import express from "express";
 import path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
+import helmet from "helmet";
 
 import credentials from "./middleware/credentials.js";
 import corsOptions from "./config/corsOptions.js";
@@ -15,6 +17,7 @@ import { imageRouter } from "./modules/image/image.routes.js";
 
 const app = express();
 
+app.use(helmet());
 app.use(credentials);
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ limit: "10mb", extended: false }));
