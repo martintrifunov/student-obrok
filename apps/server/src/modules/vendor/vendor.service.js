@@ -1,4 +1,4 @@
-import { Parser } from "json2csv";
+import { Parser } from "@json2csv/plainjs";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
