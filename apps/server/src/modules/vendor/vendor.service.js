@@ -1,7 +1,5 @@
 import { Parser } from "json2csv";
-import { ValidationError } from "../../shared/errors/ValidationError.js";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
-import { isValidObjectId } from "../../shared/utils/isValidObjectId.js";
 
 export class VendorService {
   constructor(vendorRepository, imageRepository) {
@@ -14,26 +12,12 @@ export class VendorService {
   }
 
   async getVendorById(id) {
-    if (!isValidObjectId(id)) throw new ValidationError("Invalid ID format.");
-
     const vendor = await this.vendorRepository.findById(id);
     if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
-
     return vendor;
   }
 
-  async createVendor({ name, location, image, products }) {
-    if (!name) throw new ValidationError("Name is required.");
-    if (!location?.[0] || !location?.[1])
-      throw new ValidationError("Location coordinates are required.");
-    if (!image) throw new ValidationError("Cover image is required.");
-    if (!isValidObjectId(image))
-      throw new ValidationError("Invalid image ID format.");
-    if (products)
-      throw new ValidationError(
-        "Can't attach products when creating a vendor.",
-      );
-
+  async createVendor({ name, location, image }) {
     const imageExists = await this.imageRepository.findById(image);
     if (!imageExists) throw new NotFoundError("Selected image not found.");
 
@@ -41,9 +25,6 @@ export class VendorService {
   }
 
   async updateVendor(id, { name, location, image }) {
-    if (!id) throw new ValidationError("ID is required.");
-    if (!isValidObjectId(id)) throw new ValidationError("Invalid ID format.");
-
     const vendor = await this.vendorRepository.findById(id);
     if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
 
@@ -51,12 +32,8 @@ export class VendorService {
     if (location) vendor.location = location;
 
     if (image) {
-      if (!isValidObjectId(image))
-        throw new ValidationError("Invalid image ID format.");
-
       const imageExists = await this.imageRepository.findById(image);
       if (!imageExists) throw new NotFoundError("Selected image not found.");
-
       vendor.image = image;
     }
 
@@ -64,9 +41,6 @@ export class VendorService {
   }
 
   async deleteVendor(id) {
-    if (!id) throw new ValidationError("ID is required.");
-    if (!isValidObjectId(id)) throw new ValidationError("Invalid ID format.");
-
     const vendor = await this.vendorRepository.findById(id);
     if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
 

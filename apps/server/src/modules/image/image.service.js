@@ -1,6 +1,5 @@
-import { ValidationError } from "../../shared/errors/ValidationError.js";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
-import { isValidObjectId } from "../../shared/utils/isValidObjectId.js";
+import { ValidationError } from "../../shared/errors/ValidationError.js";
 
 export class ImageService {
   constructor(imageRepository, fileService) {
@@ -13,12 +12,8 @@ export class ImageService {
   }
 
   async getImageById(id) {
-    if (!isValidObjectId(id))
-      throw new ValidationError("Invalid ID format.");
-
     const image = await this.imageRepository.findById(id);
     if (!image) throw new NotFoundError(`No image matches ID ${id}.`);
-
     return image;
   }
 
@@ -34,20 +29,15 @@ export class ImageService {
         size: file.size,
       });
     } catch (err) {
-      // DB save failed — clean up the uploaded file
       this.fileService.delete(file.filename);
       throw err;
     }
   }
 
   async deleteImage(id) {
-    if (!id) throw new ValidationError("ID is required.");
-    if (!isValidObjectId(id)) throw new ValidationError("Invalid ID format.");
-
     const image = await this.imageRepository.findById(id);
     if (!image) throw new NotFoundError(`No image matches ID ${id}.`);
 
-    // Delete file first, then DB record
     this.fileService.delete(image.filename);
     await this.imageRepository.delete(image);
   }

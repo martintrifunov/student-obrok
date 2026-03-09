@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import { UnauthorizedError } from "../../shared/errors/UnauthorizedError.js";
-import { ValidationError } from "../../shared/errors/ValidationError.js";
 
 export class AuthService {
   constructor(authRepository, tokenService) {
@@ -9,13 +8,10 @@ export class AuthService {
   }
 
   async login(username, password, existingRefreshToken) {
-    if (!username || !password)
-      throw new ValidationError("Username and password are required.");
-
-    const user = await this.authRepository.findByUsername(username.toString());
+    const user = await this.authRepository.findByUsername(username);
     if (!user) throw new UnauthorizedError();
 
-    const match = await bcrypt.compare(password.toString(), user.password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) throw new UnauthorizedError();
 
     // Build new refresh token array — drop the old cookie token if present
@@ -76,7 +72,7 @@ export class AuthService {
           await this.authRepository.save(hackedUser);
         }
       } catch {
-        // Token was invalid — no further action needed
+        // Invalid token — no further action needed
       }
 
       throw new UnauthorizedError();
