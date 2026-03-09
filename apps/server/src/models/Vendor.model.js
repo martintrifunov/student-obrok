@@ -5,10 +5,10 @@ const VendorSchema = new mongoose.Schema({
   location: [{ type: Number, required: true }],
   image: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "image",
+    ref: "Image",
     required: true,
   },
-  products: [{ type: mongoose.Schema.Types.ObjectId, ref: "products" }],
+  products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 });
 
-export const VendorModel = mongoose.model("vendor", VendorSchema);
+export const VendorModel = mongoose.model("Vendor", VendorSchema);

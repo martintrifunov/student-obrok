@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
-import { ImageModel } from "../models/Images.js";
+import { ImageModel } from "../models/Image.model.js";
 
 const getAllImages = async (req, res) => {
   try {

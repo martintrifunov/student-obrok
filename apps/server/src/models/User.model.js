@@ -6,4 +6,4 @@ const UserSchema = new mongoose.Schema({
   refreshToken: [String],
 });
 
-export const UserModel = mongoose.model("users", UserSchema);
+export const UserModel = mongoose.model("User", UserSchema);

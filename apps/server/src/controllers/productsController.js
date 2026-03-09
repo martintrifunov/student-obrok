@@ -1,6 +1,6 @@
-import { ProductModel } from "../models/Products.js";
-import { VendorModel } from "../models/Vendors.js";
-import { ImageModel } from "../models/Images.js";
+import { ProductModel } from "../models/Product.model.js";
+import { VendorModel } from "../models/Vendor.model.js";
+import { ImageModel } from "../models/Image.model.js";
 import mongoose from "mongoose";
 
 const getAllProducts = async (req, res) => {
