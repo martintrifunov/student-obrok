@@ -44,6 +44,7 @@ services:
       - ./apps/server:/app
     restart: always
     environment:
+      NODE_ENV: production
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
       DATABASE_URI: ${DATABASE_URI}
