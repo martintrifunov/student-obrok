@@ -34,17 +34,13 @@ export class ProductService {
       if (!imageExists) throw new NotFoundError("Selected image not found.");
     }
 
-    const product = await this.productRepository.create({
+    return this.productRepository.create({
       title,
       description,
       price,
       vendor,
       image: image || null,
     });
-
-    await this.vendorRepository.addProduct(foundVendor, product._id);
-
-    return product;
   }
 
   async updateProduct(id, { title, description, price, image }) {
@@ -67,15 +63,6 @@ export class ProductService {
   async deleteProduct(id) {
     const product = await this.productRepository.findById(id);
     if (!product) throw new NotFoundError(`No product matches ID ${id}.`);
-
-    const vendor = await this.vendorRepository.findById(
-      product.vendor._id ?? product.vendor,
-    );
-
-    if (vendor) {
-      await this.vendorRepository.removeProduct(vendor, id);
-    }
-
     await this.productRepository.delete(product);
   }
 }

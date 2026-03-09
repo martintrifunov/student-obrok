@@ -28,7 +28,6 @@ export class VendorService {
   async createVendor({ name, location, image }) {
     const imageExists = await this.imageRepository.findById(image);
     if (!imageExists) throw new NotFoundError("Selected image not found.");
-
     return this.vendorRepository.create({ name, location, image });
   }
 
@@ -51,11 +50,7 @@ export class VendorService {
   async deleteVendor(id) {
     const vendor = await this.vendorRepository.findById(id);
     if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
-
-    if (vendor.products?.length > 0) {
-      await this.vendorRepository.deleteProductsOfVendor(vendor.products);
-    }
-
+    await this.vendorRepository.deleteProductsByVendor(id);
     await this.vendorRepository.delete(vendor);
   }
 
@@ -66,7 +61,6 @@ export class VendorService {
       const productsData = products?.length
         ? products.map((p) => `${p.title}, ${p.price} ден`).join("\n")
         : "";
-
       return {
         name,
         location,
