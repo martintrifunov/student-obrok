@@ -4,10 +4,16 @@ import verifyJWT from "../../middleware/verifyJWT.js";
 import upload from "../../config/multerConfig.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import { deleteImageSchema, imageParamsSchema } from "./image.schema.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
 
 const router = Router();
 
-router.get("/", verifyJWT, imageController.getAll);
+router.get(
+  "/",
+  verifyJWT,
+  validateRequest(paginationSchema, "query"),
+  imageController.getAll,
+);
 router.get(
   "/:id",
   validateRequest(imageParamsSchema, "params"),

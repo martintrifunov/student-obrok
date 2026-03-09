@@ -1,5 +1,6 @@
 import { Parser } from "json2csv";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
+import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
 export class VendorService {
   constructor(vendorRepository, imageRepository) {
@@ -7,8 +8,15 @@ export class VendorService {
     this.imageRepository = imageRepository;
   }
 
-  async getAllVendors() {
-    return this.vendorRepository.findAll();
+  async getAllVendors({ page, limit }) {
+    const { docs, total } = await this.vendorRepository.findAll({
+      page,
+      limit,
+    });
+    return {
+      data: docs,
+      pagination: buildPaginationMeta({ total, page, limit }),
+    };
   }
 
   async getVendorById(id) {

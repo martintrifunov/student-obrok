@@ -8,9 +8,26 @@ export class ProductRepository {
     };
   }
 
-  async findAll() {
+  async findAll({ page, limit }) {
     const { vendor, image } = this.#populate();
-    return ProductModel.find().populate(vendor).populate(image).exec();
+    if (limit === 0) {
+      const docs = await ProductModel.find()
+        .populate(vendor)
+        .populate(image)
+        .exec();
+      return { docs, total: null };
+    }
+    const skip = (page - 1) * limit;
+    const [docs, total] = await Promise.all([
+      ProductModel.find()
+        .populate(vendor)
+        .populate(image)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      ProductModel.countDocuments().exec(),
+    ]);
+    return { docs, total };
   }
 
   async findById(id) {

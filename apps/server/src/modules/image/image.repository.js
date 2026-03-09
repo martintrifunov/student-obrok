@@ -1,11 +1,17 @@
 import { ImageModel } from "../../models/Image.model.js";
 
 export class ImageRepository {
-  async findAll() {
-    return ImageModel.find(
-      {},
-      "title filename url mimeType size createdAt",
-    ).exec();
+  async findAll({ page, limit }) {
+    if (limit === 0) {
+      const docs = await ImageModel.find().exec();
+      return { docs, total: null };
+    }
+    const skip = (page - 1) * limit;
+    const [docs, total] = await Promise.all([
+      ImageModel.find().skip(skip).limit(limit).exec(),
+      ImageModel.countDocuments().exec(),
+    ]);
+    return { docs, total };
   }
 
   async findById(id) {

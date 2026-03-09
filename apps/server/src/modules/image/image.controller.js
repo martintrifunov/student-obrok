@@ -5,8 +5,8 @@ export class ImageController {
 
   getAll = async (req, res, next) => {
     try {
-      const images = await this.imageService.getAllImages();
-      res.status(200).json(images);
+      const result = await this.imageService.getAllImages(req.query);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

@@ -5,8 +5,8 @@ export class VendorController {
 
   getAll = async (req, res, next) => {
     try {
-      const vendors = await this.vendorService.getAllVendors();
-      res.status(200).json(vendors);
+      const result = await this.vendorService.getAllVendors(req.query);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

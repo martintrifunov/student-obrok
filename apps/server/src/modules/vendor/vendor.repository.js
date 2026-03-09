@@ -12,12 +12,26 @@ export class VendorRepository {
     };
   }
 
-  async findAll() {
+  async findAll({ page, limit }) {
     const { productsWithImage, image } = this.#populate();
-    return VendorModel.find()
-      .populate(productsWithImage)
-      .populate(image)
-      .exec();
+    if (limit === 0) {
+      const docs = await VendorModel.find()
+        .populate(productsWithImage)
+        .populate(image)
+        .exec();
+      return { docs, total: null };
+    }
+    const skip = (page - 1) * limit;
+    const [docs, total] = await Promise.all([
+      VendorModel.find()
+        .populate(productsWithImage)
+        .populate(image)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      VendorModel.countDocuments().exec(),
+    ]);
+    return { docs, total };
   }
 
   async findById(id) {

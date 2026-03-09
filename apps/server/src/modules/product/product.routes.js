@@ -8,10 +8,15 @@ import {
   deleteProductSchema,
   productParamsSchema,
 } from "./product.schema.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
 
 const router = Router();
 
-router.get("/", productController.getAll);
+router.get(
+  "/",
+  validateRequest(paginationSchema, "query"),
+  productController.getAll,
+);
 router.get(
   "/:id",
   validateRequest(productParamsSchema, "params"),

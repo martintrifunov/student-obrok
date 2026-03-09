@@ -1,5 +1,6 @@
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { ValidationError } from "../../shared/errors/ValidationError.js";
+import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
 export class ImageService {
   constructor(imageRepository, fileService) {
@@ -7,8 +8,12 @@ export class ImageService {
     this.fileService = fileService;
   }
 
-  async getAllImages() {
-    return this.imageRepository.findAll();
+  async getAllImages({ page, limit }) {
+    const { docs, total } = await this.imageRepository.findAll({ page, limit });
+    return {
+      data: docs,
+      pagination: buildPaginationMeta({ total, page, limit }),
+    };
   }
 
   async getImageById(id) {

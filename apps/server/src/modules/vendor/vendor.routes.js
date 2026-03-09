@@ -8,11 +8,16 @@ import {
   deleteVendorSchema,
   vendorParamsSchema,
 } from "./vendor.schema.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
 
 const router = Router();
 
 router.get("/report", verifyJWT, vendorController.generateReport);
-router.get("/", vendorController.getAll);
+router.get(
+  "/",
+  validateRequest(paginationSchema, "query"),
+  vendorController.getAll,
+);
 router.get(
   "/:id",
   validateRequest(vendorParamsSchema, "params"),

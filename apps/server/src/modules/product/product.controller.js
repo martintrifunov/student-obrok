@@ -5,8 +5,8 @@ export class ProductController {
 
   getAll = async (req, res, next) => {
     try {
-      const products = await this.productService.getAllProducts();
-      res.status(200).json(products);
+      const result = await this.productService.getAllProducts(req.query);
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }

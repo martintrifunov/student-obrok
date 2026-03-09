@@ -1,4 +1,5 @@
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
+import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
 export class ProductService {
   constructor(productRepository, vendorRepository, imageRepository) {
@@ -7,8 +8,15 @@ export class ProductService {
     this.imageRepository = imageRepository;
   }
 
-  async getAllProducts() {
-    return this.productRepository.findAll();
+  async getAllProducts({ page, limit }) {
+    const { docs, total } = await this.productRepository.findAll({
+      page,
+      limit,
+    });
+    return {
+      data: docs,
+      pagination: buildPaginationMeta({ total, page, limit }),
+    };
   }
 
   async getProductById(id) {
