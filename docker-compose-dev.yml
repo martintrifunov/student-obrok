@@ -7,7 +7,7 @@ services:
     command: osrm-routed --algorithm mld --port 5001 /data/macedonia-latest.osrm
     ports:
       - 5001:5001
- 
+
   client:
     container_name: obrok_client
     stdin_open: true
@@ -20,7 +20,7 @@ services:
       - ./apps/client:/app
     environment:
       NODE_ENV: development
-    ports: 
+    ports:
       - 3500:3500
     depends_on:
       - api
@@ -44,14 +44,15 @@ services:
       CLIENT_ORIGIN: ${CLIENT_ORIGIN}
       SERVER_ORIGIN: ${SERVER_ORIGIN}
     restart: always
-    ports: 
+    ports:
       - 5000:5000
-    depends_on: 
-      - db
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     container_name: obrok_db
-    image: mongo:latest
+    image: mongo:8.0
     ports:
       - 6969:27017
     restart: always
@@ -61,6 +62,12 @@ services:
       MONGO_INITDB_DATABASE: obrok
     volumes:
       - student_obrok_db:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   student_obrok_db:
