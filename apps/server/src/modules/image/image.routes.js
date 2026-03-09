@@ -7,12 +7,7 @@ const router = Router();
 
 router.get("/", verifyJWT, imageController.getAll);
 router.get("/:id", imageController.getById);
-router.post(
-  "/",
-  verifyJWT,
-  upload.single("image"),
-  imageController.upload,
-);
+router.post("/", verifyJWT, upload.single("image"), imageController.upload);
 router.delete("/", verifyJWT, imageController.delete);
 
 export { router as imageRouter };
