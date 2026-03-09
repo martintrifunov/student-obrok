@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import mongoSanitize from "express-mongo-sanitize";
 import helmet from "helmet";
 
 import credentials from "./middleware/credentials.js";
@@ -17,16 +16,13 @@ import { imageRouter } from "./modules/image/image.routes.js";
 const app = express();
 
 app.use(
-  helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === "production",
-  }),
+  helmet({ contentSecurityPolicy: process.env.NODE_ENV === "production" }),
 );
 app.use(credentials);
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ limit: "10mb", extended: false }));
 app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
-app.use(mongoSanitize());
 app.use("/uploads", express.static(path.resolve("src/uploads")));
 
 app.use("/api", authRouter);
