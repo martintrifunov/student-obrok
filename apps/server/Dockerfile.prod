@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 5000
 
-ENTRYPOINT [ "node", "./src/app.js" ]
+ENTRYPOINT [ "node", "./src/server.js" ]

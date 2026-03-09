@@ -66,6 +66,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: obrok
+      SERVER_ORIGIN: ${SERVER_ORIGIN}
     volumes:
       - student_obrok_db:/data/db
 

@@ -15,6 +15,7 @@ For the root directory .env file you're gonna need:
 - MONGO_INITDB_ROOT_USERNAME=admin
 - MONGO_INITDB_ROOT_PASSWORD=password
 - CLIENT_ORIGIN=http://localhost:80
+- SERVER_ORIGIN=http://localhost:5000
 - PORT=5000
 
 If you want to configure SLL for HTTPS you're gonna need:
