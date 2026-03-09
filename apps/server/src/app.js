@@ -17,7 +17,11 @@ import { imageRouter } from "./modules/image/image.routes.js";
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === "production",
+  }),
+);
 app.use(credentials);
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ limit: "10mb", extended: false }));

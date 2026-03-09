@@ -7,6 +7,7 @@ Create a .env file in the root directory of the project. <br>
 Add & configure every necessary ENV variable. <br>
 
 For the root directory .env file you're gonna need:
+- NODE_ENV=development/production
 - ACCESS_TOKEN_SECRET=123
 - REFRESH_TOKEN_SECRET=123
 - ADMIN_USERNAME=admin
