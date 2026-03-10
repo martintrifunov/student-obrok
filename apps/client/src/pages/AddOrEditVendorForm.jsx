@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Button,
   TextField,
@@ -26,115 +26,98 @@ import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
 import DashboardHeader from "../components/DashboardHeader";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const AddOrEditVendorForm = () => {
   const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
   const theme = createTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
 
   const [vendor, setVendor] = useState({});
   const [errorBag, setErrorBag] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [images, setImages] = useState([]);
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
+  const { isLoading: isFetchingVendor } = useQuery({
+    queryKey: ["vendor", params.vendorId],
+    queryFn: async () => {
+      const res = await axiosPrivate.get(`/vendors/${params.vendorId}`);
+      return res.data;
+    },
+    enabled: !!params.vendorId,
+    onSuccess: (data) => {
+      setVendor(data);
+      if (data?.image) {
+        setSelectedImageId(data.image._id);
+        setSelectedImageTitle(data.image.title);
+      }
+    },
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
+  });
+
+  const { data: images = [], refetch: fetchImages } = useQuery({
+    queryKey: ["images"],
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/images?limit=0");
+      return res.data.data;
+    },
+    enabled: false,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (vendorData) => {
+      if (params?.vendorId) {
+        return axiosPrivate.put("/vendors", vendorData);
+      }
+      return axiosPrivate.post("/vendors", vendorData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      navigate("/dashboard");
+    },
+    onError: (error) => {
+      setErrorBag(error.response?.data?.message || "Error saving vendor");
+    },
+  });
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     if (name === "longitude") {
-      setVendor({
-        ...vendor,
-        location: [vendor?.location?.[0] || "", value],
-      });
+      setVendor({ ...vendor, location: [vendor?.location?.[0] || "", value] });
     } else if (name === "latitude") {
-      setVendor({
-        ...vendor,
-        location: [value, vendor?.location?.[1] || ""],
-      });
+      setVendor({ ...vendor, location: [value, vendor?.location?.[1] || ""] });
     } else {
       setVendor({ ...vendor, [name]: value });
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchVendor = async () => {
-      try {
-        const response = await axiosPrivate(`/vendors/${params.vendorId}`, {
-          signal: controller.signal,
-        });
-        if (isMounted) {
-          setVendor(response.data);
-          if (response.data?.image) {
-            setSelectedImageId(response.data.image._id);
-            setSelectedImageTitle(response.data.image.title);
-          }
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error(error);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    if (params?.vendorId) {
-      setIsLoading(true);
-      fetchVendor();
-    }
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, []);
-
-  const fetchImages = async () => {
-    try {
-      const response = await axiosPrivate("/images");
-      setImages(response.data || []);
-    } catch (err) {
-      console.error(err);
-      setImages([]);
-    }
-  };
-
-  const handleOpenImageDialog = async () => {
-    await fetchImages();
+  const handleOpenImageDialog = () => {
+    fetchImages();
     setImageDialogOpen(true);
-  };
-
-  const handleSelectImage = (image) => {
-    setSelectedImageId(image._id);
-    setSelectedImageTitle(image.title);
-    setImageDialogOpen(false);
   };
 
   const onSelectFileHandler = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     try {
       const formData = new FormData();
       formData.append("image", file);
-
-      const response = await axiosPrivate.post("/images", formData, {
+      const res = await axiosPrivate.post("/images", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      setSelectedImageId(response.data._id);
-      setSelectedImageTitle(response.data.title);
+      setSelectedImageId(res.data._id);
+      setSelectedImageTitle(res.data.title);
     } catch (err) {
-      console.error(err);
       setErrorBag("Failed to upload image.");
     }
   };
@@ -146,30 +129,33 @@ const AddOrEditVendorForm = () => {
 
   const handleCancel = () => navigate("/dashboard");
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSelectImage = (image) => {
+    setSelectedImageId(image._id);
+    setSelectedImageTitle(image.title);
+    setImageDialogOpen(false);
+  };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
     const vendorData = {};
     if (params?.vendorId) vendorData.id = params.vendorId;
     if (vendor.name) vendorData.name = vendor.name;
-    if (vendor.location) vendorData.location = vendor.location;
+
+    if (vendor.location) {
+      vendorData.location = [
+        parseFloat(vendor.location[0]),
+        parseFloat(vendor.location[1]),
+      ];
+    }
+
     if (selectedImageId) vendorData.image = selectedImageId;
 
-    try {
-      if (params?.vendorId) {
-        await axiosPrivate.put("/vendors", vendorData);
-      } else {
-        await axiosPrivate.post("/vendors", vendorData);
-      }
-      return navigate("/dashboard");
-    } catch (error) {
-      setErrorBag(error.response?.data?.message || "Error saving vendor");
-    }
+    saveMutation.mutate(vendorData);
   };
 
   return (
     <>
-      {isLoading ? (
+      {isFetchingVendor || saveMutation.isPending ? (
         <GlobalLoadingProgress />
       ) : (
         <ThemeProvider theme={theme}>

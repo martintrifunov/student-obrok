@@ -1,8 +1,14 @@
-import { ThemeProvider } from "@emotion/react";
-import { Grid, createTheme, styled, useMediaQuery } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import {
+  ThemeProvider,
+  createTheme,
+  Grid,
+  useMediaQuery,
+  styled,
+} from "@mui/material";
 import VendorProductsList from "../components/VendorProductsList";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import axios from "../api/axios";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import DashboardHeader from "../components/DashboardHeader";
@@ -10,55 +16,23 @@ import ProductSearchBar from "../components/ProductSearchBar";
 
 const VendorProducts = () => {
   const theme = createTheme();
-  const [isLoading, setIsLoading] = useState(true);
-  const [vendor, setVendor] = useState([]);
-  const [error, setError] = useState("");
-  const [products, setProducts] = useState([]);
   const params = useParams();
-  const [productSearchTerm, setProductSearchTerm] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const [productSearchTerm, setProductSearchTerm] = useState("");
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchVendor = async () => {
-      try {
-        const vendorResponse = await axios.get(
-          `/vendors/${params.vendorId}`,
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          },
-        );
-        if (isMounted) {
-          setVendor(vendorResponse.data);
-          setProducts(vendorResponse.data.products || []);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        setError(error.response?.data?.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchVendor();
-
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, []);
-
-  const handleProductSearchChange = (event) => {
-    setProductSearchTerm(event.target.value);
-  };
+  const { data: vendor, isLoading } = useQuery({
+    queryKey: ["vendor", params.vendorId],
+    queryFn: async () => {
+      const response = await axios.get(`/vendors/${params.vendorId}`, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
+  });
 
   return (
     <>
@@ -70,7 +44,7 @@ const VendorProducts = () => {
           <ToolbarGrid>
             <ProductSearchBar
               theme={theme}
-              handleSearchChange={handleProductSearchChange}
+              handleSearchChange={(e) => setProductSearchTerm(e.target.value)}
               placeholder="Search products..."
             />
           </ToolbarGrid>
@@ -78,10 +52,8 @@ const VendorProducts = () => {
           <VendorProductsList
             theme={theme}
             vendor={vendor}
-            setVendor={setVendor}
-            products={products}
+            products={vendor?.products || []}
             searchTerm={productSearchTerm}
-            setProducts={setProducts}
           />
         </ThemeProvider>
       )}
