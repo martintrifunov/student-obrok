@@ -10,14 +10,15 @@ import {
   IconButton,
   TablePagination,
   Skeleton,
-  Grid,
+  Stack,
   Card,
   CardContent,
   useMediaQuery,
   Box,
-  Button,
   styled,
+  Paper,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -27,7 +28,8 @@ import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
-const ProductsList = ({ theme, searchTerm }) => {
+const ProductsList = ({ searchTerm }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
@@ -80,94 +82,113 @@ const ProductsList = ({ theme, searchTerm }) => {
         <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
       )}
       {isSmallScreen ? (
-        <Grid container spacing={2}>
+        <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
             ? products.slice(page * 5, page * 5 + 5).map((product) => (
-                <Grid item xs={12} key={product._id}>
-                  <Card sx={{ marginTop: 2 }}>
-                    <CardContent>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="h6" style={{ fontWeight: "bold" }}>
+                <Card
+                  key={product._id}
+                  sx={{
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: "none",
+                    width: "100%",
+                  }}
+                >
+                  <CardContent sx={{ pb: "16px !important" }}>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
+                    >
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
+                        >
                           {product.title}
                         </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2">
-                          <strong>Price: </strong>
-                          {product.price}
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Price: </strong> {product.price}
                         </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2">
-                          <strong>Vendor: </strong>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Vendor: </strong>{" "}
                           {product.vendor?.name || "N/A"}
                         </Typography>
                       </Box>
-                      <Box
-                        display="flex"
-                        justifyContent="center"
-                        marginTop={2}
-                        gap={2}
-                      >
-                        <DashboardImageModal
-                          variant="contained"
-                          image={
-                            product.image
-                              ? `${BASE_URL}${product.image.url}`
-                              : ""
-                          }
-                          imageTitle={product.image?.title || "Product Image"}
-                        />
-                        <EditButton
-                          variant="contained"
+                      <Box display="flex" gap={0.5} ml={1}>
+                        <IconButton
+                          size="small"
+                          color="inherit"
                           onClick={() =>
                             navigate(`/dashboard/product/${product._id}`)
                           }
                         >
-                          <EditIcon />
-                        </EditButton>
-                        <RemoveButton
-                          variant="outlined"
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
                           color="inherit"
                           onClick={() => handleRemoveProduct(product._id)}
                           disabled={deleteMutation.isPending}
                         >
-                          <DeleteIcon />
-                        </RemoveButton>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
                       </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                    </Box>
+
+                    <Box display="flex" mt={2}>
+                      <DashboardImageModal
+                        variant="outlined"
+                        image={
+                          product.image ? `${BASE_URL}${product.image.url}` : ""
+                        }
+                        imageTitle={product.image?.title || "Product Image"}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
               ))
             : Array(5)
                 .fill()
                 .map((_, i) => (
-                  <Grid item xs={12} key={i}>
-                    <Skeleton
-                      animation="wave"
-                      height={250}
-                      width="100%"
-                      sx={{ marginTop: -5, padding: 0 }}
-                    />
-                  </Grid>
+                  <Skeleton
+                    key={i}
+                    animation="wave"
+                    height={160}
+                    width="100%"
+                    sx={{ borderRadius: 2 }}
+                  />
                 ))}
-        </Grid>
+        </Stack>
       ) : (
         <TableWrapper>
-          <Table
-            sx={{
-              "& thead th": { backgroundColor: "#f2f2f2" },
-              "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
-            }}
-          >
-            <TableHead>
+          <Table sx={{ minWidth: 600 }}>
+            <TableHead
+              sx={{ backgroundColor: (theme) => theme.palette.grey[100] }}
+            >
               <TableRow>
-                <TableCell sx={{ color: "gray" }}>#</TableCell>
-                <TableCell sx={{ color: "gray" }}>Title</TableCell>
-                <TableCell sx={{ color: "gray" }}>Price</TableCell>
-                <TableCell sx={{ color: "gray" }}>Image</TableCell>
-                <TableCell sx={{ color: "gray" }}>Vendor</TableCell>
-                <TableCell sx={{ color: "gray", textAlign: "right" }}>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  #
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Title
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Price
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Image
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Vendor
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "text.secondary",
+                    fontWeight: "bold",
+                    textAlign: "right",
+                  }}
+                >
                   Actions
                 </TableCell>
               </TableRow>
@@ -240,24 +261,19 @@ const ProductsList = ({ theme, searchTerm }) => {
   );
 };
 
-const TableWrapper = styled(TableContainer)(() => ({
-  width: "98vw",
-  marginLeft: "auto",
-  marginRight: "auto",
-  marginTop: 20,
-  borderRadius: 10,
+const TableWrapper = styled(TableContainer)(({ theme }) => ({
+  width: "100%",
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.02)",
+  backgroundColor: theme.palette.background.paper,
 }));
+
 const Error = styled(Typography)(() => ({
   color: "crimson",
   width: "100%",
   display: "flex",
   justifyContent: "center",
 }));
-const EditButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  textTransform: "none",
-  color: "white",
-}));
-const RemoveButton = styled(Button)(() => ({ textTransform: "none" }));
 
 export default ProductsList;

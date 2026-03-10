@@ -1,35 +1,32 @@
 import React from "react";
-import { TextField, InputAdornment, useMediaQuery } from "@mui/material";
+import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-const VendorSearchBar = ({ theme, handleSearchChange }) => {
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
+const VendorSearchBar = ({ handleSearchChange }) => {
   return (
     <TextField
       hiddenLabel
       placeholder="Search vendors..."
       variant="outlined"
       onChange={handleSearchChange}
+      fullWidth
+      size="small"
       sx={{
+        backgroundColor: "background.paper",
         "& .MuiOutlinedInput-root": {
           "&.Mui-focused fieldset": {
-            borderColor: "black",
+            borderColor: "primary.main",
           },
         },
-        "& label.Mui-focused": {
-          color: "black",
-        },
-        width: isSmallScreen ? "212px" : "20%",
-        justifyContent: "end",
       }}
-      size="small"
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <SearchIcon />
-          </InputAdornment>
-        ),
+      slotProps={{
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        },
       }}
     />
   );

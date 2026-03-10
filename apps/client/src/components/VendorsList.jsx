@@ -10,14 +10,16 @@ import {
   IconButton,
   TablePagination,
   Skeleton,
-  Grid,
+  Stack,
   Card,
   CardContent,
   useMediaQuery,
   Box,
   Button,
   styled,
+  Paper,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
@@ -28,7 +30,8 @@ import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
-const VendorsList = ({ theme, searchTerm }) => {
+const VendorsList = ({ searchTerm }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
@@ -85,90 +88,125 @@ const VendorsList = ({ theme, searchTerm }) => {
         <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
       )}
       {isSmallScreen ? (
-        <Grid container spacing={2}>
+        <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
             ? vendors.slice(page * 5, page * 5 + 5).map((vendor) => (
-                <Grid item xs={12} key={vendor._id}>
-                  <Card sx={{ marginTop: 2 }}>
-                    <CardContent>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="h6" style={{ fontWeight: "bold" }}>
+                <Card
+                  key={vendor._id}
+                  sx={{
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: "none",
+                    width: "100%",
+                  }}
+                >
+                  <CardContent sx={{ pb: "16px !important" }}>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
+                    >
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
+                        >
                           {vendor.name}
                         </Typography>
-                      </Box>
-                      <Box display="flex" justifyContent="center">
-                        <Typography variant="body2">
+                        <Typography variant="body2" color="text.secondary">
                           <strong>Location:</strong>{" "}
                           {vendor.location.join(", ")}
                         </Typography>
                       </Box>
-                      <VendorButtonsGrid>
-                        <DashboardImageModal
-                          variant="contained"
-                          image={`${BASE_URL}${vendor?.image?.url}`}
-                          imageTitle={vendor?.image?.title}
-                        />
-                        <ViewVendorButton
-                          variant="contained"
-                          onClick={() =>
-                            navigate(`/dashboard/products/${vendor._id}`)
-                          }
-                          disabled={
-                            !vendor.products || vendor.products.length === 0
-                          }
-                        >
-                          <LocalOfferIcon sx={{ marginRight: 1 }} /> View
-                        </ViewVendorButton>
-                        <EditVendorButton
-                          variant="contained"
+                      <Box display="flex" gap={0.5} ml={1}>
+                        <IconButton
+                          size="small"
+                          color="inherit"
                           onClick={() =>
                             navigate(`/dashboard/vendor/${vendor._id}`)
                           }
                         >
-                          <EditIcon />
-                        </EditVendorButton>
-                        <RemoveVendorButton
-                          variant="outlined"
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
                           color="inherit"
                           onClick={() => handleRemoveVendor(vendor._id)}
                           disabled={deleteMutation.isPending}
                         >
-                          <DeleteIcon />
-                        </RemoveVendorButton>
-                      </VendorButtonsGrid>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    <Box display="flex" gap={2} mt={2}>
+                      <Box sx={{ flex: 1 }}>
+                        <DashboardImageModal
+                          variant="outlined"
+                          image={`${BASE_URL}${vendor?.image?.url}`}
+                          imageTitle={vendor?.image?.title}
+                        />
+                      </Box>
+                      <Button
+                        sx={{ flex: 1 }}
+                        variant="contained"
+                        color="primary"
+                        disableElevation
+                        onClick={() =>
+                          navigate(`/dashboard/products/${vendor._id}`)
+                        }
+                        disabled={
+                          !vendor.products || vendor.products.length === 0
+                        }
+                        startIcon={<LocalOfferIcon />}
+                      >
+                        Products
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
               ))
             : Array(5)
                 .fill()
                 .map((_, i) => (
-                  <Grid item xs={12} key={i}>
-                    <Skeleton
-                      animation="wave"
-                      height={250}
-                      width="100%"
-                      sx={{ marginTop: -5, padding: 0 }}
-                    />
-                  </Grid>
+                  <Skeleton
+                    key={i}
+                    animation="wave"
+                    height={160}
+                    width="100%"
+                    sx={{ borderRadius: 2 }}
+                  />
                 ))}
-        </Grid>
+        </Stack>
       ) : (
         <VendorsTableContainer>
-          <Table
-            sx={{
-              "& thead th": { backgroundColor: "#f2f2f2" },
-              "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
-            }}
-          >
-            <TableHead>
+          <Table sx={{ minWidth: 600 }}>
+            <TableHead
+              sx={{ backgroundColor: (theme) => theme.palette.grey[100] }}
+            >
               <TableRow>
-                <TableCell sx={{ color: "gray" }}>#</TableCell>
-                <TableCell sx={{ color: "gray" }}>Name</TableCell>
-                <TableCell sx={{ color: "gray" }}>Location</TableCell>
-                <TableCell sx={{ color: "gray" }}>Image</TableCell>
-                <TableCell sx={{ color: "gray" }}>Products</TableCell>
-                <TableCell sx={{ color: "gray", textAlign: "right" }}>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  #
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Name
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Location
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Image
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Products
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "text.secondary",
+                    fontWeight: "bold",
+                    textAlign: "right",
+                  }}
+                >
                   Actions
                 </TableCell>
               </TableRow>
@@ -248,36 +286,19 @@ const VendorsList = ({ theme, searchTerm }) => {
   );
 };
 
-const VendorsTableContainer = styled(TableContainer)(() => ({
-  width: "98vw",
-  marginLeft: "auto",
-  marginRight: "auto",
-  marginTop: 20,
-  borderRadius: 10,
+const VendorsTableContainer = styled(TableContainer)(({ theme }) => ({
+  width: "100%",
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.02)",
+  backgroundColor: theme.palette.background.paper,
 }));
+
 const Error = styled(Typography)(() => ({
   color: "crimson",
   width: "100%",
   display: "flex",
   justifyContent: "center",
 }));
-const VendorButtonsGrid = styled(Box)(() => ({
-  display: "flex",
-  justifyContent: "center",
-  marginTop: 5,
-  flexWrap: "wrap",
-  gap: 8,
-}));
-const EditVendorButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  textTransform: "none",
-  color: "white",
-}));
-const ViewVendorButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  textTransform: "none",
-  color: "white",
-}));
-const RemoveVendorButton = styled(Button)(() => ({ textTransform: "none" }));
 
 export default VendorsList;
