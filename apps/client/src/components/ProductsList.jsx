@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Typography,
   Table,
@@ -20,274 +20,218 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "../api/axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
-const ProductsList = ({ theme, searchTerm, products, setProducts }) => {
+const ProductsList = ({ theme, searchTerm }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [page, setPage] = useState(0);
+
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const response = await axiosPrivate.get("/products?limit=0");
+      return response.data.data;
+    },
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await axiosPrivate.delete("/products", { data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
 
   const handleRemoveProduct = async (productId) => {
-    let confirmed = window.confirm(
-      "Are you sure you want to remove this product?",
-    );
-
-    if (!confirmed) {
-      return;
+    if (window.confirm("Are you sure you want to remove this product?")) {
+      deleteMutation.mutate(productId);
     }
-
-    setIsLoading(true);
-
-    try {
-      await axiosPrivate.delete("/products", {
-        data: JSON.stringify({
-          id: productId,
-        }),
-      });
-
-      const productsResponse = await axios.get("/products", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-
-      setProducts(productsResponse.data);
-      setIsLoading(false);
-    } catch (error) {
-      setError(error.response?.data?.message || "Error deleting product");
-      navigate("/login", { state: { from: location }, replace: true });
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          "/products",
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          },
-        );
-        isMounted && setProducts(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error.response?.data?.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchProducts();
-
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, []);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleEditProduct = (productId) => {
-    navigate(`/dashboard/product/${productId}`);
-  };
-
-  const searchTermInProduct = (product, term) => {
-    return Object.values(product).some((value) =>
-      value?.toString().toLowerCase().includes(term.toLowerCase()),
-    );
   };
 
   const filteredProducts = products.filter((product) =>
-    searchTermInProduct(product, searchTerm),
+    Object.values(product).some((value) =>
+      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+    ),
   );
 
   return (
     <>
+      {isError && (
+        <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
+      )}
       {isSmallScreen ? (
         <Grid container spacing={2}>
           {!isLoading
-            ? filteredProducts
-                .slice(page * 5, page * 5 + 5)
-                .map((product, index) => (
-                  <Grid item xs={12} key={product._id}>
-                    <Card sx={{ marginTop: 2 }}>
-                      <CardContent>
-                        <Box display="flex" justifyContent="center">
-                          <Typography
-                            variant="h6"
-                            style={{ fontWeight: "bold" }}
-                          >
-                            {product.title}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="center">
-                          <Typography variant="body2">
-                            <strong>Price: </strong>
-                            {product.price}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="center">
-                          <Typography variant="body2">
-                            <strong>Vendor: </strong>
-                            {product.vendor?.name || "N/A"}
-                          </Typography>
-                        </Box>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          marginTop={2}
+            ? filteredProducts.slice(page * 5, page * 5 + 5).map((product) => (
+                <Grid item xs={12} key={product._id}>
+                  <Card sx={{ marginTop: 2 }}>
+                    <CardContent>
+                      <Box display="flex" justifyContent="center">
+                        <Typography variant="h6" style={{ fontWeight: "bold" }}>
+                          {product.title}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" justifyContent="center">
+                        <Typography variant="body2">
+                          <strong>Price: </strong>
+                          {product.price}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" justifyContent="center">
+                        <Typography variant="body2">
+                          <strong>Vendor: </strong>
+                          {product.vendor?.name || "N/A"}
+                        </Typography>
+                      </Box>
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        marginTop={2}
+                        gap={2}
+                      >
+                        <DashboardImageModal
+                          variant="contained"
+                          image={
+                            product.image
+                              ? `${BASE_URL}${product.image.url}`
+                              : ""
+                          }
+                          imageTitle={product.image?.title || "Product Image"}
+                        />
+                        <EditButton
+                          variant="contained"
+                          onClick={() =>
+                            navigate(`/dashboard/product/${product._id}`)
+                          }
                         >
-                          <DashboardImageModal
-                            variant="contained"
-                            image={
-                              product.image
-                                ? `${BASE_URL}${product.image.url}`
-                                : ""
-                            }
-                            imageTitle={product.image?.title || "Product Image"}
-                          />
-                          <EditButton
-                            variant="contained"
-                            onClick={() => handleEditProduct(product._id)}
-                          >
-                            <EditIcon />
-                          </EditButton>
-                          <RemoveButton
-                            variant="outlined"
-                            color="inherit"
-                            onClick={() => handleRemoveProduct(product._id)}
-                          >
-                            <DeleteIcon />
-                          </RemoveButton>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))
-            : Array(Math.min(5, filteredProducts.length || 5))
+                          <EditIcon />
+                        </EditButton>
+                        <RemoveButton
+                          variant="outlined"
+                          color="inherit"
+                          onClick={() => handleRemoveProduct(product._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </RemoveButton>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))
+            : Array(5)
                 .fill()
-                .map((_, index) => (
-                  <Grid item xs={12} key={index}>
+                .map((_, i) => (
+                  <Grid item xs={12} key={i}>
                     <Skeleton
                       animation="wave"
                       height={250}
                       width="100%"
-                      sx={{ marginTop: -5, marginBottom: -2, padding: 0 }}
+                      sx={{ marginTop: -5, padding: 0 }}
                     />
                   </Grid>
                 ))}
         </Grid>
       ) : (
-        <>
-          {error && <Error variant="p">{error}</Error>}
-          <TableWrapper>
-            <Table
-              sx={{
-                "& thead th": { backgroundColor: "#f2f2f2" },
-                "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: "gray" }}>#</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Title</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Price</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Image</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Vendor</TableCell>
-                  <TableCell sx={{ color: "gray", textAlign: "right" }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {!isLoading ? (
-                  <>
-                    {filteredProducts
-                      .slice(page * 5, page * 5 + 5)
-                      .map((product, index) => (
-                        <TableRow key={product._id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{product.title}</TableCell>
-                          <TableCell>{product.price}</TableCell>
-                          <TableCell>
-                            <DashboardImageModal
-                              imageTitle={
-                                product.image?.title || "Product Image"
-                              }
-                              image={
-                                product.image
-                                  ? `${BASE_URL}${product.image.url}`
-                                  : ""
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>{product.vendor?.name || "N/A"}</TableCell>
-
-                          <TableCell style={{ textAlign: "right" }}>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleEditProduct(product._id)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleRemoveProduct(product._id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </>
-                ) : (
-                  Array(Math.min(5, filteredProducts.length || 5))
+        <TableWrapper>
+          <Table
+            sx={{
+              "& thead th": { backgroundColor: "#f2f2f2" },
+              "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
+            }}
+          >
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ color: "gray" }}>#</TableCell>
+                <TableCell sx={{ color: "gray" }}>Title</TableCell>
+                <TableCell sx={{ color: "gray" }}>Price</TableCell>
+                <TableCell sx={{ color: "gray" }}>Image</TableCell>
+                <TableCell sx={{ color: "gray" }}>Vendor</TableCell>
+                <TableCell sx={{ color: "gray", textAlign: "right" }}>
+                  Actions
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!isLoading
+                ? filteredProducts
+                    .slice(page * 5, page * 5 + 5)
+                    .map((product, index) => (
+                      <TableRow key={product._id}>
+                        <TableCell>{index + 1 + page * 5}</TableCell>
+                        <TableCell>{product.title}</TableCell>
+                        <TableCell>{product.price}</TableCell>
+                        <TableCell>
+                          <DashboardImageModal
+                            imageTitle={product.image?.title}
+                            image={
+                              product.image
+                                ? `${BASE_URL}${product.image.url}`
+                                : ""
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>{product.vendor?.name || "N/A"}</TableCell>
+                        <TableCell style={{ textAlign: "right" }}>
+                          <IconButton
+                            color="inherit"
+                            onClick={() =>
+                              navigate(`/dashboard/product/${product._id}`)
+                            }
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            color="inherit"
+                            onClick={() => handleRemoveProduct(product._id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                : Array(5)
                     .fill()
-                    .map((_, index) => (
-                      <TableRow key={index}>
+                    .map((_, i) => (
+                      <TableRow key={i}>
                         {Array(6)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
-                              <Skeleton
-                                animation="wave"
-                                height={40}
-                                width="100%"
-                              />
+                              <Skeleton animation="wave" height={40} />
                             </TableCell>
                           ))}
                       </TableRow>
-                    ))
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              component="div"
-              count={products.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={5}
-              rowsPerPageOptions={[]}
-            />
-          </TableWrapper>
-        </>
+                    ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            count={filteredProducts.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={5}
+            rowsPerPageOptions={[]}
+          />
+        </TableWrapper>
       )}
     </>
   );
@@ -300,24 +244,17 @@ const TableWrapper = styled(TableContainer)(() => ({
   marginTop: 20,
   borderRadius: 10,
 }));
-
 const Error = styled(Typography)(() => ({
   color: "crimson",
   width: "100%",
   display: "flex",
   justifyContent: "center",
 }));
-
 const EditButton = styled(Button)(() => ({
   backgroundColor: "black",
-  marginLeft: "3vw",
   textTransform: "none",
   color: "white",
 }));
-
-const RemoveButton = styled(Button)(() => ({
-  marginLeft: "3vw",
-  textTransform: "none",
-}));
+const RemoveButton = styled(Button)(() => ({ textTransform: "none" }));
 
 export default ProductsList;

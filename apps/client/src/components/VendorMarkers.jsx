@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
+import { useQuery } from "@tanstack/react-query";
 import axios from "../api/axios";
 import { Button, Typography, Box, styled } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
@@ -11,78 +12,44 @@ import { BASE_URL } from "../api/consts";
 import MapProductInfoModal from "./MapProductInfoModal";
 
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
-  const [vendors, setVendors] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [_, setError] = useState("");
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [bounds, setBounds] = useState(null);
   const [zoom, setZoom] = useState(16);
   const pitch = useMapPitch();
   const { current: map } = useMap();
   const updateTimeoutRef = useRef(null);
+  const verticalOffset = useMemo(() => pitch * 0.8, [pitch]);
+
+  const { data: vendors = [], isLoading } = useQuery({
+    queryKey: ["vendors", "map"],
+    queryFn: async () => {
+      const response = await axios.get("/vendors?limit=0", {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      });
+      return response.data.data;
+    },
+  });
 
   useEffect(() => {
     if (!map) return;
-
     const updateBoundsAndZoom = () => {
       setBounds(map.getBounds().toArray().flat());
       setZoom(map.getZoom());
     };
-
     const throttledBoundsUpdate = () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
       updateTimeoutRef.current = setTimeout(updateBoundsAndZoom, 150);
     };
-
     updateBoundsAndZoom();
-
     map.on("moveend", throttledBoundsUpdate);
     map.on("zoomend", updateBoundsAndZoom);
-
     return () => {
       map.off("moveend", throttledBoundsUpdate);
       map.off("zoomend", updateBoundsAndZoom);
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
-      }
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
     };
   }, [map]);
-
-  const verticalOffset = useMemo(() => pitch * 0.8, [pitch]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchVendors = async () => {
-      try {
-        const response = await axios.get("/vendors", {
-          signal: controller.signal,
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        });
-        if (isMounted) {
-          setVendors(response.data);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setError(error.response?.data?.message || "Error loading vendors");
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchVendors();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, []);
 
   const points = useMemo(
     () =>

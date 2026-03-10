@@ -1,5 +1,5 @@
-import { Grid, styled, useMediaQuery } from "@mui/material";
 import React, { useState } from "react";
+import { Grid, styled, useMediaQuery } from "@mui/material";
 import DashboardHeader from "../components/DashboardHeader";
 import { createTheme, ThemeProvider } from "@mui/material";
 import ProductsList from "../components/ProductsList";
@@ -11,16 +11,6 @@ const Dashboard = () => {
   const theme = createTheme();
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
-  const [products, setProducts] = useState([]);
-  const [vendors, setVendors] = useState([]);
-
-  const handleProductSearchChange = (event) => {
-    setProductSearchTerm(event.target.value);
-  };
-
-  const handleVendorSearchChange = (event) => {
-    setVendorSearchTerm(event.target.value);
-  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -28,28 +18,18 @@ const Dashboard = () => {
         <DashboardHeader theme={theme} />
         <DashboardToolbar
           theme={theme}
-          handleSearchChange={handleVendorSearchChange}
+          handleSearchChange={(e) => setVendorSearchTerm(e.target.value)}
         />
-        <VendorsList
-          theme={theme}
-          searchTerm={vendorSearchTerm}
-          setProducts={setProducts}
-          vendors={vendors}
-          setVendors={setVendors}
-        />
+        <VendorsList theme={theme} searchTerm={vendorSearchTerm} />
+
         <ToolbarGrid>
           <ProductSearchBar
             theme={theme}
-            handleSearchChange={handleProductSearchChange}
+            handleSearchChange={(e) => setProductSearchTerm(e.target.value)}
             placeholder="Search products..."
           />
         </ToolbarGrid>
-        <ProductsList
-          theme={theme}
-          searchTerm={productSearchTerm}
-          products={products}
-          setProducts={setProducts}
-        />
+        <ProductsList theme={theme} searchTerm={productSearchTerm} />
       </Grid>
     </ThemeProvider>
   );
