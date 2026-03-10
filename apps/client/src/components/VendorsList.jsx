@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Table,
@@ -24,6 +24,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
@@ -35,18 +36,26 @@ const VendorsList = ({ theme, searchTerm }) => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [page, setPage] = useState(0);
 
+  const debouncedSearch = useDebounce(searchTerm);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
   const {
     data: vendors = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["vendors"],
+    queryKey: ["vendors", debouncedSearch],
     queryFn: async () => {
-      const response = await axiosPrivate.get("/vendors?limit=0");
+      const params = new URLSearchParams({ limit: 0 });
+      if (debouncedSearch) params.append("name", debouncedSearch);
+      const response = await axiosPrivate.get(`/vendors?${params}`);
       return response.data.data;
     },
-    onError: (err) =>
+    onError: () =>
       navigate("/login", { state: { from: location }, replace: true }),
   });
 
@@ -70,12 +79,6 @@ const VendorsList = ({ theme, searchTerm }) => {
     }
   };
 
-  const filteredVendors = vendors.filter((vendor) =>
-    Object.values(vendor).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
-    ),
-  );
-
   return (
     <>
       {isError && (
@@ -84,7 +87,7 @@ const VendorsList = ({ theme, searchTerm }) => {
       {isSmallScreen ? (
         <Grid container spacing={2}>
           {!isLoading
-            ? filteredVendors.slice(page * 5, page * 5 + 5).map((vendor) => (
+            ? vendors.slice(page * 5, page * 5 + 5).map((vendor) => (
                 <Grid item xs={12} key={vendor._id}>
                   <Card sx={{ marginTop: 2 }}>
                     <CardContent>
@@ -101,7 +104,7 @@ const VendorsList = ({ theme, searchTerm }) => {
                       </Box>
                       <VendorButtonsGrid>
                         <DashboardImageModal
-                          variant={"contained"}
+                          variant="contained"
                           image={`${BASE_URL}${vendor?.image?.url}`}
                           imageTitle={vendor?.image?.title}
                         />
@@ -172,52 +175,50 @@ const VendorsList = ({ theme, searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? filteredVendors
-                    .slice(page * 5, page * 5 + 5)
-                    .map((vendor, index) => (
-                      <TableRow key={vendor._id}>
-                        <TableCell>{index + 1 + page * 5}</TableCell>
-                        <TableCell>{vendor.name}</TableCell>
-                        <TableCell>{vendor.location.join(", ")}</TableCell>
-                        <TableCell>
-                          <DashboardImageModal
-                            imageTitle={vendor?.image?.title}
-                            image={`${BASE_URL}${vendor?.image?.url}`}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            disabled={
-                              !vendor.products || vendor.products.length === 0
-                            }
-                            color="inherit"
-                            sx={{ textTransform: "none" }}
-                            onClick={() =>
-                              navigate(`/dashboard/products/${vendor._id}`)
-                            }
-                          >
-                            <LocalOfferIcon sx={{ marginRight: 1 }} /> View
-                          </Button>
-                        </TableCell>
-                        <TableCell style={{ textAlign: "right" }}>
-                          <IconButton
-                            color="inherit"
-                            onClick={() =>
-                              navigate(`/dashboard/vendor/${vendor._id}`)
-                            }
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="inherit"
-                            onClick={() => handleRemoveVendor(vendor._id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                ? vendors.slice(page * 5, page * 5 + 5).map((vendor, index) => (
+                    <TableRow key={vendor._id}>
+                      <TableCell>{index + 1 + page * 5}</TableCell>
+                      <TableCell>{vendor.name}</TableCell>
+                      <TableCell>{vendor.location.join(", ")}</TableCell>
+                      <TableCell>
+                        <DashboardImageModal
+                          imageTitle={vendor?.image?.title}
+                          image={`${BASE_URL}${vendor?.image?.url}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          disabled={
+                            !vendor.products || vendor.products.length === 0
+                          }
+                          color="inherit"
+                          sx={{ textTransform: "none" }}
+                          onClick={() =>
+                            navigate(`/dashboard/products/${vendor._id}`)
+                          }
+                        >
+                          <LocalOfferIcon sx={{ marginRight: 1 }} /> View
+                        </Button>
+                      </TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <IconButton
+                          color="inherit"
+                          onClick={() =>
+                            navigate(`/dashboard/vendor/${vendor._id}`)
+                          }
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={() => handleRemoveVendor(vendor._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 : Array(5)
                     .fill()
                     .map((_, i) => (
@@ -235,7 +236,7 @@ const VendorsList = ({ theme, searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={filteredVendors.length}
+            count={vendors.length}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={5}

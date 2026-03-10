@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Table,
@@ -23,6 +23,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
@@ -34,15 +35,23 @@ const ProductsList = ({ theme, searchTerm }) => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [page, setPage] = useState(0);
 
+  const debouncedSearch = useDebounce(searchTerm);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
   const {
     data: products = [],
     isLoading,
     isError,
     error,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", debouncedSearch],
     queryFn: async () => {
-      const response = await axiosPrivate.get("/products?limit=0");
+      const params = new URLSearchParams({ limit: 0 });
+      if (debouncedSearch) params.append("title", debouncedSearch);
+      const response = await axiosPrivate.get(`/products?${params}`);
       return response.data.data;
     },
     onError: () =>
@@ -65,12 +74,6 @@ const ProductsList = ({ theme, searchTerm }) => {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    Object.values(product).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
-    ),
-  );
-
   return (
     <>
       {isError && (
@@ -79,7 +82,7 @@ const ProductsList = ({ theme, searchTerm }) => {
       {isSmallScreen ? (
         <Grid container spacing={2}>
           {!isLoading
-            ? filteredProducts.slice(page * 5, page * 5 + 5).map((product) => (
+            ? products.slice(page * 5, page * 5 + 5).map((product) => (
                 <Grid item xs={12} key={product._id}>
                   <Card sx={{ marginTop: 2 }}>
                     <CardContent>
@@ -171,7 +174,7 @@ const ProductsList = ({ theme, searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? filteredProducts
+                ? products
                     .slice(page * 5, page * 5 + 5)
                     .map((product, index) => (
                       <TableRow key={product._id}>
@@ -225,7 +228,7 @@ const ProductsList = ({ theme, searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={filteredProducts.length}
+            count={products.length}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={5}
