@@ -2,25 +2,32 @@
   "name": "student-obrok-server",
   "version": "0.6.9",
   "description": "",
-  "main": "app.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "server": "nodemon src/app.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@json2csv/plainjs": "^7.0.6",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.4",
-    "express": "^4.22.1",
-    "express-mongo-sanitize": "^2.2.0",
-    "json2csv": "^6.0.0-alpha.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.6",
     "multer": "^2.0.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.11",
-    "xss-clean": "^0.1.4"
+    "vitest": "^4.0.18"
   }
 }
