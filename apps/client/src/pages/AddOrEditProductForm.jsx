@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import {
   Button,
@@ -6,10 +6,7 @@ import {
   Box,
   Paper,
   Typography,
-  createTheme,
-  ThemeProvider,
   InputAdornment,
-  useMediaQuery,
   FormControl,
   InputLabel,
   Select,
@@ -23,14 +20,15 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Alert,
+  Container,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ImageIcon from "@mui/icons-material/Image";
-import { Container } from "@mui/system";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
-import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
@@ -43,33 +41,30 @@ const modules = {
   toolbar: [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
     ["bold", "italic", "underline", "strike", "blockquote"],
-    [
-      { list: "ordered" },
-      { list: "bullet" },
-      { indent: "-1" },
-      { indent: "+1" },
-    ],
+    [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
     ["link"],
     ["clean"],
   ],
 };
 
 const AddOrEditProductForm = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
-  const theme = createTheme();
   const params = useParams();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const isEditMode = !!params.productId;
 
   const [product, setProduct] = useState({});
   const [errorBag, setErrorBag] = useState("");
-  const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const [selectedVendorId, setSelectedVendorId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
+  // Fetch Dropdown Vendors
   const { data: vendors = [] } = useQuery({
     queryKey: ["vendors", "dropdown"],
     queryFn: async () => {
@@ -78,25 +73,32 @@ const AddOrEditProductForm = () => {
     },
   });
 
-  const { isLoading: isFetchingProduct } = useQuery({
+  // 1. Fetch Product Data
+  const { data: fetchedProduct, isLoading: isFetchingProduct } = useQuery({
     queryKey: ["product", params.productId],
     queryFn: async () => {
       const res = await axiosPrivate.get(`/products/${params.productId}`);
       return res.data;
     },
-    enabled: !!params.productId,
-    onSuccess: (data) => {
-      setProduct(data);
-      if (data?.vendor) setSelectedVendorId(data.vendor._id || data.vendor);
-      if (data?.image) {
-        setSelectedImageId(data.image._id);
-        setSelectedImageTitle(data.image.title);
-      }
-    },
-    onError: () =>
-      navigate("/login", { state: { from: location }, replace: true }),
+    enabled: isEditMode,
+    onError: () => navigate("/login", { state: { from: location }, replace: true }),
   });
 
+  // 2. Sync fetched data to local state
+  useEffect(() => {
+    if (fetchedProduct) {
+      setProduct(fetchedProduct);
+      if (fetchedProduct.vendor) {
+        setSelectedVendorId(fetchedProduct.vendor._id || fetchedProduct.vendor);
+      }
+      if (fetchedProduct.image) {
+        setSelectedImageId(fetchedProduct.image._id);
+        setSelectedImageTitle(fetchedProduct.image.title);
+      }
+    }
+  }, [fetchedProduct]);
+
+  // Fetch Images for Gallery
   const { data: images = [], refetch: fetchImages } = useQuery({
     queryKey: ["images"],
     queryFn: async () => {
@@ -106,9 +108,10 @@ const AddOrEditProductForm = () => {
     enabled: false,
   });
 
+  // Save Mutation
   const saveMutation = useMutation({
     mutationFn: async (productData) => {
-      if (params?.productId) return axiosPrivate.put("/products", productData);
+      if (isEditMode) return axiosPrivate.put("/products", productData);
       return axiosPrivate.post("/products", productData);
     },
     onSuccess: () => {
@@ -122,8 +125,11 @@ const AddOrEditProductForm = () => {
   });
 
   const handleChange = (event) => {
-    if (event.target === undefined)
+    // ReactQuill passes the HTML string directly as the first argument
+    if (typeof event === "string" || event?.target === undefined) {
       return setProduct((prev) => ({ ...prev, description: `${event}` }));
+    }
+    
     const { name, value } = event.target;
     if (name === "vendor") setSelectedVendorId(value);
     else setProduct((prev) => ({ ...prev, [name]: value }));
@@ -155,8 +161,6 @@ const AddOrEditProductForm = () => {
     setSelectedImageTitle("");
   };
 
-  const handleCancel = () => navigate("/dashboard");
-
   const handleSelectImage = (image) => {
     setSelectedImageId(image._id);
     setSelectedImageTitle(image.title);
@@ -165,309 +169,251 @@ const AddOrEditProductForm = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setErrorBag("");
+
     const productData = {};
-    if (params?.productId) productData.id = params.productId;
+    if (isEditMode) productData.id = params.productId;
     if (product.title) productData.title = product.title;
     if (product.description) productData.description = product.description;
-    if (product.price) productData.price = product.price;
+    
+    // Parse price to float
+    if (product.price) productData.price = parseFloat(product.price);
+    
     if (selectedVendorId) productData.vendor = selectedVendorId;
     if (selectedImageId) productData.image = selectedImageId;
 
     saveMutation.mutate(productData);
   };
 
+  if (isFetchingProduct || saveMutation.isPending) {
+    return <GlobalLoadingProgress />;
+  }
+
   return (
-    <>
-      {isFetchingProduct || saveMutation.isPending ? (
-        <GlobalLoadingProgress />
-      ) : (
-        <ThemeProvider theme={theme}>
-          <DashboardHeader theme={theme} />
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent={isSmallScreen ? "flex-start" : "center"}
-            alignItems="center"
-            minHeight={isSmallScreen ? "65vh" : "85vh"}
-            paddingY={5}
-          >
-            <Container maxWidth="md">
-              <form autoComplete="off" onSubmit={handleSubmit}>
-                <ProductForm elevation={5}>
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    gap={3}
-                    width="100%"
-                  >
-                    {/* Title */}
-                    <Box width="100%">
-                      {errorBag === "Title is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <TextField
-                        name="title"
-                        label="Title"
-                        variant="outlined"
-                        fullWidth
-                        value={product?.title || ""}
-                        onChange={handleChange}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-focused fieldset": {
-                              borderColor: "black",
-                            },
-                          },
-                          "& label.Mui-focused": { color: "black" },
-                        }}
-                      />
-                    </Box>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" fontWeight="bold">
+          {isEditMode ? "Edit Product" : "Add Product"}
+        </Typography>
+      </Box>
 
-                    {/* Price + Vendor */}
-                    <Box
-                      display="flex"
-                      gap={3}
-                      width="100%"
-                      sx={{ flexDirection: { xs: "column", sm: "row" } }}
-                    >
-                      <Box flex={1}>
-                        {errorBag === "Price is required!" && (
-                          <Typography sx={{ color: "crimson" }}>
-                            {errorBag}
-                          </Typography>
-                        )}
-                        <TextField
-                          name="price"
-                          label="Price"
-                          variant="outlined"
-                          type="number"
-                          fullWidth
-                          value={product?.price || ""}
-                          onChange={handleChange}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              "&.Mui-focused fieldset": {
-                                borderColor: "black",
-                              },
-                            },
-                            "& label.Mui-focused": { color: "black" },
-                          }}
-                        />
-                      </Box>
+      <form autoComplete="off" onSubmit={handleSubmit}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 5 },
+            mb: 3,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+          }}
+        >
+          <Box display="flex" flexDirection="column" gap={3}>
+            
+            {/* Standardized Error Display */}
+            {errorBag && (
+              <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+                {errorBag}
+              </Alert>
+            )}
 
-                      <Box flex={1}>
-                        {errorBag?.includes("Vendor") && (
-                          <Typography sx={{ color: "crimson" }}>
-                            {errorBag}
-                          </Typography>
-                        )}
-                        <FormControl fullWidth>
-                          <InputLabel
-                            id="vendor-select-label"
-                            sx={{ "&.Mui-focused": { color: "black" } }}
-                          >
-                            Vendor
-                          </InputLabel>
-                          <Select
-                            labelId="vendor-select-label"
-                            name="vendor"
-                            value={selectedVendorId || ""}
-                            label="Vendor"
-                            onChange={handleChange}
-                            disabled={isEditing}
-                            fullWidth
-                            sx={{
-                              "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                { borderColor: "black" },
-                            }}
-                          >
-                            {vendors.map((vendor) => (
-                              <MenuItem key={vendor._id} value={vendor._id}>
-                                {vendor.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    </Box>
+            {/* Title */}
+            <TextField
+              name="title"
+              label="Title"
+              variant="outlined"
+              fullWidth
+              value={product?.title || ""}
+              onChange={handleChange}
+            />
 
-                    {/* Selected Image Preview */}
-                    {selectedImageTitle && (
-                      <Box width="100%">
-                        <TextField
-                          label="Selected Image"
-                          variant="outlined"
-                          value={selectedImageTitle}
-                          fullWidth
-                          disabled
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <ImageIcon />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Box>
-                    )}
+            {/* Price + Vendor */}
+            <Box display="flex" gap={3} sx={{ flexDirection: { xs: "column", sm: "row" } }}>
+              <TextField
+                name="price"
+                label="Price"
+                variant="outlined"
+                type="number"
+                fullWidth
+                value={product?.price || ""}
+                onChange={handleChange}
+                sx={{ flex: 1 }}
+              />
 
-                    {/* Image Upload (optional) */}
-                    <Box width="100%">
-                      <FileUploader
-                        onSelectFile={onSelectFileHandler}
-                        onDeleteFile={onDeleteFileHandler}
-                        accept=".jpeg, .jpg, .png, .webp"
-                      />
-                      <Box
-                        display="flex"
-                        gap={2}
-                        alignItems="center"
-                        flexWrap="wrap"
-                        mt={2}
-                      >
-                        <Typography
-                          sx={{ color: "text.secondary", fontSize: 14 }}
-                        >
-                          or select an existing one:
-                        </Typography>
-                        <SelectImageButton
-                          variant="outlined"
-                          onClick={handleOpenImageDialog}
-                          startIcon={<PhotoLibraryIcon />}
-                        >
-                          Select Image
-                        </SelectImageButton>
-                        {selectedImageId && (
-                          <Button
-                            variant="text"
-                            size="small"
-                            onClick={onDeleteFileHandler}
-                            sx={{ color: "crimson", textTransform: "none" }}
-                          >
-                            Remove image
-                          </Button>
-                        )}
-                      </Box>
-                    </Box>
-
-                    {/* Description */}
-                    <Box width="100%">
-                      {errorBag === "Description is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <QuillWrapper>
-                        <ReactQuill
-                          value={product?.description || ""}
-                          onChange={(event) => handleChange(event)}
-                          theme="snow"
-                          modules={modules}
-                        />
-                      </QuillWrapper>
-                    </Box>
-                  </Box>
-                </ProductForm>
-
-                <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
+              <FormControl fullWidth sx={{ flex: 1 }}>
+                <InputLabel id="vendor-select-label">Vendor</InputLabel>
+                <Select
+                  labelId="vendor-select-label"
+                  name="vendor"
+                  value={selectedVendorId || ""}
+                  label="Vendor"
+                  onChange={handleChange}
+                  disabled={isEditMode} // Vendor cannot be changed once created based on schema
                 >
-                  <CancelButton variant="text" onClick={handleCancel}>
-                    <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
-                  </CancelButton>
-                  <SubmitButton variant="contained" type="submit">
-                    <SaveIcon sx={{ marginRight: "5px" }} /> Submit
-                  </SubmitButton>
-                </Box>
-              </form>
-            </Container>
-          </Box>
-
-          {/* Image Select Dialog */}
-          <Dialog
-            open={imageDialogOpen}
-            onClose={() => setImageDialogOpen(false)}
-            fullWidth
-            maxWidth="sm"
-          >
-            <DialogTitle>Select an Image</DialogTitle>
-            <DialogContent dividers>
-              {images.length === 0 ? (
-                <Typography color="text.secondary">
-                  No images uploaded yet. Upload one first.
-                </Typography>
-              ) : (
-                <List>
-                  {images.map((img) => (
-                    <ListItemButton
-                      key={img._id}
-                      selected={selectedImageId === img._id}
-                      onClick={() => handleSelectImage(img)}
-                    >
-                      <ListItemIcon>
-                        {selectedImageId === img._id ? (
-                          <CheckIcon />
-                        ) : (
-                          <ImageIcon />
-                        )}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={img.title}
-                        secondary={img.mimeType}
-                      />
-                    </ListItemButton>
+                  {vendors.map((vendor) => (
+                    <MenuItem key={vendor._id} value={vendor._id}>
+                      {vendor.name}
+                    </MenuItem>
                   ))}
-                </List>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button
-                onClick={() => setImageDialogOpen(false)}
-                sx={{ color: "black", textTransform: "none" }}
-              >
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </ThemeProvider>
-      )}
-    </>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Selected Image Preview */}
+            {selectedImageTitle && (
+              <TextField
+                label="Selected Image"
+                variant="outlined"
+                value={selectedImageTitle}
+                fullWidth
+                disabled
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <ImageIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            )}
+
+            {/* Image Upload */}
+            <Box>
+              <FileUploader
+                onSelectFile={onSelectFileHandler}
+                onDeleteFile={onDeleteFileHandler}
+                accept=".jpeg, .jpg, .png, .webp"
+              />
+              <Box display="flex" gap={2} alignItems="center" flexWrap="wrap" mt={2}>
+                <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
+                  or select an existing one:
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleOpenImageDialog}
+                  startIcon={<PhotoLibraryIcon />}
+                  sx={{ textTransform: "none" }}
+                >
+                  Browse Gallery
+                </Button>
+                {selectedImageId && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={onDeleteFileHandler}
+                    sx={{ color: "error.main", textTransform: "none" }}
+                  >
+                    Remove image
+                  </Button>
+                )}
+              </Box>
+            </Box>
+
+            {/* Description (Quill) */}
+            <Box>
+              <QuillWrapper>
+                <ReactQuill
+                  value={product?.description || ""}
+                  onChange={(event) => handleChange(event)}
+                  theme="snow"
+                  modules={modules}
+                />
+              </QuillWrapper>
+            </Box>
+          </Box>
+        </Paper>
+
+        <Box display="flex" justifyContent="flex-end" gap={2}>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => navigate("/dashboard")}
+            sx={{ textTransform: "none" }}
+            startIcon={<CloseIcon />}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{ textTransform: "none" }}
+            startIcon={<SaveIcon />}
+          >
+            {isEditMode ? "Save Changes" : "Add Product"}
+          </Button>
+        </Box>
+      </form>
+
+      {/* Image Selection Dialog */}
+      <Dialog
+        open={imageDialogOpen}
+        onClose={() => setImageDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold" }}>Select from Gallery</DialogTitle>
+        <DialogContent dividers>
+          {images.length === 0 ? (
+            <Typography color="text.secondary">
+              No images available in gallery. Please upload a new one.
+            </Typography>
+          ) : (
+            <List>
+              {images.map((img) => (
+                <ListItemButton
+                  key={img._id}
+                  selected={selectedImageId === img._id}
+                  onClick={() => handleSelectImage(img)}
+                  sx={{ borderRadius: 1, mb: 0.5 }}
+                >
+                  <ListItemIcon>
+                    {selectedImageId === img._id ? <CheckIcon color="primary" /> : <ImageIcon />}
+                  </ListItemIcon>
+                  <ListItemText primary={img.title} secondary={img.mimeType} />
+                </ListItemButton>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setImageDialogOpen(false)}
+            color="inherit"
+            sx={{ textTransform: "none" }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
-
-const ProductForm = styled(Paper)(({ theme }) => ({
-  padding: 50,
-  marginBottom: 25,
-  [theme.breakpoints.down("sm")]: { padding: 25 },
-}));
-
-const SubmitButton = styled(Button)(() => ({
-  textTransform: "none",
-  backgroundColor: "black",
-  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
-}));
-
-const CancelButton = styled(Button)(() => ({
-  color: "black",
-  textTransform: "none",
-}));
-
-const SelectImageButton = styled(Button)(() => ({
-  textTransform: "none",
-  color: "black",
-  borderColor: "black",
-  "&:hover": { borderColor: "rgba(0,0,0,0.8)" },
-}));
 
 const QuillWrapper = styled(Box)(({ theme }) => ({
   width: "100%",
   "& .quill": { height: "100%", display: "flex", flexDirection: "column" },
-  "& .ql-container": { flexGrow: 1, overflow: "auto" },
+  "& .ql-toolbar": { 
+    borderTopLeftRadius: theme.shape.borderRadius,
+    borderTopRightRadius: theme.shape.borderRadius,
+    borderColor: theme.palette.divider,
+  },
+  "& .ql-container": { 
+    flexGrow: 1, 
+    overflow: "auto",
+    borderBottomLeftRadius: theme.shape.borderRadius,
+    borderBottomRightRadius: theme.shape.borderRadius,
+    borderColor: theme.palette.divider,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: theme.typography.body1.fontSize,
+  },
   height: "250px",
   marginBottom: "3vh",
-  [theme.breakpoints.down("md")]: { height: "250px", marginBottom: "10vh" },
+  [theme.breakpoints.down("md")]: { height: "250px", marginBottom: "5vh" },
 }));
 
 export default AddOrEditProductForm;
