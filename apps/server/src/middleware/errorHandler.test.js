@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { errorHandler } from "./errorHandler.js";
 import { AppError } from "../shared/errors/AppError.js";
 
@@ -8,6 +8,16 @@ describe("errorHandler", () => {
     json: vi.fn(),
   };
   const next = vi.fn();
+
+  // Silence console.error before each test
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  // Restore it after each test so we don't break console.error globally
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
   it("returns statusCode and message for AppError", () => {
     const err = new AppError("Not found", 404);
@@ -23,5 +33,6 @@ describe("errorHandler", () => {
     expect(res.json).toHaveBeenCalledWith({
       message: "Internal server error.",
     });
+    expect(console.error).toHaveBeenCalledWith(err);
   });
 });
