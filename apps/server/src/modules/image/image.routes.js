@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { imageController } from "./index.js";
+import { imageController } from "../../container.js";
 import verifyJWT from "../../middleware/verifyJWT.js";
 import upload from "../../config/multerConfig.js";
 import { validateRequest } from "../../middleware/validateRequest.js";

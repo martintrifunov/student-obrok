@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { vendorController } from "./index.js";
+import { vendorController } from "../../container.js";
 import verifyJWT from "../../middleware/verifyJWT.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import {

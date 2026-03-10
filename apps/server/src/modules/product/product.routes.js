@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { productController } from "./index.js";
+import { productController } from "../../container.js";
 import verifyJWT from "../../middleware/verifyJWT.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import {
