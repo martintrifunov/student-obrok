@@ -16,7 +16,10 @@ import { imageRouter } from "./modules/image/image.routes.js";
 const app = express();
 
 app.use(
-  helmet({ contentSecurityPolicy: process.env.NODE_ENV === "production" }),
+  helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === "production",
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
 );
 app.use(credentials);
 app.use(cors(corsOptions));
