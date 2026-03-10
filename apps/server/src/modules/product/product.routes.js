@@ -3,18 +3,18 @@ import { productController } from "../../container.js";
 import verifyJWT from "../../middleware/verifyJWT.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import {
+  productQuerySchema,
   createProductSchema,
   updateProductSchema,
   deleteProductSchema,
   productParamsSchema,
 } from "./product.schema.js";
-import { paginationSchema } from "../../shared/utils/paginationSchema.js";
 
 const router = Router();
 
 router.get(
   "/",
-  validateRequest(paginationSchema, "query"),
+  validateRequest(productQuerySchema, "query"),
   productController.getAll,
 );
 router.get(

@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { zodObjectId } from "../../shared/utils/zodObjectId.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
+
+export const vendorQuerySchema = paginationSchema.extend({
+  name: z.string().optional(),
+});
 
 export const createVendorSchema = z.object({
   name: z

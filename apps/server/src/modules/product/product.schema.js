@@ -1,5 +1,13 @@
 import { z } from "zod";
 import { zodObjectId } from "../../shared/utils/zodObjectId.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
+
+export const productQuerySchema = paginationSchema.extend({
+  title: z.string().optional(),
+  vendorId: zodObjectId.optional(),
+  minPrice: z.coerce.number().positive().optional(),
+  maxPrice: z.coerce.number().positive().optional(),
+});
 
 export const createProductSchema = z.object({
   title: z

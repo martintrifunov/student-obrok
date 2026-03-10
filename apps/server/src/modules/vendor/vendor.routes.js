@@ -3,19 +3,19 @@ import { vendorController } from "../../container.js";
 import verifyJWT from "../../middleware/verifyJWT.js";
 import { validateRequest } from "../../middleware/validateRequest.js";
 import {
+  vendorQuerySchema,
   createVendorSchema,
   updateVendorSchema,
   deleteVendorSchema,
   vendorParamsSchema,
 } from "./vendor.schema.js";
-import { paginationSchema } from "../../shared/utils/paginationSchema.js";
 
 const router = Router();
 
 router.get("/report", verifyJWT, vendorController.generateReport);
 router.get(
   "/",
-  validateRequest(paginationSchema, "query"),
+  validateRequest(vendorQuerySchema, "query"),
   vendorController.getAll,
 );
 router.get(

@@ -8,10 +8,14 @@ export class VendorService {
     this.imageRepository = imageRepository;
   }
 
-  async getAllVendors({ page, limit }) {
+  async getAllVendors({ page, limit, name }) {
+    const filter = {};
+    if (name) filter.name = name;
+
     const { docs, total } = await this.vendorRepository.findAll({
       page,
       limit,
+      filter,
     });
     return {
       data: docs,
