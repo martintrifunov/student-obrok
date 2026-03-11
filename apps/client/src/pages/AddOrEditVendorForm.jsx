@@ -16,6 +16,7 @@ import {
   ListItemText,
   Alert,
   Container,
+  Avatar,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ImageIcon from "@mui/icons-material/Image";
@@ -28,6 +29,7 @@ import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "../api/consts";
 
 const AddOrEditVendorForm = () => {
   const theme = useTheme();
@@ -361,13 +363,16 @@ const AddOrEditVendorForm = () => {
                   sx={{ borderRadius: 1, mb: 0.5 }}
                 >
                   <ListItemIcon>
-                    {selectedImageId === img._id ? (
-                      <CheckIcon color="primary" />
-                    ) : (
-                      <ImageIcon />
-                    )}
+                    <Avatar
+                      src={img.url ? `${BASE_URL}${img.url}` : undefined}
+                      variant="rounded"
+                      sx={{ width: 32, height: 32, bgcolor: "grey.100" }}
+                    >
+                      <ImageIcon sx={{ color: "grey.400" }} />
+                    </Avatar>
                   </ListItemIcon>
                   <ListItemText primary={img.title} secondary={img.mimeType} />
+                  {selectedImageId === img._id && <CheckIcon color="primary" />}
                 </ListItemButton>
               ))}
             </List>

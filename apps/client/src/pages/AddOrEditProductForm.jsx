@@ -23,6 +23,7 @@ import {
   ListItemText,
   Alert,
   Container,
+  Avatar,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ImageIcon from "@mui/icons-material/Image";
@@ -35,6 +36,7 @@ import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "../api/consts";
 import "../assets/quill.css";
 import "../assets/quill-snow.css";
 
@@ -120,7 +122,6 @@ const AddOrEditProductForm = () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
       queryClient.invalidateQueries({ queryKey: ["vendor"] });
-
       if (isEditMode) {
         queryClient.invalidateQueries({
           queryKey: ["product", params.productId],
@@ -428,13 +429,16 @@ const AddOrEditProductForm = () => {
                   sx={{ borderRadius: 1, mb: 0.5 }}
                 >
                   <ListItemIcon>
-                    {selectedImageId === img._id ? (
-                      <CheckIcon color="primary" />
-                    ) : (
-                      <ImageIcon />
-                    )}
+                    <Avatar
+                      src={img.url ? `${BASE_URL}${img.url}` : undefined}
+                      variant="rounded"
+                      sx={{ width: 32, height: 32, bgcolor: "grey.100" }}
+                    >
+                      <ImageIcon sx={{ color: "grey.400" }} />
+                    </Avatar>
                   </ListItemIcon>
                   <ListItemText primary={img.title} secondary={img.mimeType} />
+                  {selectedImageId === img._id && <CheckIcon color="primary" />}
                 </ListItemButton>
               ))}
             </List>
