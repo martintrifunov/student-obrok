@@ -16,7 +16,6 @@ import {
   useMediaQuery,
   Box,
   styled,
-  Paper,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
@@ -95,34 +94,20 @@ const ProductsList = ({ searchTerm }) => {
                   }}
                 >
                   <CardContent sx={{ pb: "16px !important" }}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                    >
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                       <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
-                        >
+                        <Typography variant="h6" sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}>
                           {product.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           <strong>Price: </strong> {product.price}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          <strong>Vendor: </strong>{" "}
-                          {product.vendor?.name || "N/A"}
+                          <strong>Vendor: </strong> {product.vendor?.name || "N/A"}
                         </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
-                        <IconButton
-                          size="small"
-                          color="inherit"
-                          onClick={() =>
-                            navigate(`/dashboard/product/${product._id}`)
-                          }
-                        >
+                        <IconButton size="small" color="inherit" onClick={() => navigate(`/dashboard/product/${product._id}`)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton
@@ -139,9 +124,7 @@ const ProductsList = ({ searchTerm }) => {
                     <Box display="flex" mt={2}>
                       <DashboardImageModal
                         variant="outlined"
-                        image={
-                          product.image ? `${BASE_URL}${product.image.url}` : ""
-                        }
+                        image={product.image ? `${BASE_URL}${product.image.url}` : ""}
                         imageTitle={product.image?.title || "Product Image"}
                       />
                     </Box>
@@ -151,87 +134,50 @@ const ProductsList = ({ searchTerm }) => {
             : Array(5)
                 .fill()
                 .map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    animation="wave"
-                    height={160}
-                    width="100%"
-                    sx={{ borderRadius: 2 }}
-                  />
+                  <Skeleton key={i} animation="wave" height={160} width="100%" sx={{ borderRadius: 2 }} />
                 ))}
         </Stack>
       ) : (
         <TableWrapper>
           <Table sx={{ minWidth: 600 }}>
-            <TableHead
-              sx={{ backgroundColor: (theme) => theme.palette.grey[100] }}
-            >
+            <TableHead sx={{ backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.grey[100] }}>
               <TableRow>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  #
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Title
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Price
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Image
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Vendor
-                </TableCell>
-                <TableCell
-                  sx={{
-                    color: "text.secondary",
-                    fontWeight: "bold",
-                    textAlign: "right",
-                  }}
-                >
-                  Actions
-                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>#</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Title</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Price</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Image</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Vendor</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold", textAlign: "right" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {!isLoading
-                ? products
-                    .slice(page * 5, page * 5 + 5)
-                    .map((product, index) => (
-                      <TableRow key={product._id}>
-                        <TableCell>{index + 1 + page * 5}</TableCell>
-                        <TableCell>{product.title}</TableCell>
-                        <TableCell>{product.price}</TableCell>
-                        <TableCell>
-                          <DashboardImageModal
-                            imageTitle={product.image?.title}
-                            image={
-                              product.image
-                                ? `${BASE_URL}${product.image.url}`
-                                : ""
-                            }
-                          />
-                        </TableCell>
-                        <TableCell>{product.vendor?.name || "N/A"}</TableCell>
-                        <TableCell style={{ textAlign: "right" }}>
-                          <IconButton
-                            color="inherit"
-                            onClick={() =>
-                              navigate(`/dashboard/product/${product._id}`)
-                            }
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="inherit"
-                            onClick={() => handleRemoveProduct(product._id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                ? products.slice(page * 5, page * 5 + 5).map((product, index) => (
+                    <TableRow key={product._id}>
+                      <TableCell>{index + 1 + page * 5}</TableCell>
+                      <TableCell>{product.title}</TableCell>
+                      <TableCell>{product.price}</TableCell>
+                      <TableCell>
+                        <DashboardImageModal
+                          imageTitle={product.image?.title}
+                          image={product.image ? `${BASE_URL}${product.image.url}` : ""}
+                        />
+                      </TableCell>
+                      <TableCell>{product.vendor?.name || "N/A"}</TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <IconButton color="inherit" onClick={() => navigate(`/dashboard/product/${product._id}`)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={() => handleRemoveProduct(product._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 : Array(5)
                     .fill()
                     .map((_, i) => (

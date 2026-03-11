@@ -135,7 +135,15 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
         />
       </Box>
 
-      <DialogContent sx={{ p: 3, backgroundColor: theme.palette.grey[50] }}>
+      <DialogContent
+        sx={{
+          p: 3,
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.background.default
+              : theme.palette.grey[50],
+        }}
+      >
         {isLoading ? (
           <Box
             display="grid"
@@ -180,7 +188,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
                     sx={{
                       width: "100%",
                       height: 200,
-                      backgroundColor: theme.palette.grey[100],
+                      backgroundColor: theme.palette.background.default,
                       borderBottom: `1px solid ${theme.palette.divider}`,
                       display: "flex",
                       alignItems: "center",
@@ -203,7 +211,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
                     sx={{
                       width: "100%",
                       height: 200,
-                      backgroundColor: theme.palette.grey[100],
+                      backgroundColor: theme.palette.background.default,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -211,7 +219,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
                     }}
                   >
                     <ImageIcon
-                      sx={{ fontSize: 64, color: theme.palette.grey[400] }}
+                      sx={{ fontSize: 64, color: theme.palette.divider }}
                     />
                   </Box>
                 )}
@@ -296,7 +304,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
           <Box display="flex" justifyContent="center" mt={5} mb={2}>
             <Button
               variant="contained"
-              color="inherit"
+              color="primary"
               onClick={handleLoadMore}
               sx={{
                 borderRadius: 5,

@@ -37,7 +37,7 @@ const VendorsList = ({ searchTerm }) => {
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
+  
   const [page, setPage] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState({ id: null, name: "" });
@@ -78,7 +78,7 @@ const VendorsList = ({ searchTerm }) => {
   const handleRemoveVendor = async (vendorId) => {
     if (
       window.confirm(
-        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the products that are by this vendor.",
+        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the products that are by this vendor."
       )
     ) {
       deleteMutation.mutate(vendorId);
@@ -104,31 +104,17 @@ const VendorsList = ({ searchTerm }) => {
                   }}
                 >
                   <CardContent sx={{ pb: "16px !important" }}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                    >
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                       <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
-                        >
+                        <Typography variant="h6" sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}>
                           {vendor.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          <strong>Location:</strong>{" "}
-                          {vendor.location.join(", ")}
+                          <strong>Location:</strong> {vendor.location.join(", ")}
                         </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
-                        <IconButton
-                          size="small"
-                          color="inherit"
-                          onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
-                          }
-                        >
+                        <IconButton size="small" color="inherit" onClick={() => navigate(`/dashboard/vendor/${vendor._id}`)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                         <IconButton
@@ -156,15 +142,10 @@ const VendorsList = ({ searchTerm }) => {
                         color="primary"
                         disableElevation
                         onClick={() => {
-                          setSelectedVendor({
-                            id: vendor._id,
-                            name: vendor.name,
-                          });
+                          setSelectedVendor({ id: vendor._id, name: vendor.name });
                           setModalOpen(true);
                         }}
-                        disabled={
-                          !vendor.products || vendor.products.length === 0
-                        }
+                        disabled={!vendor.products || vendor.products.length === 0}
                         startIcon={<LocalOfferIcon />}
                       >
                         Products
@@ -176,46 +157,20 @@ const VendorsList = ({ searchTerm }) => {
             : Array(5)
                 .fill()
                 .map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    animation="wave"
-                    height={160}
-                    width="100%"
-                    sx={{ borderRadius: 2 }}
-                  />
+                  <Skeleton key={i} animation="wave" height={160} width="100%" sx={{ borderRadius: 2 }} />
                 ))}
         </Stack>
       ) : (
         <VendorsTableContainer>
           <Table sx={{ minWidth: 600 }}>
-            <TableHead
-              sx={{ backgroundColor: (theme) => theme.palette.grey[100] }}
-            >
+            <TableHead sx={{ backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.grey[100] }}>
               <TableRow>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  #
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Name
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Location
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Image
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Products
-                </TableCell>
-                <TableCell
-                  sx={{
-                    color: "text.secondary",
-                    fontWeight: "bold",
-                    textAlign: "right",
-                  }}
-                >
-                  Actions
-                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>#</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Name</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Location</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Image</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Products</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold", textAlign: "right" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -233,16 +188,11 @@ const VendorsList = ({ searchTerm }) => {
                       </TableCell>
                       <TableCell>
                         <Button
-                          disabled={
-                            !vendor.products || vendor.products.length === 0
-                          }
+                          disabled={!vendor.products || vendor.products.length === 0}
                           color="inherit"
                           sx={{ textTransform: "none" }}
                           onClick={() => {
-                            setSelectedVendor({
-                              id: vendor._id,
-                              name: vendor.name,
-                            });
+                            setSelectedVendor({ id: vendor._id, name: vendor.name });
                             setModalOpen(true);
                           }}
                         >
@@ -250,12 +200,7 @@ const VendorsList = ({ searchTerm }) => {
                         </Button>
                       </TableCell>
                       <TableCell style={{ textAlign: "right" }}>
-                        <IconButton
-                          color="inherit"
-                          onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
-                          }
-                        >
+                        <IconButton color="inherit" onClick={() => navigate(`/dashboard/vendor/${vendor._id}`)}>
                           <EditIcon />
                         </IconButton>
                         <IconButton

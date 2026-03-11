@@ -11,9 +11,7 @@ import { AuthProvider } from "./context/AuthProvider.jsx";
 import { disableReactDevTools } from "@fvilers/disable-react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import theme from "./theme";
+import { ThemeModeProvider } from "./context/ThemeModeProvider.jsx";
 
 if (process.env.NODE_ENV === "production") {
   disableReactDevTools();
@@ -31,8 +29,7 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeModeProvider>
       <BrowserRouter>
         <AuthProvider>
           <Routes>
@@ -40,7 +37,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           </Routes>
         </AuthProvider>
       </BrowserRouter>
-    </ThemeProvider>
+    </ThemeModeProvider>
     <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>,
 );

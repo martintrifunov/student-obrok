@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   AppBar,
   Toolbar,
@@ -6,15 +6,20 @@ import {
   Box,
   Typography,
   Container,
+  IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useLogout from "../hooks/useLogout";
 import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import { ThemeModeContext } from "../context/ThemeModeProvider";
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
   const logout = useLogout();
+  const { mode, toggleColorMode } = useContext(ThemeModeContext);
 
   const handleLogout = async () => {
     await logout();
@@ -34,17 +39,36 @@ const DashboardHeader = () => {
     >
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
-          {/* Logo / Branding Placeholder */}
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{ fontWeight: "bold", cursor: "pointer" }}
-            onClick={() => navigate("/dashboard")}
-          >
-            Obrok
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: "bold",
+                cursor: "pointer",
+                letterSpacing: "-0.5px",
+              }}
+              onClick={() => navigate("/dashboard")}
+            >
+              Obrok
+            </Typography>
 
-          <Box sx={{ display: "flex", gap: 2 }}>
+            <IconButton onClick={toggleColorMode} color="inherit" size="small">
+              {mode === "dark" ? (
+                <LightModeIcon fontSize="small" />
+              ) : (
+                <DarkModeIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 1, md: 2 },
+              alignItems: "center",
+            }}
+          >
             <Button
               variant="contained"
               color="primary"
