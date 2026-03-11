@@ -5,11 +5,15 @@ import { RELEASE_VERSION } from "../api/consts";
 const GlobalLoadingProgress = () => {
   return (
     <GlobalLoadingOverlay>
-      <Typography variant="h6">Студентски Оброк</Typography>
-      <Box width="15%" margin="10px">
-        <LinearProgress color="inherit" />
+      <Typography variant="h5" fontWeight="bold" mb={2}>
+        Студентски Оброк
+      </Typography>
+      <Box width={{ xs: "50%", md: "15%" }} mb={2}>
+        <LinearProgress color="primary" />
       </Box>
-      <Typography variant="body1">{RELEASE_VERSION}</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Release: {RELEASE_VERSION}
+      </Typography>
     </GlobalLoadingOverlay>
   );
 };
@@ -20,12 +24,13 @@ const GlobalLoadingOverlay = styled(Box)(({ theme }) => ({
   justifyContent: "center",
   alignItems: "center",
   height: "100vh",
-  position: "absolute",
+  position: "fixed",
   top: 0,
   left: 0,
   width: "100%",
-  zIndex: "1000",
-  backgroundColor: "white",
+  zIndex: 9999,
+  backgroundColor: theme.palette.background.default,
+  color: theme.palette.text.primary,
 }));
 
 export default GlobalLoadingProgress;
