@@ -9,7 +9,6 @@ import Layout from "./Layout";
 import DashboardLayout from "./DashboardLayout";
 import PersistLogin from "./PersistLogin";
 import AddOrEditVendorForm from "../pages/AddOrEditVendorForm";
-import VendorProducts from "../pages/VendorProducts";
 import Home from "../pages/Home";
 
 const App = () => {
@@ -26,10 +25,6 @@ const App = () => {
               <Route
                 path="/dashboard/product/:productId"
                 element={<AddOrEditProductForm />}
-              />
-              <Route
-                path="/dashboard/products/:vendorId"
-                element={<VendorProducts />}
               />
               <Route
                 path="/dashboard/product"
