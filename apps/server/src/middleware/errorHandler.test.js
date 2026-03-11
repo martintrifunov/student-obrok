@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { errorHandler } from "./errorHandler.js";
 import { AppError } from "../shared/errors/AppError.js";
+import { ValidationError } from "../shared/errors/ValidationError.js";
 
 describe("errorHandler", () => {
   const res = {
@@ -8,15 +9,23 @@ describe("errorHandler", () => {
     json: vi.fn(),
   };
   const next = vi.fn();
-
   // Silence console.error before each test
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
-
   // Restore it after each test so we don't break console.error globally
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("returns statusCode and errors object for ValidationError", () => {
+    const err = new ValidationError({ title: "This field cannot be blank." });
+    errorHandler(err, {}, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      title: "This field cannot be blank.",
+    });
   });
 
   it("returns statusCode and message for AppError", () => {

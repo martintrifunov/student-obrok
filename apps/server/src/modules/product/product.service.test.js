@@ -49,6 +49,23 @@ describe("ProductService", () => {
       const result = await sut.getAllProducts({ page: 1, limit: 0 });
       expect(result.pagination).toBeNull();
     });
+
+    it("passes filter parameters correctly to the repository", async () => {
+      mockProductRepository.findAll.mockResolvedValue({ docs: [], total: 0 });
+      const sut = makeSut();
+      await sut.getAllProducts({
+        page: 1,
+        limit: 10,
+        title: "Pizza",
+        minPrice: 50,
+      });
+
+      expect(mockProductRepository.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+        filter: { title: "Pizza", minPrice: 50 },
+      });
+    });
   });
 
   describe("getProductById", () => {

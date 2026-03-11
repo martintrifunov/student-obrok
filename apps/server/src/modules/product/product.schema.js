@@ -11,12 +11,23 @@ export const productQuerySchema = paginationSchema.extend({
 
 export const createProductSchema = z.object({
   title: z
-    .string({ required_error: "Title is required." })
-    .min(1, "Title is required."),
+    .string({
+      required_error: "Product title is required.",
+      invalid_type_error: "Product title is required.",
+    })
+    .min(1, "Product title cannot be empty."),
   description: z
-    .string({ required_error: "Description is required." })
-    .min(1, "Description is required."),
-  price: z.number({ required_error: "Price is required." }).positive(),
+    .string({
+      required_error: "Description is required.",
+      invalid_type_error: "Description is required.",
+    })
+    .min(1, "Description cannot be empty."),
+  price: z
+    .number({
+      required_error: "Price is required.",
+      invalid_type_error: "Price must be a valid number.",
+    })
+    .positive("Price must be greater than 0."),
   vendor: zodObjectId,
   image: zodObjectId.optional(),
 });

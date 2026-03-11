@@ -11,6 +11,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  FormHelperText,
   styled,
   Dialog,
   DialogTitle,
@@ -41,7 +42,12 @@ const modules = {
   toolbar: [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
     ["bold", "italic", "underline", "strike", "blockquote"],
-    [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+    [
+      { list: "ordered" },
+      { list: "bullet" },
+      { indent: "-1" },
+      { indent: "+1" },
+    ],
     ["link"],
     ["clean"],
   ],
@@ -58,13 +64,12 @@ const AddOrEditProductForm = () => {
   const isEditMode = !!params.productId;
 
   const [product, setProduct] = useState({});
-  const [errorBag, setErrorBag] = useState("");
+  const [errors, setErrors] = useState({});
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  // Fetch Dropdown Vendors
   const { data: vendors = [] } = useQuery({
     queryKey: ["vendors", "dropdown"],
     queryFn: async () => {
@@ -73,7 +78,6 @@ const AddOrEditProductForm = () => {
     },
   });
 
-  // 1. Fetch Product Data
   const { data: fetchedProduct, isLoading: isFetchingProduct } = useQuery({
     queryKey: ["product", params.productId],
     queryFn: async () => {
@@ -81,10 +85,10 @@ const AddOrEditProductForm = () => {
       return res.data;
     },
     enabled: isEditMode,
-    onError: () => navigate("/login", { state: { from: location }, replace: true }),
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
   });
 
-  // 2. Sync fetched data to local state
   useEffect(() => {
     if (fetchedProduct) {
       setProduct(fetchedProduct);
@@ -98,7 +102,6 @@ const AddOrEditProductForm = () => {
     }
   }, [fetchedProduct]);
 
-  // Fetch Images for Gallery
   const { data: images = [], refetch: fetchImages } = useQuery({
     queryKey: ["images"],
     queryFn: async () => {
@@ -108,7 +111,6 @@ const AddOrEditProductForm = () => {
     enabled: false,
   });
 
-  // Save Mutation
   const saveMutation = useMutation({
     mutationFn: async (productData) => {
       if (isEditMode) return axiosPrivate.put("/products", productData);
@@ -117,20 +119,27 @@ const AddOrEditProductForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      if (isEditMode) {
+        queryClient.invalidateQueries({
+          queryKey: ["product", params.productId],
+        });
+      }
       navigate("/dashboard");
     },
     onError: (error) => {
-      setErrorBag(error.response?.data?.message || "Error saving product");
+      setErrors(error.response?.data || { message: "Error saving product" });
     },
   });
 
   const handleChange = (event) => {
-    // ReactQuill passes the HTML string directly as the first argument
     if (typeof event === "string" || event?.target === undefined) {
+      setErrors((prev) => ({ ...prev, description: undefined }));
       return setProduct((prev) => ({ ...prev, description: `${event}` }));
     }
-    
+
     const { name, value } = event.target;
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+
     if (name === "vendor") setSelectedVendorId(value);
     else setProduct((prev) => ({ ...prev, [name]: value }));
   };
@@ -151,8 +160,9 @@ const AddOrEditProductForm = () => {
       });
       setSelectedImageId(res.data._id);
       setSelectedImageTitle(res.data.title);
+      setErrors((prev) => ({ ...prev, image: undefined }));
     } catch (err) {
-      setErrorBag("Failed to upload image.");
+      setErrors({ message: "Failed to upload image." });
     }
   };
 
@@ -164,22 +174,25 @@ const AddOrEditProductForm = () => {
   const handleSelectImage = (image) => {
     setSelectedImageId(image._id);
     setSelectedImageTitle(image.title);
+    setErrors((prev) => ({ ...prev, image: undefined }));
     setImageDialogOpen(false);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setErrorBag("");
+    setErrors({});
 
     const productData = {};
     if (isEditMode) productData.id = params.productId;
-    if (product.title) productData.title = product.title;
-    if (product.description) productData.description = product.description;
-    
-    // Parse price to float
-    if (product.price) productData.price = parseFloat(product.price);
-    
-    if (selectedVendorId) productData.vendor = selectedVendorId;
+
+    productData.title = product.title;
+    productData.description = product.description;
+    productData.price = product.price ? parseFloat(product.price) : null;
+
+    if (!isEditMode && selectedVendorId) {
+      productData.vendor = selectedVendorId;
+    }
+
     if (selectedImageId) productData.image = selectedImageId;
 
     saveMutation.mutate(productData);
@@ -191,7 +204,12 @@ const AddOrEditProductForm = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <Typography variant="h4" fontWeight="bold">
           {isEditMode ? "Edit Product" : "Add Product"}
         </Typography>
@@ -209,15 +227,12 @@ const AddOrEditProductForm = () => {
           }}
         >
           <Box display="flex" flexDirection="column" gap={3}>
-            
-            {/* Standardized Error Display */}
-            {errorBag && (
+            {errors.message && (
               <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
-                {errorBag}
+                {errors.message}
               </Alert>
             )}
 
-            {/* Title */}
             <TextField
               name="title"
               label="Title"
@@ -225,10 +240,15 @@ const AddOrEditProductForm = () => {
               fullWidth
               value={product?.title || ""}
               onChange={handleChange}
+              error={!!errors.title}
+              helperText={errors.title}
             />
 
-            {/* Price + Vendor */}
-            <Box display="flex" gap={3} sx={{ flexDirection: { xs: "column", sm: "row" } }}>
+            <Box
+              display="flex"
+              gap={3}
+              sx={{ flexDirection: { xs: "column", sm: "row" } }}
+            >
               <TextField
                 name="price"
                 label="Price"
@@ -237,10 +257,12 @@ const AddOrEditProductForm = () => {
                 fullWidth
                 value={product?.price || ""}
                 onChange={handleChange}
+                error={!!errors.price}
+                helperText={errors.price}
                 sx={{ flex: 1 }}
               />
 
-              <FormControl fullWidth sx={{ flex: 1 }}>
+              <FormControl fullWidth sx={{ flex: 1 }} error={!!errors.vendor}>
                 <InputLabel id="vendor-select-label">Vendor</InputLabel>
                 <Select
                   labelId="vendor-select-label"
@@ -248,7 +270,7 @@ const AddOrEditProductForm = () => {
                   value={selectedVendorId || ""}
                   label="Vendor"
                   onChange={handleChange}
-                  disabled={isEditMode} // Vendor cannot be changed once created based on schema
+                  disabled={isEditMode}
                 >
                   {vendors.map((vendor) => (
                     <MenuItem key={vendor._id} value={vendor._id}>
@@ -256,10 +278,12 @@ const AddOrEditProductForm = () => {
                     </MenuItem>
                   ))}
                 </Select>
+                {errors.vendor && (
+                  <FormHelperText>{errors.vendor}</FormHelperText>
+                )}
               </FormControl>
             </Box>
 
-            {/* Selected Image Preview */}
             {selectedImageTitle && (
               <TextField
                 label="Selected Image"
@@ -279,14 +303,19 @@ const AddOrEditProductForm = () => {
               />
             )}
 
-            {/* Image Upload */}
             <Box>
               <FileUploader
                 onSelectFile={onSelectFileHandler}
                 onDeleteFile={onDeleteFileHandler}
                 accept=".jpeg, .jpg, .png, .webp"
               />
-              <Box display="flex" gap={2} alignItems="center" flexWrap="wrap" mt={2}>
+              <Box
+                display="flex"
+                gap={2}
+                alignItems="center"
+                flexWrap="wrap"
+                mt={2}
+              >
                 <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
                   or select an existing one:
                 </Typography>
@@ -310,11 +339,26 @@ const AddOrEditProductForm = () => {
                   </Button>
                 )}
               </Box>
+              {errors.image && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ mt: 1, display: "block", ml: 2 }}
+                >
+                  {errors.image}
+                </Typography>
+              )}
             </Box>
 
-            {/* Description (Quill) */}
             <Box>
-              <QuillWrapper>
+              <QuillWrapper
+                sx={{
+                  border: errors.description
+                    ? `1px solid ${theme.palette.error.main}`
+                    : "none",
+                  borderRadius: 1,
+                }}
+              >
                 <ReactQuill
                   value={product?.description || ""}
                   onChange={(event) => handleChange(event)}
@@ -322,6 +366,15 @@ const AddOrEditProductForm = () => {
                   modules={modules}
                 />
               </QuillWrapper>
+              {errors.description && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ display: "block", ml: 2, mt: -2 }}
+                >
+                  {errors.description}
+                </Typography>
+              )}
             </Box>
           </Box>
         </Paper>
@@ -348,7 +401,6 @@ const AddOrEditProductForm = () => {
         </Box>
       </form>
 
-      {/* Image Selection Dialog */}
       <Dialog
         open={imageDialogOpen}
         onClose={() => setImageDialogOpen(false)}
@@ -356,7 +408,9 @@ const AddOrEditProductForm = () => {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle sx={{ fontWeight: "bold" }}>Select from Gallery</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          Select from Gallery
+        </DialogTitle>
         <DialogContent dividers>
           {images.length === 0 ? (
             <Typography color="text.secondary">
@@ -372,7 +426,11 @@ const AddOrEditProductForm = () => {
                   sx={{ borderRadius: 1, mb: 0.5 }}
                 >
                   <ListItemIcon>
-                    {selectedImageId === img._id ? <CheckIcon color="primary" /> : <ImageIcon />}
+                    {selectedImageId === img._id ? (
+                      <CheckIcon color="primary" />
+                    ) : (
+                      <ImageIcon />
+                    )}
                   </ListItemIcon>
                   <ListItemText primary={img.title} secondary={img.mimeType} />
                 </ListItemButton>
@@ -397,13 +455,13 @@ const AddOrEditProductForm = () => {
 const QuillWrapper = styled(Box)(({ theme }) => ({
   width: "100%",
   "& .quill": { height: "100%", display: "flex", flexDirection: "column" },
-  "& .ql-toolbar": { 
+  "& .ql-toolbar": {
     borderTopLeftRadius: theme.shape.borderRadius,
     borderTopRightRadius: theme.shape.borderRadius,
     borderColor: theme.palette.divider,
   },
-  "& .ql-container": { 
-    flexGrow: 1, 
+  "& .ql-container": {
+    flexGrow: 1,
     overflow: "auto",
     borderBottomLeftRadius: theme.shape.borderRadius,
     borderBottomRightRadius: theme.shape.borderRadius,

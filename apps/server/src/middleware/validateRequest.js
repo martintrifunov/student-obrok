@@ -11,8 +11,27 @@ export const validateRequest = (schema, source = "body") => {
     const result = schema.safeParse(req[source]);
 
     if (!result.success) {
-      const message = result.error.issues[0].message;
-      return next(new ValidationError(message));
+      const formattedErrors = {};
+
+      result.error.issues.forEach((issue) => {
+        const key = issue.path.length > 0 ? issue.path.join(".") : "message";
+
+        if (!formattedErrors[key]) {
+          let msg = issue.message;
+
+          if (issue.code === "invalid_type") {
+            msg = "This field cannot be blank.";
+          }
+
+          formattedErrors[key] = msg;
+        }
+      });
+
+      if (Object.keys(formattedErrors).length === 0) {
+        formattedErrors.message = "Invalid input data.";
+      }
+
+      return next(new ValidationError(formattedErrors));
     }
 
     if (source === "query") {

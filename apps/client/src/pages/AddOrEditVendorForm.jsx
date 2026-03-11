@@ -15,7 +15,7 @@ import {
   ListItemIcon,
   ListItemText,
   Alert,
-  Container
+  Container,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import ImageIcon from "@mui/icons-material/Image";
@@ -23,7 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
@@ -34,18 +34,16 @@ const AddOrEditVendorForm = () => {
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const location = useLocation();
   const params = useParams();
 
   const isEditMode = !!params.vendorId;
 
   const [vendor, setVendor] = useState({});
-  const [errorBag, setErrorBag] = useState("");
+  const [errors, setErrors] = useState({});
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  // 1. Fetch Vendor Data
   const { data: fetchedVendor, isLoading: isFetchingVendor } = useQuery({
     queryKey: ["vendor", params.vendorId],
     queryFn: async () => {
@@ -55,7 +53,6 @@ const AddOrEditVendorForm = () => {
     enabled: isEditMode,
   });
 
-  // 2. Sync fetched data to local state (Fixes the missing data bug!)
   useEffect(() => {
     if (fetchedVendor) {
       setVendor(fetchedVendor);
@@ -66,7 +63,6 @@ const AddOrEditVendorForm = () => {
     }
   }, [fetchedVendor]);
 
-  // 3. Fetch Images for Dialog
   const { data: images = [], refetch: fetchImages } = useQuery({
     queryKey: ["images"],
     queryFn: async () => {
@@ -76,29 +72,53 @@ const AddOrEditVendorForm = () => {
     enabled: false,
   });
 
-  // 4. Save Mutation
   const saveMutation = useMutation({
     mutationFn: async (vendorData) => {
-      if (isEditMode) {
-        return axiosPrivate.put("/vendors", vendorData);
-      }
+      if (isEditMode) return axiosPrivate.put("/vendors", vendorData);
       return axiosPrivate.post("/vendors", vendorData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      if (isEditMode) {
+        queryClient.invalidateQueries({
+          queryKey: ["vendor", params.vendorId],
+        });
+      }
       navigate("/dashboard");
     },
     onError: (error) => {
-      setErrorBag(error.response?.data?.message || "Error saving vendor");
+      setErrors(error.response?.data || { message: "Error saving vendor" });
     },
   });
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
+    if (
+      errors[name] ||
+      errors["location"] ||
+      errors["location.0"] ||
+      errors["location.1"]
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+        location: undefined,
+        "location.0": undefined,
+        "location.1": undefined,
+      }));
+    }
+
     if (name === "longitude") {
-      setVendor((prev) => ({ ...prev, location: [prev?.location?.[0] || "", value] }));
+      setVendor((prev) => ({
+        ...prev,
+        location: [prev?.location?.[0] || "", value],
+      }));
     } else if (name === "latitude") {
-      setVendor((prev) => ({ ...prev, location: [value, prev?.location?.[1] || ""] }));
+      setVendor((prev) => ({
+        ...prev,
+        location: [value, prev?.location?.[1] || ""],
+      }));
     } else {
       setVendor((prev) => ({ ...prev, [name]: value }));
     }
@@ -120,8 +140,9 @@ const AddOrEditVendorForm = () => {
       });
       setSelectedImageId(res.data._id);
       setSelectedImageTitle(res.data.title);
+      setErrors((prev) => ({ ...prev, image: undefined }));
     } catch (err) {
-      setErrorBag("Failed to upload image.");
+      setErrors({ message: "Failed to upload image." });
     }
   };
 
@@ -133,22 +154,26 @@ const AddOrEditVendorForm = () => {
   const handleSelectImage = (image) => {
     setSelectedImageId(image._id);
     setSelectedImageTitle(image.title);
+    setErrors((prev) => ({ ...prev, image: undefined }));
     setImageDialogOpen(false);
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setErrorBag(""); // Clear previous errors
+    setErrors({});
 
     const vendorData = {};
     if (isEditMode) vendorData.id = params.vendorId;
-    if (vendor.name) vendorData.name = vendor.name;
 
-    if (vendor.location && vendor.location[0] !== "" && vendor.location[1] !== "") {
+    vendorData.name = vendor.name;
+
+    if (vendor.location) {
       vendorData.location = [
-        parseFloat(vendor.location[0]),
-        parseFloat(vendor.location[1]),
+        vendor.location[0] ? parseFloat(vendor.location[0]) : null,
+        vendor.location[1] ? parseFloat(vendor.location[1]) : null,
       ];
+    } else {
+      vendorData.location = [null, null];
     }
 
     if (selectedImageId) vendorData.image = selectedImageId;
@@ -162,7 +187,12 @@ const AddOrEditVendorForm = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
         <Typography variant="h4" fontWeight="bold">
           {isEditMode ? "Edit Vendor" : "Register Vendor"}
         </Typography>
@@ -180,11 +210,9 @@ const AddOrEditVendorForm = () => {
           }}
         >
           <Box display="flex" flexDirection="column" gap={3}>
-            
-            {/* Standardized Error Display */}
-            {errorBag && (
+            {errors.message && (
               <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
-                {errorBag}
+                {errors.message}
               </Alert>
             )}
 
@@ -195,9 +223,15 @@ const AddOrEditVendorForm = () => {
               fullWidth
               value={vendor?.name || ""}
               onChange={handleChange}
+              error={!!errors.name}
+              helperText={errors.name}
             />
 
-            <Box display="flex" gap={3} sx={{ flexDirection: { xs: "column", sm: "row" } }}>
+            <Box
+              display="flex"
+              gap={3}
+              sx={{ flexDirection: { xs: "column", sm: "row" } }}
+            >
               <TextField
                 name="latitude"
                 label="Latitude"
@@ -206,6 +240,8 @@ const AddOrEditVendorForm = () => {
                 fullWidth
                 value={vendor?.location?.[0] ?? ""}
                 onChange={handleChange}
+                error={!!errors.location || !!errors["location.0"]}
+                helperText={errors.location || errors["location.0"]}
               />
               <TextField
                 name="longitude"
@@ -215,6 +251,8 @@ const AddOrEditVendorForm = () => {
                 fullWidth
                 value={vendor?.location?.[1] ?? ""}
                 onChange={handleChange}
+                error={!!errors.location || !!errors["location.1"]}
+                helperText={errors.location || errors["location.1"]}
               />
             </Box>
 
@@ -243,7 +281,13 @@ const AddOrEditVendorForm = () => {
                 onDeleteFile={onDeleteFileHandler}
                 accept=".jpeg, .jpg, .png, .webp"
               />
-              <Box display="flex" gap={2} alignItems="center" flexWrap="wrap" mt={2}>
+              <Box
+                display="flex"
+                gap={2}
+                alignItems="center"
+                flexWrap="wrap"
+                mt={2}
+              >
                 <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
                   or select an existing one:
                 </Typography>
@@ -257,6 +301,15 @@ const AddOrEditVendorForm = () => {
                   Browse Gallery
                 </Button>
               </Box>
+              {errors.image && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ mt: 1, display: "block", ml: 2 }}
+                >
+                  {errors.image}
+                </Typography>
+              )}
             </Box>
           </Box>
         </Paper>
@@ -283,7 +336,6 @@ const AddOrEditVendorForm = () => {
         </Box>
       </form>
 
-      {/* Image Selection Modal */}
       <Dialog
         open={imageDialogOpen}
         onClose={() => setImageDialogOpen(false)}
@@ -291,7 +343,9 @@ const AddOrEditVendorForm = () => {
         maxWidth="sm"
         PaperProps={{ sx: { borderRadius: 2 } }}
       >
-        <DialogTitle sx={{ fontWeight: "bold" }}>Select from Gallery</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          Select from Gallery
+        </DialogTitle>
         <DialogContent dividers>
           {images.length === 0 ? (
             <Typography color="text.secondary">
@@ -307,7 +361,11 @@ const AddOrEditVendorForm = () => {
                   sx={{ borderRadius: 1, mb: 0.5 }}
                 >
                   <ListItemIcon>
-                    {selectedImageId === img._id ? <CheckIcon color="primary" /> : <ImageIcon />}
+                    {selectedImageId === img._id ? (
+                      <CheckIcon color="primary" />
+                    ) : (
+                      <ImageIcon />
+                    )}
                   </ListItemIcon>
                   <ListItemText primary={img.title} secondary={img.mimeType} />
                 </ListItemButton>
