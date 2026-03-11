@@ -15,10 +15,9 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-
         <Route element={<PersistLogin />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
           <Route element={<RequireAuth />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
@@ -41,7 +40,6 @@ const App = () => {
             </Route>
           </Route>
         </Route>
-
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
