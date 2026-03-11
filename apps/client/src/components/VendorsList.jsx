@@ -17,7 +17,6 @@ import {
   Box,
   Button,
   styled,
-  Paper,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
@@ -28,6 +27,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
+import VendorProductsModal from "./VendorProductsModal";
 import { BASE_URL } from "../api/consts";
 
 const VendorsList = ({ searchTerm }) => {
@@ -37,7 +37,10 @@ const VendorsList = ({ searchTerm }) => {
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [page, setPage] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState({ id: null, name: "" });
 
   const debouncedSearch = useDebounce(searchTerm);
 
@@ -152,9 +155,13 @@ const VendorsList = ({ searchTerm }) => {
                         variant="contained"
                         color="primary"
                         disableElevation
-                        onClick={() =>
-                          navigate(`/dashboard/products/${vendor._id}`)
-                        }
+                        onClick={() => {
+                          setSelectedVendor({
+                            id: vendor._id,
+                            name: vendor.name,
+                          });
+                          setModalOpen(true);
+                        }}
                         disabled={
                           !vendor.products || vendor.products.length === 0
                         }
@@ -231,9 +238,13 @@ const VendorsList = ({ searchTerm }) => {
                           }
                           color="inherit"
                           sx={{ textTransform: "none" }}
-                          onClick={() =>
-                            navigate(`/dashboard/products/${vendor._id}`)
-                          }
+                          onClick={() => {
+                            setSelectedVendor({
+                              id: vendor._id,
+                              name: vendor.name,
+                            });
+                            setModalOpen(true);
+                          }}
                         >
                           <LocalOfferIcon sx={{ marginRight: 1 }} /> View
                         </Button>
@@ -282,6 +293,13 @@ const VendorsList = ({ searchTerm }) => {
           />
         </VendorsTableContainer>
       )}
+
+      <VendorProductsModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        vendorId={selectedVendor.id}
+        vendorName={selectedVendor.name}
+      />
     </>
   );
 };

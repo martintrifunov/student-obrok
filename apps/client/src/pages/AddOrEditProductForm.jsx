@@ -119,6 +119,8 @@ const AddOrEditProductForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["vendor"] });
+
       if (isEditMode) {
         queryClient.invalidateQueries({
           queryKey: ["product", params.productId],
