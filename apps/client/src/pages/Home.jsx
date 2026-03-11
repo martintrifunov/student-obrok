@@ -421,35 +421,35 @@ const CancelRouteButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const MenuToggleButton = styled(IconButton)(
-  ({ theme, $expanded, $isDark }) => ({
+const MenuToggleButton = styled(IconButton, {
+  shouldForwardProp: (prop) => prop !== "$expanded" && prop !== "$isDark",
+})(({ theme, $expanded, $isDark }) => ({
+  backgroundColor: $expanded
+    ? theme.palette.primary.main
+    : $isDark
+      ? "#1e293b"
+      : "#ffffff",
+  color: $expanded
+    ? $isDark
+      ? "#000"
+      : "#fff"
+    : $isDark
+      ? "#f8fafc"
+      : theme.palette.text.primary,
+  borderRadius: "50%",
+  width: "60px",
+  height: "60px",
+  boxShadow: theme.shadows[6],
+  border: `1px solid ${$expanded ? "transparent" : $isDark ? "#334155" : theme.palette.divider}`,
+  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  "&:hover": {
     backgroundColor: $expanded
-      ? theme.palette.primary.main
+      ? theme.palette.primary.dark
       : $isDark
-        ? "#1e293b"
-        : "#ffffff",
-    color: $expanded
-      ? $isDark
-        ? "#000"
-        : "#fff"
-      : $isDark
-        ? "#f8fafc"
-        : theme.palette.text.primary,
-    borderRadius: "50%",
-    width: "60px",
-    height: "60px",
-    boxShadow: theme.shadows[6],
-    border: `1px solid ${$expanded ? "transparent" : $isDark ? "#334155" : theme.palette.divider}`,
-    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-    "&:hover": {
-      backgroundColor: $expanded
-        ? theme.palette.primary.dark
-        : $isDark
-          ? "#334155"
-          : theme.palette.grey[100],
-      transform: "scale(1.05)",
-    },
-  }),
-);
+        ? "#334155"
+        : theme.palette.grey[100],
+    transform: "scale(1.05)",
+  },
+}));
 
 export default Home;
