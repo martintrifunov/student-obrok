@@ -17,6 +17,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import DirectionsBikeIcon from "@mui/icons-material/DirectionsBike";
 import SettingsIcon from "@mui/icons-material/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import LoginIcon from "@mui/icons-material/Login";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { useNavigate } from "react-router-dom";
@@ -80,6 +81,10 @@ const Home = () => {
     navigate("/dashboard");
   }, [navigate]);
 
+  const handleLoginClick = useCallback(() => {
+    navigate("/login");
+  }, [navigate]);
+
   const handleLogoutClick = async () => {
     await logout();
     navigate("/login");
@@ -138,6 +143,8 @@ const Home = () => {
   }, []);
 
   const hasRoute = routeStart !== null && routeEnd !== null;
+  const isDark = theme.palette.mode === "dark";
+  const isLoggedIn = !!auth?.accessToken;
 
   return (
     <Box
@@ -158,7 +165,6 @@ const Home = () => {
           borderTopColor: theme.palette.divider,
           borderBottomColor: theme.palette.divider,
         },
-        // Forced !important to stop Maplibre from injecting crimson/gray hover overrides
         "& .maplibregl-popup-close-button": {
           color: `${theme.palette.text.secondary} !important`,
           fontSize: "20px",
@@ -180,8 +186,11 @@ const Home = () => {
           color: `${theme.palette.text.primary} !important`,
         },
         "& .maplibregl-ctrl-attrib": {
-          backgroundColor: "background.paper",
-          color: "text.secondary",
+          backgroundColor: "rgba(255, 255, 255, 0.8) !important",
+          color: "rgba(0, 0, 0, 0.8) !important",
+        },
+        "& .maplibregl-ctrl-attrib a": {
+          color: "rgba(0, 0, 0, 0.8) !important",
         },
       }}
     >
@@ -200,7 +209,6 @@ const Home = () => {
           setIsLoading={handleSetIsLoading}
           disableRouting={disableRouting}
           enableRouting={enableRouting}
-          followUser={!hasRoute}
         />
         <CreditMarker />
         <VendorMarkers
@@ -217,6 +225,8 @@ const Home = () => {
           />
         )}
       </Map>
+
+      {/* TOP ROUTING HUD */}
       {hasRoute && (
         <>
           <ModeSelectorContainer direction="row" spacing={1}>
@@ -248,7 +258,9 @@ const Home = () => {
           </CancelRouteButton>
         </>
       )}
-      {auth?.accessToken && !isLoading && (
+
+      {/* BOTTOM LEFT EXPANDING MENU PILL */}
+      {!isLoading && (
         <Box
           sx={{
             position: "absolute",
@@ -261,9 +273,9 @@ const Home = () => {
           }}
         >
           <MenuToggleButton
-            variant="contained"
             onClick={() => setMenuExpanded(!menuExpanded)}
             $expanded={menuExpanded}
+            $isDark={isDark}
           >
             <SettingsIcon
               sx={{
@@ -280,36 +292,77 @@ const Home = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1.5,
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: isDark ? "#1e293b" : "#ffffff",
                 padding: "10px 16px",
-                borderRadius: "30px",
+                borderRadius: "30px", // Perfect pill shape
                 boxShadow: theme.shadows[6],
-                border: `1px solid ${theme.palette.divider}`,
+                border: `1px solid ${isDark ? "#334155" : theme.palette.divider}`,
               }}
             >
-              <IconButton
-                onClick={handleDashboardClick}
-                color="primary"
-                sx={{ backgroundColor: theme.palette.action.hover }}
-              >
-                <HomeIcon />
-              </IconButton>
-
-              <IconButton
-                onClick={toggleColorMode}
-                color="inherit"
-                sx={{ backgroundColor: theme.palette.action.hover }}
-              >
-                {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-              </IconButton>
-
-              <IconButton
-                onClick={handleLogoutClick}
-                color="error"
-                sx={{ backgroundColor: theme.palette.action.hover }}
-              >
-                <LogoutIcon />
-              </IconButton>
+              {isLoggedIn ? (
+                // ADMIN LOGGED IN BUTTONS
+                <>
+                  <IconButton
+                    onClick={handleDashboardClick}
+                    color="primary"
+                    sx={{
+                      backgroundColor: isDark
+                        ? "#0f172a"
+                        : theme.palette.action.hover,
+                    }}
+                  >
+                    <HomeIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={toggleColorMode}
+                    sx={{
+                      color: theme.palette.text.primary,
+                      backgroundColor: isDark
+                        ? "#0f172a"
+                        : theme.palette.action.hover,
+                    }}
+                  >
+                    {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+                  </IconButton>
+                  <IconButton
+                    onClick={handleLogoutClick}
+                    color="error"
+                    sx={{
+                      backgroundColor: isDark
+                        ? "#0f172a"
+                        : theme.palette.action.hover,
+                    }}
+                  >
+                    <LogoutIcon />
+                  </IconButton>
+                </>
+              ) : (
+                // PUBLIC GUEST BUTTONS
+                <>
+                  <IconButton
+                    onClick={toggleColorMode}
+                    sx={{
+                      color: theme.palette.text.primary,
+                      backgroundColor: isDark
+                        ? "#0f172a"
+                        : theme.palette.action.hover,
+                    }}
+                  >
+                    {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+                  </IconButton>
+                  <IconButton
+                    onClick={handleLoginClick}
+                    color="primary"
+                    sx={{
+                      backgroundColor: isDark
+                        ? "#0f172a"
+                        : theme.palette.action.hover,
+                    }}
+                  >
+                    <LoginIcon />
+                  </IconButton>
+                </>
+              )}
             </Box>
           </Collapse>
         </Box>
@@ -318,6 +371,7 @@ const Home = () => {
   );
 };
 
+// UI STYLING
 const ModeSelectorContainer = styled(Stack)(({ theme }) => ({
   position: "absolute",
   top: "20px",
@@ -372,28 +426,35 @@ const CancelRouteButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const MenuToggleButton = styled(Button)(({ theme, $expanded }) => ({
-  backgroundColor: $expanded
-    ? theme.palette.primary.main
-    : theme.palette.background.paper,
-  color: $expanded
-    ? theme.palette.mode === "dark"
-      ? "#000"
-      : "#fff"
-    : theme.palette.text.primary,
-  borderRadius: "50%",
-  minWidth: "60px",
-  height: "60px",
-  boxShadow: theme.shadows[6],
-  border: `1px solid ${$expanded ? "transparent" : theme.palette.divider}`,
-  padding: 0,
-  transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  "&:hover": {
+const MenuToggleButton = styled(IconButton)(
+  ({ theme, $expanded, $isDark }) => ({
     backgroundColor: $expanded
-      ? theme.palette.primary.dark
-      : theme.palette.action.hover,
-    transform: "scale(1.05)",
-  },
-}));
+      ? theme.palette.primary.main
+      : $isDark
+        ? "#1e293b"
+        : "#ffffff",
+    color: $expanded
+      ? $isDark
+        ? "#000"
+        : "#fff"
+      : $isDark
+        ? "#f8fafc"
+        : theme.palette.text.primary,
+    borderRadius: "50%",
+    width: "60px",
+    height: "60px",
+    boxShadow: theme.shadows[6],
+    border: `1px solid ${$expanded ? "transparent" : $isDark ? "#334155" : theme.palette.divider}`,
+    transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "&:hover": {
+      backgroundColor: $expanded
+        ? theme.palette.primary.dark
+        : $isDark
+          ? "#334155"
+          : theme.palette.grey[100],
+      transform: "scale(1.05)",
+    },
+  }),
+);
 
 export default Home;
