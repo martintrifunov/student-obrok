@@ -58,6 +58,7 @@ const RoutingEngine = ({ startLng, startLat, endLng, endLat, mode }) => {
         ? { top: 60, bottom: 60, left: 40, right: 40 }
         : { top: 100, bottom: 100, left: 100, right: 100 };
 
+      currentMap.stop();
       currentMap.fitBounds(
         [
           [Math.min(...lngs), Math.min(...lats)],
