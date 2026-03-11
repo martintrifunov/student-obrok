@@ -103,7 +103,7 @@ const RoutingEngine = ({ startLng, startLat, endLng, endLat, mode }) => {
           geometry,
         });
 
-        const fitKey = `${endLng},${endLat},${mode}`;
+        const fitKey = `${endLng},${endLat}`;
         fitBoundsToRoute(geometry.coordinates, fitKey);
       })
       .catch((err) => {

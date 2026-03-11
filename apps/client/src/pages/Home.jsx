@@ -209,6 +209,7 @@ const Home = () => {
           setIsLoading={handleSetIsLoading}
           disableRouting={disableRouting}
           enableRouting={enableRouting}
+          followUser={!hasRoute}
         />
         <CreditMarker />
         <VendorMarkers
@@ -225,8 +226,6 @@ const Home = () => {
           />
         )}
       </Map>
-
-      {/* TOP ROUTING HUD */}
       {hasRoute && (
         <>
           <ModeSelectorContainer direction="row" spacing={1}>
@@ -258,8 +257,6 @@ const Home = () => {
           </CancelRouteButton>
         </>
       )}
-
-      {/* BOTTOM LEFT EXPANDING MENU PILL */}
       {!isLoading && (
         <Box
           sx={{
@@ -294,13 +291,12 @@ const Home = () => {
                 gap: 1.5,
                 backgroundColor: isDark ? "#1e293b" : "#ffffff",
                 padding: "10px 16px",
-                borderRadius: "30px", // Perfect pill shape
+                borderRadius: "30px",
                 boxShadow: theme.shadows[6],
                 border: `1px solid ${isDark ? "#334155" : theme.palette.divider}`,
               }}
             >
               {isLoggedIn ? (
-                // ADMIN LOGGED IN BUTTONS
                 <>
                   <IconButton
                     onClick={handleDashboardClick}
@@ -337,7 +333,6 @@ const Home = () => {
                   </IconButton>
                 </>
               ) : (
-                // PUBLIC GUEST BUTTONS
                 <>
                   <IconButton
                     onClick={toggleColorMode}
