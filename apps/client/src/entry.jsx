@@ -10,7 +10,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider.jsx";
 import { disableReactDevTools } from "@fvilers/disable-react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeModeProvider } from "./context/ThemeModeProvider.jsx";
 
 if (process.env.NODE_ENV === "production") {
@@ -38,6 +37,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </AuthProvider>
       </BrowserRouter>
     </ThemeModeProvider>
-    <ReactQueryDevtools initialIsOpen={false} />
   </QueryClientProvider>,
 );
