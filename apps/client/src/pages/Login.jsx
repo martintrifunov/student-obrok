@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
 import {
-  Grid,
+  Box,
   Paper,
-  useMediaQuery,
-  ThemeProvider,
-  createTheme,
   TextField,
   Button,
   Typography,
   Checkbox,
   FormControlLabel,
-  styled,
+  Alert,
+  Container,
+  useTheme,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import axios from "../api/axios";
@@ -22,13 +21,15 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathName || "/dashboard";
-  const theme = createTheme();
+  const theme = useTheme();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError(null);
     try {
       const response = await axios.post(
         "/login",
@@ -39,7 +40,7 @@ const Login = () => {
         {
           headers: { "Content-Type": "application/json" },
           withCredentials: true,
-        }
+        },
       );
 
       const accessToken = response?.data?.accessToken;
@@ -71,185 +72,120 @@ const Login = () => {
   }, [persist]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <LoginContainer elevation={5}>
-        <Grid align="center" sx={{ display: "flex", height: "25vh" }}>
-          <VerifiedUserIcon className="login-logo" />
-        </Grid>
-        <form onSubmit={handleSubmit}>
-          {error && <Error variant="p">{error}</Error>}
-          <TextField
-            label="Username"
-            placeholder="Enter username..."
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: theme.palette.background.default,
+        p: 2,
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 4, md: 6 },
+            borderRadius: 3,
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <VerifiedUserIcon
             sx={{
-              marginTop: "25px",
-              marginBottom: "25px",
-              "& .MuiOutlinedInput-root": {
-                "&.Mui-focused fieldset": {
-                  borderColor: "black",
-                },
-              },
-              "& label.Mui-focused": {
-                color: "black",
-              },
+              fontSize: 80,
+              mb: 3,
+              color: theme.palette.text.primary,
             }}
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            autoComplete="username"
-            fullWidth
           />
-          <TextField
-            label="Password"
-            placeholder="Enter password..."
-            type="password"
-            sx={{
-              marginBottom: "25px",
-              "& .MuiOutlinedInput-root": {
-                "&.Mui-focused fieldset": {
-                  borderColor: "black",
-                },
-              },
-              "& label.Mui-focused": {
-                color: "black",
-              },
-            }}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            fullWidth
-            autoComplete="current-password"
-          />
-          <LoginButton type="submit" variant="contained" fullWidth>
-            Sign In
-          </LoginButton>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={persist}
-                onChange={togglePersist}
-                inputProps={{ "aria-label": "controlled" }}
-                sx={{
-                  color: persist ? "black" : "default",
-                  "&.Mui-checked": {
-                    color: "black",
-                  },
-                }}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <TextField
+              label="Username"
+              placeholder="Enter username..."
+              variant="outlined"
+              fullWidth
+              autoComplete="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              sx={{ mb: 3 }}
+            />
+
+            <TextField
+              label="Password"
+              placeholder="Enter password..."
+              type="password"
+              variant="outlined"
+              fullWidth
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              sx={{ mb: 4 }}
+            />
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              size="large"
+              sx={{ py: 1.5, fontSize: "1.1rem", mb: 2 }}
+            >
+              Sign In
+            </Button>
+
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              flexWrap="wrap"
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={persist}
+                    onChange={togglePersist}
+                    color="primary"
+                  />
+                }
+                label="Trust this device"
+                sx={{ color: theme.palette.text.secondary }}
               />
-            }
-            label="Trust this device"
-          />
-        </form>
-        <Grid className="maco-auth">
-          <Typography variant="p" sx={{ fontSize: 10 }}>
-            Secured with <strong>macoAuth</strong>
-          </Typography>
-          <Typography variant="p" sx={{ fontSize: 10 }}>
-            using love & kittens
-          </Typography>
-        </Grid>
-      </LoginContainer>
-    </ThemeProvider>
+              <Box
+                textAlign={{ xs: "left", sm: "right" }}
+                mt={{ xs: 1, sm: 0 }}
+              >
+                <Typography
+                  variant="caption"
+                  display="block"
+                  color="text.secondary"
+                >
+                  Secured with <strong>macoAuth</strong>
+                </Typography>
+                <Typography
+                  variant="caption"
+                  display="block"
+                  color="text.secondary"
+                >
+                  using love & kittens
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
-
-const LoginContainer = styled(Paper)(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "flex-start",
-  alignItems: "center",
-  padding: 20,
-  height: "80vh",
-  width: useMediaQuery(theme.breakpoints.down("md")) ? "85vw" : "30vw",
-  margin: "10vh auto",
-  "& .maco-auth": {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-  },
-  "& .login-logo": {
-    height: "100%",
-    alignItems: "center",
-    fontSize: useMediaQuery(theme.breakpoints.down("sm")) ? 125 : 130,
-    marginBottom: 0,
-    paddingBottom: 0,
-  },
-
-  // Surface Pro 7
-  [`@media (min-width: ${
-    theme.breakpoints.values.md + 1
-  }px) and (max-width: 1366px)`]: {
-    width: "80vw",
-    "& .login-logo": {
-      height: "100%",
-      alignItems: "center",
-      fontSize: 200,
-      marginBottom: 0,
-      paddingBottom: 0,
-    },
-    fontSize: 20,
-  },
-
-  // Galaxy Fold
-  [`@media (min-width: 280px) and (max-width: 280px) and 
-  (min-height: 653px) and (max-height: 653px)`]: {
-    width: "85vw",
-    "& .login-logo": {
-      height: "100%",
-      alignItems: "center",
-      fontSize: 100,
-      marginBottom: 0,
-      paddingBottom: 0,
-    },
-  },
-
-  // Nest Hub
-  [`@media (min-width: 1024px) and (max-width: 1024px) and 
-    (min-height: 600px) and (max-height: 600px)`]: {
-    width: "45vw",
-    "& .login-logo": {
-      height: "100%",
-      alignItems: "center",
-      fontSize: 100,
-      marginBottom: 0,
-      paddingBottom: 0,
-    },
-  },
-
-  // Nest Hub Max
-  [`@media (min-width: 1280px) and (max-width: 1280px) and 
-   (min-height: 800px) and (max-height: 800px)`]: {
-    width: "45vw",
-    "& .login-logo": {
-      height: "100%",
-      alignItems: "center",
-      fontSize: 100,
-      marginBottom: 0,
-      paddingBottom: 0,
-    },
-  },
-}));
-
-const LoginButton = styled(Button)(({ theme }) => ({
-  color: "white",
-  backgroundColor: "black",
-  padding: 20,
-  "&:hover": {
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-  },
-}));
-
-const Error = styled(Typography)(({ theme }) => ({
-  color: "crimson",
-  display: "flex",
-  width: "100%",
-  justifyContent: "center",
-
-  // Galaxy Fold
-  [`@media (min-width: 280px) and (max-width: 280px) and 
-    (min-height: 653px) and (max-height: 653px)`]: {
-    fontSize: 12,
-  },
-}));
 
 export default Login;

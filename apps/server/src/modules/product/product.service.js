@@ -8,10 +8,17 @@ export class ProductService {
     this.imageRepository = imageRepository;
   }
 
-  async getAllProducts({ page, limit }) {
+  async getAllProducts({ page, limit, title, vendorId, minPrice, maxPrice }) {
+    const filter = {};
+    if (title) filter.title = title;
+    if (vendorId) filter.vendorId = vendorId;
+    if (minPrice !== undefined) filter.minPrice = minPrice;
+    if (maxPrice !== undefined) filter.maxPrice = maxPrice;
+
     const { docs, total } = await this.productRepository.findAll({
       page,
       limit,
+      filter,
     });
     return {
       data: docs,

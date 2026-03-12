@@ -1,15 +1,25 @@
-import React from "react";
-import { Paper, useMediaQuery, Button, styled } from "@mui/material";
+import React, { useContext } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Button,
+  Box,
+  Typography,
+  Container,
+  IconButton,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useLogout from "../hooks/useLogout";
+import MapIcon from "@mui/icons-material/Map";
+import LogoutIcon from "@mui/icons-material/Logout";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import { ThemeModeContext } from "../context/ThemeModeProvider";
 
-const DashboardHeader = ({ theme }) => {
+const DashboardHeader = () => {
   const navigate = useNavigate();
   const logout = useLogout();
-
-  const handleMapNavigation = () => {
-    navigate("/");
-  };
+  const { mode, toggleColorMode } = useContext(ThemeModeContext);
 
   const handleLogout = async () => {
     await logout();
@@ -17,45 +27,69 @@ const DashboardHeader = ({ theme }) => {
   };
 
   return (
-    <Navigation elevation={5}>
-      <MapButton
-        variant="contained"
-        onClick={handleMapNavigation}
-      >
-        Map
-      </MapButton>
-      <LogoutButton
-        variant="outlined"
-        color="inherit"
-        onClick={handleLogout}
-      >
-        Logout
-      </LogoutButton>
-    </Navigation>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: "background.paper",
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        color: "text.primary",
+      }}
+    >
+      <Container maxWidth="xl">
+        <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
+                fontWeight: "bold",
+                cursor: "pointer",
+                letterSpacing: "-0.5px",
+              }}
+              onClick={() => navigate("/dashboard")}
+            >
+              Obrok
+            </Typography>
+
+            <IconButton onClick={toggleColorMode} color="inherit" size="small">
+              {mode === "dark" ? (
+                <LightModeIcon fontSize="small" />
+              ) : (
+                <DarkModeIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: { xs: 1, md: 2 },
+              alignItems: "center",
+            }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate("/")}
+              startIcon={<MapIcon />}
+            >
+              Map
+            </Button>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Toolbar>
+      </Container>
+    </AppBar>
   );
 };
-
-const Navigation = styled(Paper)(({ theme }) => ({
-  height: useMediaQuery(theme.breakpoints.down("sm")) ? "15vh" : "7vh",
-  display: "flex",
-  justifyContent: useMediaQuery(theme.breakpoints.down("sm")) ? "space-around" : "center",
-  alignItems: "center",
-}));
-
-const LogoutButton = styled(Button)(({ theme }) => ({
-  marginLeft: useMediaQuery(theme.breakpoints.down("sm")) ? "0vw" : "2vw",
-  padding: useMediaQuery(theme.breakpoints.down("sm")) && "13px 33px",
-  textTransform: "none",
-}));
-
-const MapButton = styled(Button)(({ theme }) => ({
-  backgroundColor: "black",
-  padding: useMediaQuery(theme.breakpoints.down("sm")) && "13px 33px",
-  textTransform: "none",
-
-  "&:hover": {
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-  },
-}));
 
 export default DashboardHeader;

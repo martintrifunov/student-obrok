@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Table,
@@ -10,295 +10,209 @@ import {
   IconButton,
   TablePagination,
   Skeleton,
-  Grid,
+  Stack,
   Card,
   CardContent,
   useMediaQuery,
   Box,
-  Button,
   styled,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "../api/axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useDebounce from "../hooks/useDebounce";
 import DashboardImageModal from "./DashboardImageModal";
 import { BASE_URL } from "../api/consts";
 
-const ProductsList = ({ theme, searchTerm, products, setProducts }) => {
+const ProductsList = ({ searchTerm }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [page, setPage] = useState(0);
 
-  const handleRemoveProduct = async (productId) => {
-    let confirmed = window.confirm(
-      "Are you sure you want to remove this product?",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await axiosPrivate.delete("/products", {
-        data: JSON.stringify({
-          id: productId,
-        }),
-      });
-
-      const productsResponse = await axios.get("/products", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-
-      setProducts(productsResponse.data);
-      setIsLoading(false);
-    } catch (error) {
-      setError(error.response?.data?.message || "Error deleting product");
-      navigate("/login", { state: { from: location }, replace: true });
-    }
-  };
+  const debouncedSearch = useDebounce(searchTerm);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
+    setPage(0);
+  }, [debouncedSearch]);
 
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.get(
-          "/products",
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          },
-        );
-        isMounted && setProducts(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        setError(error.response?.data?.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["products", debouncedSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: 0 });
+      if (debouncedSearch) params.append("title", debouncedSearch);
+      const response = await axiosPrivate.get(`/products?${params}`);
+      return response.data.data;
+    },
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
+  });
 
-    fetchProducts();
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await axiosPrivate.delete("/products", { data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
 
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, []);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const handleRemoveProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to remove this product?")) {
+      deleteMutation.mutate(productId);
+    }
   };
-
-  const handleEditProduct = (productId) => {
-    navigate(`/dashboard/product/${productId}`);
-  };
-
-  const searchTermInProduct = (product, term) => {
-    return Object.values(product).some((value) =>
-      value?.toString().toLowerCase().includes(term.toLowerCase()),
-    );
-  };
-
-  const filteredProducts = products.filter((product) =>
-    searchTermInProduct(product, searchTerm),
-  );
 
   return (
     <>
+      {isError && (
+        <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
+      )}
       {isSmallScreen ? (
-        <Grid container spacing={2}>
+        <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? filteredProducts
-                .slice(page * 5, page * 5 + 5)
-                .map((product, index) => (
-                  <Grid item xs={12} key={product._id}>
-                    <Card sx={{ marginTop: 2 }}>
-                      <CardContent>
-                        <Box display="flex" justifyContent="center">
-                          <Typography
-                            variant="h6"
-                            style={{ fontWeight: "bold" }}
-                          >
-                            {product.title}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="center">
-                          <Typography variant="body2">
-                            <strong>Price: </strong>
-                            {product.price}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="center">
-                          <Typography variant="body2">
-                            <strong>Vendor: </strong>
-                            {product.vendor?.name || "N/A"}
-                          </Typography>
-                        </Box>
-                        <Box
-                          display="flex"
-                          justifyContent="center"
-                          marginTop={2}
+            ? products.slice(page * 5, page * 5 + 5).map((product) => (
+                <Card
+                  key={product._id}
+                  sx={{
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: "none",
+                    width: "100%",
+                  }}
+                >
+                  <CardContent sx={{ pb: "16px !important" }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}>
+                          {product.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Price: </strong> {product.price}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Vendor: </strong> {product.vendor?.name || "N/A"}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" gap={0.5} ml={1}>
+                        <IconButton size="small" color="inherit" onClick={() => navigate(`/dashboard/product/${product._id}`)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="inherit"
+                          onClick={() => handleRemoveProduct(product._id)}
+                          disabled={deleteMutation.isPending}
                         >
-                          <DashboardImageModal
-                            variant="contained"
-                            image={
-                              product.image
-                                ? `${BASE_URL}${product.image.url}`
-                                : ""
-                            }
-                            imageTitle={product.image?.title || "Product Image"}
-                          />
-                          <EditButton
-                            variant="contained"
-                            onClick={() => handleEditProduct(product._id)}
-                          >
-                            <EditIcon />
-                          </EditButton>
-                          <RemoveButton
-                            variant="outlined"
-                            color="inherit"
-                            onClick={() => handleRemoveProduct(product._id)}
-                          >
-                            <DeleteIcon />
-                          </RemoveButton>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))
-            : Array(Math.min(5, filteredProducts.length || 5))
-                .fill()
-                .map((_, index) => (
-                  <Grid item xs={12} key={index}>
-                    <Skeleton
-                      animation="wave"
-                      height={250}
-                      width="100%"
-                      sx={{ marginTop: -5, marginBottom: -2, padding: 0 }}
-                    />
-                  </Grid>
-                ))}
-        </Grid>
-      ) : (
-        <>
-          {error && <Error variant="p">{error}</Error>}
-          <TableWrapper>
-            <Table
-              sx={{
-                "& thead th": { backgroundColor: "#f2f2f2" },
-                "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: "gray" }}>#</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Title</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Price</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Image</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Vendor</TableCell>
-                  <TableCell sx={{ color: "gray", textAlign: "right" }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {!isLoading ? (
-                  <>
-                    {filteredProducts
-                      .slice(page * 5, page * 5 + 5)
-                      .map((product, index) => (
-                        <TableRow key={product._id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{product.title}</TableCell>
-                          <TableCell>{product.price}</TableCell>
-                          <TableCell>
-                            <DashboardImageModal
-                              imageTitle={
-                                product.image?.title || "Product Image"
-                              }
-                              image={
-                                product.image
-                                  ? `${BASE_URL}${product.image.url}`
-                                  : ""
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>{product.vendor?.name || "N/A"}</TableCell>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
 
-                          <TableCell style={{ textAlign: "right" }}>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleEditProduct(product._id)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleRemoveProduct(product._id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </>
-                ) : (
-                  Array(Math.min(5, filteredProducts.length || 5))
+                    <Box display="flex" mt={2}>
+                      <DashboardImageModal
+                        variant="outlined"
+                        image={product.image ? `${BASE_URL}${product.image.url}` : ""}
+                        imageTitle={product.image?.title || "Product Image"}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))
+            : Array(5)
+                .fill()
+                .map((_, i) => (
+                  <Skeleton key={i} animation="wave" height={160} width="100%" sx={{ borderRadius: 2 }} />
+                ))}
+        </Stack>
+      ) : (
+        <TableWrapper>
+          <Table sx={{ minWidth: 600 }}>
+            <TableHead sx={{ backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.grey[100] }}>
+              <TableRow>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>#</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Title</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Price</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Image</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Vendor</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold", textAlign: "right" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!isLoading
+                ? products.slice(page * 5, page * 5 + 5).map((product, index) => (
+                    <TableRow key={product._id}>
+                      <TableCell>{index + 1 + page * 5}</TableCell>
+                      <TableCell>{product.title}</TableCell>
+                      <TableCell>{product.price}</TableCell>
+                      <TableCell>
+                        <DashboardImageModal
+                          imageTitle={product.image?.title}
+                          image={product.image ? `${BASE_URL}${product.image.url}` : ""}
+                        />
+                      </TableCell>
+                      <TableCell>{product.vendor?.name || "N/A"}</TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <IconButton color="inherit" onClick={() => navigate(`/dashboard/product/${product._id}`)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={() => handleRemoveProduct(product._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : Array(5)
                     .fill()
-                    .map((_, index) => (
-                      <TableRow key={index}>
+                    .map((_, i) => (
+                      <TableRow key={i}>
                         {Array(6)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
-                              <Skeleton
-                                animation="wave"
-                                height={40}
-                                width="100%"
-                              />
+                              <Skeleton animation="wave" height={40} />
                             </TableCell>
                           ))}
                       </TableRow>
-                    ))
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              component="div"
-              count={products.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={5}
-              rowsPerPageOptions={[]}
-            />
-          </TableWrapper>
-        </>
+                    ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            count={products.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={5}
+            rowsPerPageOptions={[]}
+          />
+        </TableWrapper>
       )}
     </>
   );
 };
 
-const TableWrapper = styled(TableContainer)(() => ({
-  width: "98vw",
-  marginLeft: "auto",
-  marginRight: "auto",
-  marginTop: 20,
-  borderRadius: 10,
+const TableWrapper = styled(TableContainer)(({ theme }) => ({
+  width: "100%",
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.02)",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const Error = styled(Typography)(() => ({
@@ -306,18 +220,6 @@ const Error = styled(Typography)(() => ({
   width: "100%",
   display: "flex",
   justifyContent: "center",
-}));
-
-const EditButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  marginLeft: "3vw",
-  textTransform: "none",
-  color: "white",
-}));
-
-const RemoveButton = styled(Button)(() => ({
-  marginLeft: "3vw",
-  textTransform: "none",
 }));
 
 export default ProductsList;

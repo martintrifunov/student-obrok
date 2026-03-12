@@ -7,10 +7,9 @@ const ACCURACY_THRESHOLD = 100;
 const MOVEMENT_THRESHOLD = 15;
 const HIGH_ACCURACY_MAX_WAIT = 5000;
 const LOW_ACCURACY_TIMEOUT = 15000;
-const DEADLINE_MS = 30000;
+const DEADLINE_MS = 10000;
 const HIGH_ACCURACY_RETRY_MS = 30000;
 
-// Haversine distance in meters (Don't ask me to explain this pls)
 const haversineDistance = ([lng1, lat1], [lng2, lat2]) => {
   const R = 6371000;
   const toRad = (deg) => (deg * Math.PI) / 180;
@@ -37,6 +36,7 @@ const LocateUser = ({
   const setIsLoadingRef = useRef(setIsLoading);
   const disableRoutingRef = useRef(disableRouting);
   const enableRoutingRef = useRef(enableRouting);
+  const followUserRef = useRef(followUser);
 
   const firstFixRef = useRef(true);
   const watchIdRef = useRef(null);
@@ -62,6 +62,9 @@ const LocateUser = ({
     enableRoutingRef.current = enableRouting;
   }, [enableRouting]);
   useEffect(() => {
+    followUserRef.current = followUser;
+  }, [followUser]);
+  useEffect(() => {
     mapRef.current = map;
   }, [map]);
 
@@ -70,79 +73,83 @@ const LocateUser = ({
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-
     if (manualFallbackTimerRef.current) {
       clearTimeout(manualFallbackTimerRef.current);
       manualFallbackTimerRef.current = null;
     }
   }, []);
 
-  const handlePosition = useCallback(
-    (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
-      const isLowAccuracyMode = !isHighAccuracyRef.current;
+  const handlePosition = useCallback((pos) => {
+    const { latitude, longitude, accuracy } = pos.coords;
+    const newPos = [longitude, latitude];
 
-      if (!isLowAccuracyMode && accuracy > ACCURACY_THRESHOLD) {
-        // console.warn(
-        //   `High Accuracy too vague (${accuracy}m). waiting for better...`,
-        // );
-        return;
-      }
+    if (firstFixRef.current) {
+      firstFixRef.current = false;
+      clearTimeout(deadlineTimerRef.current);
+      setIsLoadingRef.current(false);
 
-      if (manualFallbackTimerRef.current) {
-        clearTimeout(manualFallbackTimerRef.current);
-        manualFallbackTimerRef.current = null;
-      }
-
-      const newPos = [longitude, latitude];
       setPosition(newPos);
-
-      const prev = lastReportedRef.current;
-      const shouldNotify =
-        !prev || haversineDistance(prev, newPos) > MOVEMENT_THRESHOLD;
-
-      if (shouldNotify) {
-        lastReportedRef.current = newPos;
-        onUserLocationRef.current(newPos);
-      }
-
+      lastReportedRef.current = newPos;
+      onUserLocationRef.current(newPos);
       enableRoutingRef.current?.();
 
-      if (firstFixRef.current) {
-        firstFixRef.current = false;
-        clearTimeout(deadlineTimerRef.current);
-        setIsLoadingRef.current(false);
+      mapRef.current?.flyTo({
+        center: newPos,
+        zoom: accuracy > 1000 ? 13 : 16,
+        duration: 1000,
+      });
+      // console.log(
+      //   `[LocateUser] First fix. Accuracy: ${Math.round(accuracy)}m. ${accuracy > 1000 ? "Low accuracy — zooming out." : "High accuracy."}`,
+      // );
+      return;
+    }
 
-        if (!shouldNotify) {
-          lastReportedRef.current = newPos;
-          onUserLocationRef.current(newPos);
-        }
+    const isLowAccuracyMode = !isHighAccuracyRef.current;
+    if (!isLowAccuracyMode && accuracy > ACCURACY_THRESHOLD) {
+      // console.warn(
+      //   `[LocateUser] Subsequent fix rejected — accuracy too low: ${Math.round(accuracy)}m`,
+      // );
+      return;
+    }
 
-        mapRef.current?.flyTo({
-          center: newPos,
-          duration: 1000,
-        });
-      } else if (followUser && shouldNotify) {
-        mapRef.current?.easeTo({
-          center: newPos,
-          duration: 500,
-        });
-      }
-    },
-    [followUser],
-  );
+    if (manualFallbackTimerRef.current) {
+      clearTimeout(manualFallbackTimerRef.current);
+      manualFallbackTimerRef.current = null;
+    }
+
+    setPosition(newPos);
+
+    const prev = lastReportedRef.current;
+    const shouldNotify =
+      !prev || haversineDistance(prev, newPos) > MOVEMENT_THRESHOLD;
+
+    if (shouldNotify) {
+      lastReportedRef.current = newPos;
+      onUserLocationRef.current(newPos);
+      // console.log(
+      //   `[LocateUser] Position updated. Accuracy: ${Math.round(accuracy)}m`,
+      // );
+    }
+
+    enableRoutingRef.current?.();
+
+    if (followUserRef.current && shouldNotify) {
+      mapRef.current?.easeTo({
+        center: newPos,
+        duration: 500,
+      });
+    }
+  }, []);
 
   const startWatching = useCallback(
     (highAccuracy) => {
       clearWatch();
       isHighAccuracyRef.current = highAccuracy;
 
-      // console.log(`Starting watch. High Accuracy: ${highAccuracy}`);
-
       if (highAccuracy) {
         manualFallbackTimerRef.current = setTimeout(() => {
-          // console.log(
-          //   "High Accuracy valid fix timed out (Manual). Switching to Low Accuracy...",
+          // console.warn(
+          //   "[LocateUser] High Accuracy valid fix timed out (Manual). Switching to Low Accuracy...",
           // );
           startWatching(false);
         }, HIGH_ACCURACY_MAX_WAIT);
@@ -151,18 +158,32 @@ const LocateUser = ({
       watchIdRef.current = navigator.geolocation.watchPosition(
         handlePosition,
         (error) => {
-          // console.warn(`Location error (HA: ${highAccuracy}):`, error.message);
+          if (error.code === 1 || error.code === 2) {
+            // console.warn(
+            //   `[LocateUser] Permission denied or position unavailable (code ${error.code}). Unblocking UI.`,
+            // );
+            if (firstFixRef.current) {
+              firstFixRef.current = false;
+              setIsLoadingRef.current(false);
+              disableRoutingRef.current();
+            }
+            return;
+          }
 
           if (highAccuracy) {
-            // console.log("Error in High Accuracy. Switching to Low...");
+            // console.warn(
+            //   `[LocateUser] Error in High Accuracy. Switching to Low...`,
+            // );
             startWatching(false);
-
             retryTimerRef.current = setTimeout(() => {
-              // console.log("Retrying High Accuracy...");
+              // console.log("[LocateUser] Retrying High Accuracy...");
               startWatching(true);
             }, HIGH_ACCURACY_RETRY_MS);
           } else if (firstFixRef.current) {
-            // console.warn("Low accuracy failed.");
+            // console.warn("[LocateUser] Low accuracy failed.");
+            firstFixRef.current = false;
+            setIsLoadingRef.current(false);
+            disableRoutingRef.current();
           }
         },
         {
@@ -186,7 +207,8 @@ const LocateUser = ({
 
     deadlineTimerRef.current = setTimeout(() => {
       if (firstFixRef.current) {
-        // console.log("Global deadline reached. Showing map.");
+        // console.warn("[LocateUser] Global deadline reached. Showing map.");
+        firstFixRef.current = false;
         setIsLoadingRef.current(false);
         disableRoutingRef.current();
       }
@@ -199,7 +221,7 @@ const LocateUser = ({
       if (deadlineTimerRef.current) clearTimeout(deadlineTimerRef.current);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
-  }, []);
+  }, [clearWatch, startWatching]);
 
   if (!position) return null;
 

@@ -6,12 +6,16 @@ import { z } from "zod";
 const schema = z.object({ name: z.string() });
 
 describe("validateRequest", () => {
-  it("calls next with ValidationError on invalid body", () => {
+  it("calls next with formatted ValidationError on invalid body", () => {
     const req = { body: { name: 123 } };
     const res = {};
     const next = vi.fn();
     validateRequest(schema)(req, res, next);
+
     expect(next).toHaveBeenCalledWith(expect.any(ValidationError));
+
+    const errorArg = next.mock.calls[0][0];
+    expect(errorArg.errors).toHaveProperty("name");
   });
 
   it("mutates req.body with parsed data and calls next on valid input", () => {

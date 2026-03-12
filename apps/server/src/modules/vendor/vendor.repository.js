@@ -12,24 +12,35 @@ export class VendorRepository {
     };
   }
 
-  async findAll({ page, limit }) {
+  #buildQuery(filter = {}) {
+    const query = {};
+    if (filter.name) {
+      query.name = { $regex: filter.name, $options: "i" };
+    }
+    return query;
+  }
+
+  async findAll({ page, limit, filter = {} }) {
     const { productsWithImage, image } = this.#populate();
+    const query = this.#buildQuery(filter);
+
     if (limit === 0) {
-      const docs = await VendorModel.find()
+      const docs = await VendorModel.find(query)
         .populate(productsWithImage)
         .populate(image)
         .exec();
       return { docs, total: null };
     }
+
     const skip = (page - 1) * limit;
     const [docs, total] = await Promise.all([
-      VendorModel.find()
+      VendorModel.find(query)
         .populate(productsWithImage)
         .populate(image)
         .skip(skip)
         .limit(limit)
         .exec(),
-      VendorModel.countDocuments().exec(),
+      VendorModel.countDocuments(query).exec(),
     ]);
     return { docs, total };
   }

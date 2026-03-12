@@ -1,15 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   TextField,
   Box,
   Paper,
   Typography,
-  createTheme,
-  ThemeProvider,
   InputAdornment,
-  useMediaQuery,
-  styled,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,124 +14,137 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Alert,
+  Container,
+  Avatar,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import ImageIcon from "@mui/icons-material/Image";
-import { Container } from "@mui/system";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
-import DashboardHeader from "../components/DashboardHeader";
 import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "../components/FileUploader";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "../api/consts";
 
 const AddOrEditVendorForm = () => {
+  const theme = useTheme();
   const axiosPrivate = useAxiosPrivate();
-  const theme = createTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const params = useParams();
 
-  const [vendor, setVendor] = useState({});
-  const [errorBag, setErrorBag] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const isEditMode = !!params.vendorId;
 
-  const [images, setImages] = useState([]);
+  const [vendor, setVendor] = useState({});
+  const [errors, setErrors] = useState({});
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    if (name === "longitude") {
-      setVendor({
-        ...vendor,
-        location: [vendor?.location?.[0] || "", value],
-      });
-    } else if (name === "latitude") {
-      setVendor({
-        ...vendor,
-        location: [value, vendor?.location?.[1] || ""],
-      });
-    } else {
-      setVendor({ ...vendor, [name]: value });
-    }
-  };
+  const { data: fetchedVendor, isLoading: isFetchingVendor } = useQuery({
+    queryKey: ["vendor", params.vendorId],
+    queryFn: async () => {
+      const res = await axiosPrivate.get(`/vendors/${params.vendorId}`);
+      return res.data;
+    },
+    enabled: isEditMode,
+  });
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchVendor = async () => {
-      try {
-        const response = await axiosPrivate(`/vendors/${params.vendorId}`, {
-          signal: controller.signal,
-        });
-        if (isMounted) {
-          setVendor(response.data);
-          if (response.data?.image) {
-            setSelectedImageId(response.data.image._id);
-            setSelectedImageTitle(response.data.image.title);
-          }
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error(error);
-        navigate("/login", { state: { from: location }, replace: true });
+    if (fetchedVendor) {
+      setVendor(fetchedVendor);
+      if (fetchedVendor.image) {
+        setSelectedImageId(fetchedVendor.image._id);
+        setSelectedImageTitle(fetchedVendor.image.title);
       }
-    };
+    }
+  }, [fetchedVendor]);
 
-    if (params?.vendorId) {
-      setIsLoading(true);
-      fetchVendor();
+  const { data: images = [], refetch: fetchImages } = useQuery({
+    queryKey: ["images"],
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/images?limit=0");
+      return res.data.data;
+    },
+    enabled: false,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (vendorData) => {
+      if (isEditMode) return axiosPrivate.put("/vendors", vendorData);
+      return axiosPrivate.post("/vendors", vendorData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      if (isEditMode) {
+        queryClient.invalidateQueries({
+          queryKey: ["vendor", params.vendorId],
+        });
+      }
+      navigate("/dashboard");
+    },
+    onError: (error) => {
+      setErrors(error.response?.data || { message: "Error saving vendor" });
+    },
+  });
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    if (
+      errors[name] ||
+      errors["location"] ||
+      errors["location.0"] ||
+      errors["location.1"]
+    ) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+        location: undefined,
+        "location.0": undefined,
+        "location.1": undefined,
+      }));
     }
 
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, []);
-
-  const fetchImages = async () => {
-    try {
-      const response = await axiosPrivate("/images");
-      setImages(response.data || []);
-    } catch (err) {
-      console.error(err);
-      setImages([]);
+    if (name === "longitude") {
+      setVendor((prev) => ({
+        ...prev,
+        location: [prev?.location?.[0] || "", value],
+      }));
+    } else if (name === "latitude") {
+      setVendor((prev) => ({
+        ...prev,
+        location: [value, prev?.location?.[1] || ""],
+      }));
+    } else {
+      setVendor((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleOpenImageDialog = async () => {
-    await fetchImages();
+  const handleOpenImageDialog = () => {
+    fetchImages();
     setImageDialogOpen(true);
-  };
-
-  const handleSelectImage = (image) => {
-    setSelectedImageId(image._id);
-    setSelectedImageTitle(image.title);
-    setImageDialogOpen(false);
   };
 
   const onSelectFileHandler = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     try {
       const formData = new FormData();
       formData.append("image", file);
-
-      const response = await axiosPrivate.post("/images", formData, {
+      const res = await axiosPrivate.post("/images", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      setSelectedImageId(response.data._id);
-      setSelectedImageTitle(response.data.title);
+      setSelectedImageId(res.data._id);
+      setSelectedImageTitle(res.data.title);
+      setErrors((prev) => ({ ...prev, image: undefined }));
     } catch (err) {
-      console.error(err);
-      setErrorBag("Failed to upload image.");
+      setErrors({ message: "Failed to upload image." });
     }
   };
 
@@ -144,278 +153,243 @@ const AddOrEditVendorForm = () => {
     setSelectedImageTitle("");
   };
 
-  const handleCancel = () => navigate("/dashboard");
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const vendorData = {};
-    if (params?.vendorId) vendorData.id = params.vendorId;
-    if (vendor.name) vendorData.name = vendor.name;
-    if (vendor.location) vendorData.location = vendor.location;
-    if (selectedImageId) vendorData.image = selectedImageId;
-
-    try {
-      if (params?.vendorId) {
-        await axiosPrivate.put("/vendors", vendorData);
-      } else {
-        await axiosPrivate.post("/vendors", vendorData);
-      }
-      return navigate("/dashboard");
-    } catch (error) {
-      setErrorBag(error.response?.data?.message || "Error saving vendor");
-    }
+  const handleSelectImage = (image) => {
+    setSelectedImageId(image._id);
+    setSelectedImageTitle(image.title);
+    setErrors((prev) => ({ ...prev, image: undefined }));
+    setImageDialogOpen(false);
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setErrors({});
+
+    const vendorData = {};
+    if (isEditMode) vendorData.id = params.vendorId;
+
+    vendorData.name = vendor.name;
+
+    if (vendor.location) {
+      vendorData.location = [
+        vendor.location[0] ? parseFloat(vendor.location[0]) : null,
+        vendor.location[1] ? parseFloat(vendor.location[1]) : null,
+      ];
+    } else {
+      vendorData.location = [null, null];
+    }
+
+    if (selectedImageId) vendorData.image = selectedImageId;
+
+    saveMutation.mutate(vendorData);
+  };
+
+  if (isFetchingVendor || saveMutation.isPending) {
+    return <GlobalLoadingProgress />;
+  }
+
   return (
-    <>
-      {isLoading ? (
-        <GlobalLoadingProgress />
-      ) : (
-        <ThemeProvider theme={theme}>
-          <DashboardHeader theme={theme} />
-          <Box
-            display="flex"
-            flexDirection="column"
-            justifyContent={isSmallScreen ? "flex-start" : "center"}
-            alignItems="center"
-            minHeight={isSmallScreen ? "65vh" : "85vh"}
-            paddingY={5}
-          >
-            <Container maxWidth="md">
-              <form autoComplete="off" onSubmit={handleSubmit}>
-                <VendorForm elevation={5}>
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    gap={3}
-                    width="100%"
-                  >
-                    <Box width="100%">
-                      {errorBag === "Name is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <TextField
-                        name="name"
-                        label="Name"
-                        variant="outlined"
-                        fullWidth
-                        value={vendor?.name || ""}
-                        onChange={handleChange}
-                        sx={{
-                          "& .MuiOutlinedInput-root": {
-                            "&.Mui-focused fieldset": {
-                              borderColor: "black",
-                            },
-                          },
-                          "& label.Mui-focused": { color: "black" },
-                        }}
-                      />
-                    </Box>
-                    <Box
-                      display="flex"
-                      gap={3}
-                      width="100%"
-                      sx={{ flexDirection: { xs: "column", sm: "row" } }}
-                    >
-                      <Box flex={1}>
-                        {errorBag === "Location coordinates are required!" && (
-                          <Box sx={{ height: 24, marginBottom: 1 }}>
-                            <Typography
-                              sx={{
-                                color: "crimson",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {errorBag}
-                            </Typography>
-                          </Box>
-                        )}
-                        <TextField
-                          name="latitude"
-                          label="Latitude"
-                          variant="outlined"
-                          type="number"
-                          fullWidth
-                          value={vendor?.location?.[0] || ""}
-                          onChange={handleChange}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              "&.Mui-focused fieldset": {
-                                borderColor: "black",
-                              },
-                            },
-                            "& label.Mui-focused": { color: "black" },
-                          }}
-                        />
-                      </Box>
-                      <Box flex={1}>
-                        {errorBag === "Location coordinates are required!" && (
-                          <Box sx={{ height: 24, marginBottom: 1 }} />
-                        )}
-                        <TextField
-                          name="longitude"
-                          label="Longitude"
-                          variant="outlined"
-                          type="number"
-                          fullWidth
-                          value={vendor?.location?.[1] || ""}
-                          onChange={handleChange}
-                          sx={{
-                            "& .MuiOutlinedInput-root": {
-                              "&.Mui-focused fieldset": {
-                                borderColor: "black",
-                              },
-                            },
-                            "& label.Mui-focused": { color: "black" },
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                    {selectedImageTitle && (
-                      <Box width="100%">
-                        <TextField
-                          label="Selected Image"
-                          variant="outlined"
-                          value={selectedImageTitle}
-                          fullWidth
-                          disabled
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <ImageIcon />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Box>
-                    )}
-                    <Box width="100%">
-                      {errorBag === "Cover image is required!" && (
-                        <Typography sx={{ color: "crimson" }}>
-                          {errorBag}
-                        </Typography>
-                      )}
-                      <FileUploader
-                        onSelectFile={onSelectFileHandler}
-                        onDeleteFile={onDeleteFileHandler}
-                        accept={".jpeg, .jpg, .png, .webp"}
-                      />
-                      <Box
-                        display="flex"
-                        gap={2}
-                        alignItems="center"
-                        flexWrap="wrap"
-                        mt={2}
-                      >
-                        <Typography
-                          sx={{ color: "text.secondary", fontSize: 14 }}
-                        >
-                          or select an existing one:
-                        </Typography>
-                        <SelectImageButton
-                          variant="outlined"
-                          onClick={handleOpenImageDialog}
-                          startIcon={<PhotoLibraryIcon />}
-                        >
-                          Select Image
-                        </SelectImageButton>
-                      </Box>
-                    </Box>
-                  </Box>
-                </VendorForm>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    gap: 2,
-                  }}
-                >
-                  <CancelButton variant="text" onClick={handleCancel}>
-                    <CloseIcon sx={{ marginRight: "5px" }} /> Cancel
-                  </CancelButton>
-                  <AddVendorButton variant="contained" type="submit">
-                    <SaveIcon sx={{ marginRight: "5px" }} /> Submit
-                  </AddVendorButton>
-                </Box>
-              </form>
-            </Container>
-          </Box>
-          <Dialog
-            open={imageDialogOpen}
-            onClose={() => setImageDialogOpen(false)}
-            fullWidth
-            maxWidth="sm"
-          >
-            <DialogTitle>Select an Image</DialogTitle>
-            <DialogContent dividers>
-              {images.length === 0 ? (
-                <Typography color="text.secondary">
-                  No images uploaded yet. Upload one first.
-                </Typography>
-              ) : (
-                <List>
-                  {images.map((img) => (
-                    <ListItemButton
-                      key={img._id}
-                      selected={selectedImageId === img._id}
-                      onClick={() => handleSelectImage(img)}
-                    >
-                      <ListItemIcon>
-                        {selectedImageId === img._id ? (
-                          <CheckIcon />
-                        ) : (
-                          <ImageIcon />
-                        )}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={img.title}
-                        secondary={img.mimeType}
-                      />
-                    </ListItemButton>
-                  ))}
-                </List>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button
-                onClick={() => setImageDialogOpen(false)}
-                sx={{ color: "black", textTransform: "none" }}
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h4" fontWeight="bold">
+          {isEditMode ? "Edit Vendor" : "Register Vendor"}
+        </Typography>
+      </Box>
+
+      <form autoComplete="off" onSubmit={handleSubmit}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 5 },
+            mb: 3,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+          }}
+        >
+          <Box display="flex" flexDirection="column" gap={3}>
+            {errors.message && (
+              <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+                {errors.message}
+              </Alert>
+            )}
+
+            <TextField
+              name="name"
+              label="Vendor Name"
+              variant="outlined"
+              fullWidth
+              value={vendor?.name || ""}
+              onChange={handleChange}
+              error={!!errors.name}
+              helperText={errors.name}
+            />
+
+            <Box
+              display="flex"
+              gap={3}
+              sx={{ flexDirection: { xs: "column", sm: "row" } }}
+            >
+              <TextField
+                name="latitude"
+                label="Latitude"
+                variant="outlined"
+                type="number"
+                fullWidth
+                value={vendor?.location?.[0] ?? ""}
+                onChange={handleChange}
+                error={!!errors.location || !!errors["location.0"]}
+                helperText={errors.location || errors["location.0"]}
+              />
+              <TextField
+                name="longitude"
+                label="Longitude"
+                variant="outlined"
+                type="number"
+                fullWidth
+                value={vendor?.location?.[1] ?? ""}
+                onChange={handleChange}
+                error={!!errors.location || !!errors["location.1"]}
+                helperText={errors.location || errors["location.1"]}
+              />
+            </Box>
+
+            {selectedImageTitle && (
+              <TextField
+                label="Selected Image"
+                variant="outlined"
+                value={selectedImageTitle}
+                fullWidth
+                disabled
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <ImageIcon />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            )}
+
+            <Box>
+              <FileUploader
+                onSelectFile={onSelectFileHandler}
+                onDeleteFile={onDeleteFileHandler}
+                accept=".jpeg, .jpg, .png, .webp"
+              />
+              <Box
+                display="flex"
+                gap={2}
+                alignItems="center"
+                flexWrap="wrap"
+                mt={2}
               >
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </ThemeProvider>
-      )}
-    </>
+                <Typography sx={{ color: "text.secondary", fontSize: 14 }}>
+                  or select an existing one:
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={handleOpenImageDialog}
+                  startIcon={<PhotoLibraryIcon />}
+                  sx={{ textTransform: "none" }}
+                >
+                  Browse Gallery
+                </Button>
+              </Box>
+              {errors.image && (
+                <Typography
+                  color="error"
+                  variant="caption"
+                  sx={{ mt: 1, display: "block", ml: 2 }}
+                >
+                  {errors.image}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Paper>
+
+        <Box display="flex" justifyContent="flex-end" gap={2}>
+          <Button
+            variant="text"
+            color="inherit"
+            onClick={() => navigate("/dashboard")}
+            sx={{ textTransform: "none" }}
+            startIcon={<CloseIcon />}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{ textTransform: "none" }}
+            startIcon={<SaveIcon />}
+          >
+            {isEditMode ? "Save Changes" : "Register"}
+          </Button>
+        </Box>
+      </form>
+
+      <Dialog
+        open={imageDialogOpen}
+        onClose={() => setImageDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          Select from Gallery
+        </DialogTitle>
+        <DialogContent dividers>
+          {images.length === 0 ? (
+            <Typography color="text.secondary">
+              No images available in gallery. Please upload a new one.
+            </Typography>
+          ) : (
+            <List>
+              {images.map((img) => (
+                <ListItemButton
+                  key={img._id}
+                  selected={selectedImageId === img._id}
+                  onClick={() => handleSelectImage(img)}
+                  sx={{ borderRadius: 1, mb: 0.5 }}
+                >
+                  <ListItemIcon>
+                    <Avatar
+                      src={img.url ? `${BASE_URL}${img.url}` : undefined}
+                      variant="rounded"
+                      sx={{ width: 32, height: 32, bgcolor: "grey.100" }}
+                    >
+                      <ImageIcon sx={{ color: "grey.400" }} />
+                    </Avatar>
+                  </ListItemIcon>
+                  <ListItemText primary={img.title} secondary={img.mimeType} />
+                  {selectedImageId === img._id && <CheckIcon color="primary" />}
+                </ListItemButton>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setImageDialogOpen(false)}
+            color="inherit"
+            sx={{ textTransform: "none" }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
-
-const VendorForm = styled(Paper)(({ theme }) => ({
-  padding: 50,
-  marginBottom: 25,
-  [theme.breakpoints.down("sm")]: { padding: 25 },
-}));
-
-const AddVendorButton = styled(Button)(() => ({
-  textTransform: "none",
-  backgroundColor: "black",
-  "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.8)" },
-}));
-
-const CancelButton = styled(Button)(() => ({
-  color: "black",
-  textTransform: "none",
-}));
-
-const SelectImageButton = styled(Button)(() => ({
-  textTransform: "none",
-  color: "black",
-  borderColor: "black",
-  "&:hover": { borderColor: "rgba(0,0,0,0.8)" },
-}));
 
 export default AddOrEditVendorForm;

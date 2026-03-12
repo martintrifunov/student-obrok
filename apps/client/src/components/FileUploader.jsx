@@ -1,11 +1,12 @@
-import { IconButton, Box } from "@mui/material";
 import React, { useRef, useState } from "react";
+import { IconButton, Box, useTheme, Typography } from "@mui/material";
 import AttachmentIcon from "@mui/icons-material/Attachment";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
   const hiddenFileInput = useRef(null);
   const [file, setFile] = useState(null);
+  const theme = useTheme();
 
   const handleClick = () => {
     if (hiddenFileInput.current) {
@@ -29,51 +30,66 @@ const FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
     onDeleteFile();
   };
 
+  const isDark = theme.palette.mode === "dark";
+
   return (
     <Box
       sx={{
         display: "flex",
         alignItems: "center",
         width: "100%",
-        border: disabled
-          ? "1px solid rgba(0, 0, 0, 0.12)"
-          : "1px solid rgba(0, 0, 0, 0.23)",
-        borderRadius: "4px",
-        padding: "10px 14px",
-        backgroundColor: disabled ? "rgba(0, 0, 0, 0.04)" : "transparent",
-        cursor: disabled ? "not-allowed" : "default",
+        height: 56,
+        border: `1px solid ${
+          disabled
+            ? theme.palette.action.disabledBackground
+            : isDark
+              ? "rgba(255, 255, 255, 0.23)"
+              : "rgba(0, 0, 0, 0.23)"
+        }`,
+        borderRadius: `8px`,
+        padding: "0 14px",
+        backgroundColor: disabled
+          ? theme.palette.action.hover
+          : isDark
+            ? "#0B1121"
+            : "#ffffff",
+        cursor: disabled ? "not-allowed" : "pointer",
+        transition: "border-color 0.2s",
         "&:hover": {
-          borderColor: disabled ? "rgba(0, 0, 0, 0.12)" : "rgba(0, 0, 0, 0.87)",
+          borderColor: disabled
+            ? theme.palette.action.disabledBackground
+            : isDark
+              ? "rgba(255, 255, 255, 0.87)"
+              : "rgba(0, 0, 0, 0.87)",
         },
       }}
+      onClick={disabled ? undefined : handleClick}
     >
       <Box sx={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
         <AttachmentIcon
           sx={{
             marginRight: 1,
-            color: disabled ? "rgba(0, 0, 0, 0.26)" : "rgba(0, 0, 0, 0.54)",
+            color: disabled
+              ? theme.palette.text.disabled
+              : theme.palette.action.active,
           }}
         />
-        <Box
-          component="span"
+        <Typography
           sx={{
             color: file
               ? disabled
-                ? "rgba(0, 0, 0, 0.38)"
-                : "rgba(0, 0, 0, 0.87)"
-              : "rgba(0, 0, 0, 0.6)",
+                ? theme.palette.text.disabled
+                : theme.palette.text.primary
+              : theme.palette.text.secondary,
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            cursor: disabled ? "not-allowed" : "pointer",
-            fontSize: "1rem",
             width: "100%",
             textAlign: "left",
           }}
-          onClick={disabled ? undefined : handleClick}
         >
-          {file ? file.name : "Choose file *"}
-        </Box>
+          {file ? file.name : "Choose file"}
+        </Typography>
         <input
           type="file"
           accept={accept}
@@ -81,20 +97,22 @@ const FileUploader = ({ accept, onSelectFile, onDeleteFile, disabled }) => {
           onChange={handleChange}
           style={{ display: "none" }}
           disabled={disabled}
-          data-testid="file-upload-input"
         />
       </Box>
       <IconButton
         aria-label="delete"
         disabled={disabled || !file}
         sx={{
-          color: "rgba(0, 0, 0, 0.54)",
+          color: theme.palette.action.active,
           marginLeft: 1,
         }}
-        onClick={onDeleteFileHandler}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDeleteFileHandler();
+        }}
         size="small"
       >
-        <DeleteIcon />
+        <DeleteIcon fontSize="small" />
       </IconButton>
     </Box>
   );

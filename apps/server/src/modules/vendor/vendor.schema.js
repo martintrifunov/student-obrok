@@ -1,12 +1,29 @@
 import { z } from "zod";
 import { zodObjectId } from "../../shared/utils/zodObjectId.js";
+import { paginationSchema } from "../../shared/utils/paginationSchema.js";
+
+export const vendorQuerySchema = paginationSchema.extend({
+  name: z.string().optional(),
+});
 
 export const createVendorSchema = z.object({
   name: z
-    .string({ required_error: "Name is required." })
-    .min(1, "Name is required."),
+    .string({
+      required_error: "Vendor name is required.",
+      invalid_type_error: "Vendor name is required.",
+    })
+    .min(1, "Vendor name cannot be empty."),
   location: z
-    .array(z.number())
+    .array(
+      z.number({
+        required_error: "Coordinate is required.",
+        invalid_type_error: "Coordinate must be a number.",
+      }),
+      {
+        required_error: "Location coordinates are required.",
+        invalid_type_error: "Location coordinates are required.",
+      },
+    )
     .length(2, "Location must contain exactly 2 coordinates."),
   image: zodObjectId,
   products: z

@@ -39,24 +39,57 @@ const CreditMarker = () => {
           onClose={() => setShowPopup(false)}
           closeOnClick={false}
           offset={popupOffset}
+          maxWidth="280px"
         >
           <CreditPopup>
-            <Typography variant="h5" textAlign="center">
-              Студентски Оброк
-            </Typography>
-            <img
-              src={creditPopupIcon}
-              className="credit-popup-icon"
-              alt="creditIcon"
-            />
-            <Typography variant="p" textAlign="left">
-              <strong>Студентски Оброк</strong>, развиен од{" "}
-              <strong>Мартин Трифунов</strong>, е веб апликација дизајнирана да
-              помогне на студентите во наоѓањето на економични оброци за ручек
-              на удобен начин. Со нудење на корисен интерфејс, ја упрости
-              процедурата за наоѓање на блиски ресторани со попусти, во
-              соодветство со потребите на студентите со ограничен буџет.
-            </Typography>
+            <Box
+              sx={{
+                p: 3,
+                pt: 4,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                textAlign="center"
+                lineHeight={1.2}
+              >
+                Студентски Оброк
+              </Typography>
+
+              <img
+                src={creditPopupIcon}
+                className="credit-popup-icon"
+                alt="creditIcon"
+                style={{ width: 80, height: 80 }}
+              />
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                textAlign="center"
+                sx={{ mt: 1 }}
+              >
+                <strong>Студентски Оброк</strong>, развиен од{" "}
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color="primary.main"
+                  fontWeight="bold"
+                >
+                  Мартин Трифунов
+                </Typography>
+                , е веб апликација дизајнирана да помогне на студентите во
+                наоѓањето на економични оброци за ручек на удобен начин. Со
+                нудење на корисен интерфејс, ја упрости процедурата за наоѓање
+                на блиски ресторани со попусти, во соодветство со потребите на
+                студентите со ограничен буџет.
+              </Typography>
+            </Box>
           </CreditPopup>
         </Popup>
       )}
@@ -64,7 +97,7 @@ const CreditMarker = () => {
   );
 };
 
-const CreditMarkerImage = styled("img")(({ $verticalOffset = 0 }) => ({
+const CreditMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
   width: 38,
   height: 95,
   display: "block",
@@ -78,8 +111,7 @@ const CreditMarkerImage = styled("img")(({ $verticalOffset = 0 }) => ({
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
     filter: `
       brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(5478%) hue-rotate(265deg) brightness(95%) contrast(105%)
-      drop-shadow(0 0 8px rgba(139, 92, 246, 0.8))
-      drop-shadow(0 0 12px rgba(139, 92, 246, 0.4))
+      drop-shadow(0 0 10px ${theme.palette.primary.main})
     `,
   },
   "&:active": {
@@ -90,9 +122,7 @@ const CreditMarkerImage = styled("img")(({ $verticalOffset = 0 }) => ({
       opacity: 0,
       transform: `translateY(${$verticalOffset - 50}px) scale(0.3)`,
     },
-    "50%": {
-      transform: `translateY(${$verticalOffset + 5}px) scale(1.05)`,
-    },
+    "50%": { transform: `translateY(${$verticalOffset + 5}px) scale(1.05)` },
     "100%": {
       opacity: 1,
       transform: `translateY(${$verticalOffset}px) scale(1)`,
@@ -102,15 +132,7 @@ const CreditMarkerImage = styled("img")(({ $verticalOffset = 0 }) => ({
 
 const CreditPopup = styled(Box)(() => ({
   display: "flex",
-  alignItems: "center",
-  justifyContent: "space-around",
-  flexDirection: "column",
-  width: 200,
-  height: 450,
-  "& .credit-popup-icon": {
-    width: 100,
-    height: 100,
-  },
+  width: "100%",
 }));
 
 export default CreditMarker;

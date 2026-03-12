@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Table,
@@ -10,7 +10,7 @@ import {
   IconButton,
   TablePagination,
   Skeleton,
-  Grid,
+  Stack,
   Card,
   CardContent,
   useMediaQuery,
@@ -18,313 +18,243 @@ import {
   Button,
   styled,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useNavigate, useLocation } from "react-router-dom";
-import axios from "../api/axios";
-import DashboardImageModal from "./DashboardImageModal";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useDebounce from "../hooks/useDebounce";
+import DashboardImageModal from "./DashboardImageModal";
+import VendorProductsModal from "./VendorProductsModal";
 import { BASE_URL } from "../api/consts";
 
-const VendorsList = ({
-  theme,
-  searchTerm,
-  setProducts,
-  vendors,
-  setVendors,
-}) => {
+const VendorsList = ({ searchTerm }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const axiosPrivate = useAxiosPrivate();
-  const [error, setError] = useState("");
-  const [page, setPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  
+  const [page, setPage] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState({ id: null, name: "" });
+
+  const debouncedSearch = useDebounce(searchTerm);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
+  const {
+    data: vendors = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["vendors", debouncedSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: 0 });
+      if (debouncedSearch) params.append("name", debouncedSearch);
+      const response = await axiosPrivate.get(`/vendors?${params}`);
+      return response.data.data;
+    },
+    onError: () =>
+      navigate("/login", { state: { from: location }, replace: true }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await axiosPrivate.delete("/vendors", { data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
 
   const handleRemoveVendor = async (vendorId) => {
-    let confirmed = window.confirm(
-      "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the products that are by this vendor.",
-    );
-
-    if (!confirmed) return;
-
-    setIsLoading(true);
-
-    try {
-      await axiosPrivate.delete("/vendors", {
-        data: JSON.stringify({
-          id: vendorId,
-        }),
-      });
-
-      const vendorsResponse = await axios.get("/vendors", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-
-      const productsResponse = await axios.get("/products", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-
-      setProducts(productsResponse.data);
-      setVendors(vendorsResponse.data);
-      setIsLoading(false);
-    } catch (error) {
-      setError(error.response?.data?.message);
-      navigate("/login", { state: { from: location }, replace: true });
+    if (
+      window.confirm(
+        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the products that are by this vendor."
+      )
+    ) {
+      deleteMutation.mutate(vendorId);
     }
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    setIsLoading(true);
-
-    const fetchVendors = async () => {
-      try {
-        const response = await axios.get(
-          "/vendors",
-          {
-            signal: controller.signal,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          },
-        );
-        if (isMounted) {
-          setVendors(response.data);
-          // Small delay for smooth UI transition
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 100);
-        }
-      } catch (error) {
-        setError(error.response?.data?.message);
-        navigate("/login", { state: { from: location }, replace: true });
-      }
-    };
-
-    fetchVendors();
-
-    return () => {
-      isMounted = false;
-      setIsLoading(false);
-      controller.abort();
-    };
-  }, []);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleEditVendor = (vendorId) => {
-    navigate(`/dashboard/vendor/${vendorId}`);
-  };
-
-  const handleNavigateToProducts = (vendorId) => {
-    navigate(`/dashboard/products/${vendorId}`);
-  };
-
-  const searchTermInVendor = (vendor, term) => {
-    return Object.values(vendor).some((value) =>
-      value?.toString().toLowerCase().includes(term.toLowerCase()),
-    );
-  };
-
-  const filteredVendors = vendors.filter((vendor) =>
-    searchTermInVendor(vendor, searchTerm),
-  );
-
   return (
     <>
+      {isError && (
+        <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
+      )}
       {isSmallScreen ? (
-        <Grid container spacing={2}>
+        <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? filteredVendors
-                .slice(page * 5, page * 5 + 5)
-                .map((vendor, index) => (
-                  <Grid item xs={12} key={vendor._id}>
-                    <Card sx={{ marginTop: 2 }}>
-                      <CardContent>
-                        <Box display="flex" justifyContent="center">
-                          <Typography
-                            variant="h6"
-                            style={{ fontWeight: "bold" }}
-                          >
-                            {vendor.name}
-                          </Typography>
-                        </Box>
-                        <Box display="flex" justifyContent="center">
-                          <Typography variant="body2">
-                            <strong>Location:</strong>{" "}
-                            {vendor.location.join(", ")}
-                          </Typography>
-                        </Box>
-                        <VendorButtonsGrid>
-                          <DashboardImageModal
-                            variant={"contained"}
-                            image={`${BASE_URL}${vendor?.image?.url}`}
-                            imageTitle={vendor?.image?.title}
-                            className="vendor-button"
-                          />
-                          <ViewVendorButton
-                            variant="contained"
-                            onClick={() => handleNavigateToProducts(vendor._id)}
-                            disabled={
-                              !vendor.products || vendor.products.length === 0
-                            }
-                            className="vendor-button"
-                          >
-                            <LocalOfferIcon sx={{ marginRight: 1 }} /> View
-                          </ViewVendorButton>
-                          <EditVendorButton
-                            variant="contained"
-                            onClick={() => handleEditVendor(vendor._id)}
-                            className="vendor-button"
-                          >
-                            <EditIcon />
-                          </EditVendorButton>
-                          <RemoveVendorButton
-                            variant="outlined"
-                            color="inherit"
-                            onClick={() => handleRemoveVendor(vendor._id)}
-                            className="vendor-button"
-                          >
-                            <DeleteIcon />
-                          </RemoveVendorButton>
-                        </VendorButtonsGrid>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))
-            : Array(Math.min(5, filteredVendors.length || 5))
+            ? vendors.slice(page * 5, page * 5 + 5).map((vendor) => (
+                <Card
+                  key={vendor._id}
+                  sx={{
+                    borderRadius: 2,
+                    border: `1px solid ${theme.palette.divider}`,
+                    boxShadow: "none",
+                    width: "100%",
+                  }}
+                >
+                  <CardContent sx={{ pb: "16px !important" }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}>
+                          {vendor.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Location:</strong> {vendor.location.join(", ")}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" gap={0.5} ml={1}>
+                        <IconButton size="small" color="inherit" onClick={() => navigate(`/dashboard/vendor/${vendor._id}`)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="inherit"
+                          onClick={() => handleRemoveVendor(vendor._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    <Box display="flex" gap={2} mt={2}>
+                      <Box sx={{ flex: 1 }}>
+                        <DashboardImageModal
+                          variant="outlined"
+                          image={`${BASE_URL}${vendor?.image?.url}`}
+                          imageTitle={vendor?.image?.title}
+                        />
+                      </Box>
+                      <Button
+                        sx={{ flex: 1 }}
+                        variant="contained"
+                        color="primary"
+                        disableElevation
+                        onClick={() => {
+                          setSelectedVendor({ id: vendor._id, name: vendor.name });
+                          setModalOpen(true);
+                        }}
+                        disabled={!vendor.products || vendor.products.length === 0}
+                        startIcon={<LocalOfferIcon />}
+                      >
+                        Products
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))
+            : Array(5)
                 .fill()
-                .map((_, index) => (
-                  <Grid item xs={12} key={index}>
-                    <Skeleton
-                      animation="wave"
-                      height={250}
-                      width="100%"
-                      sx={{ marginTop: -5, marginBottom: -2, padding: 0 }}
-                    />
-                  </Grid>
+                .map((_, i) => (
+                  <Skeleton key={i} animation="wave" height={160} width="100%" sx={{ borderRadius: 2 }} />
                 ))}
-        </Grid>
+        </Stack>
       ) : (
-        <>
-          {error && <Error variant="p">{error}</Error>}
-          <VendorsTableContainer>
-            <Table
-              sx={{
-                "& thead th": { backgroundColor: "#f2f2f2" },
-                "& tbody tr:nth-of-type(even)": { backgroundColor: "#f2f2f2" },
-              }}
-            >
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ color: "gray" }}>#</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Name</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Location</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Image</TableCell>
-                  <TableCell sx={{ color: "gray" }}>Products</TableCell>
-                  <TableCell sx={{ color: "gray", textAlign: "right" }}>
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {!isLoading ? (
-                  <>
-                    {filteredVendors
-                      .slice(page * 5, page * 5 + 5)
-                      .map((vendor, index) => (
-                        <TableRow key={vendor._id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{vendor.name}</TableCell>
-                          <TableCell>{vendor.location.join(", ")}</TableCell>
-                          <TableCell>
-                            <DashboardImageModal
-                              imageTitle={vendor?.image?.title}
-                              image={`${BASE_URL}${vendor?.image?.url}`}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              disabled={
-                                !vendor.products || vendor.products.length === 0
-                              }
-                              color="inherit"
-                              sx={{ textTransform: "none" }}
-                              onClick={() =>
-                                handleNavigateToProducts(vendor._id)
-                              }
-                            >
-                              <LocalOfferIcon sx={{ marginRight: 1 }} />
-                              View
-                            </Button>
-                          </TableCell>
-                          <TableCell style={{ textAlign: "right" }}>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleEditVendor(vendor._id)}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              color="inherit"
-                              onClick={() => handleRemoveVendor(vendor._id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </>
-                ) : (
-                  Array(Math.min(5, filteredVendors.length || 5))
+        <VendorsTableContainer>
+          <Table sx={{ minWidth: 600 }}>
+            <TableHead sx={{ backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.background.default : theme.palette.grey[100] }}>
+              <TableRow>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>#</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Name</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Location</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Image</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>Products</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold", textAlign: "right" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {!isLoading
+                ? vendors.slice(page * 5, page * 5 + 5).map((vendor, index) => (
+                    <TableRow key={vendor._id}>
+                      <TableCell>{index + 1 + page * 5}</TableCell>
+                      <TableCell>{vendor.name}</TableCell>
+                      <TableCell>{vendor.location.join(", ")}</TableCell>
+                      <TableCell>
+                        <DashboardImageModal
+                          imageTitle={vendor?.image?.title}
+                          image={`${BASE_URL}${vendor?.image?.url}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          disabled={!vendor.products || vendor.products.length === 0}
+                          color="inherit"
+                          sx={{ textTransform: "none" }}
+                          onClick={() => {
+                            setSelectedVendor({ id: vendor._id, name: vendor.name });
+                            setModalOpen(true);
+                          }}
+                        >
+                          <LocalOfferIcon sx={{ marginRight: 1 }} /> View
+                        </Button>
+                      </TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <IconButton color="inherit" onClick={() => navigate(`/dashboard/vendor/${vendor._id}`)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={() => handleRemoveVendor(vendor._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : Array(5)
                     .fill()
-                    .map((_, index) => (
-                      <TableRow key={index}>
+                    .map((_, i) => (
+                      <TableRow key={i}>
                         {Array(6)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
-                              <Skeleton
-                                animation="wave"
-                                height={40}
-                                width="100%"
-                              />
+                              <Skeleton animation="wave" height={40} />
                             </TableCell>
                           ))}
                       </TableRow>
-                    ))
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              component="div"
-              count={vendors.length}
-              page={page}
-              onPageChange={handleChangePage}
-              rowsPerPage={5}
-              rowsPerPageOptions={[]}
-            />
-          </VendorsTableContainer>
-        </>
+                    ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            count={vendors.length}
+            page={page}
+            onPageChange={(e, newPage) => setPage(newPage)}
+            rowsPerPage={5}
+            rowsPerPageOptions={[]}
+          />
+        </VendorsTableContainer>
       )}
+
+      <VendorProductsModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        vendorId={selectedVendor.id}
+        vendorName={selectedVendor.name}
+      />
     </>
   );
 };
 
-const VendorsTableContainer = styled(TableContainer)(() => ({
-  width: "98vw",
-  marginLeft: "auto",
-  marginRight: "auto",
-  marginTop: 20,
-  borderRadius: 10,
+const VendorsTableContainer = styled(TableContainer)(({ theme }) => ({
+  width: "100%",
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.02)",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const Error = styled(Typography)(() => ({
@@ -332,38 +262,6 @@ const Error = styled(Typography)(() => ({
   width: "100%",
   display: "flex",
   justifyContent: "center",
-}));
-
-const VendorButtonsGrid = styled(Box)(() => ({
-  display: "flex",
-  justifyContent: "center",
-  marginTop: 5,
-  [`@media (min-width: 280px) and (max-width: 280px) and (min-height: 653px) and (max-height: 653px)`]:
-    {
-      flexWrap: "wrap",
-      ".vendor-button:nth-of-type(2), .vendor-button:nth-of-type(3)": {
-        marginTop: 10,
-      },
-    },
-}));
-
-const EditVendorButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  marginLeft: "3vw",
-  textTransform: "none",
-  color: "white",
-}));
-
-const ViewVendorButton = styled(Button)(() => ({
-  backgroundColor: "black",
-  marginLeft: "3vw",
-  textTransform: "none",
-  color: "white",
-}));
-
-const RemoveVendorButton = styled(Button)(() => ({
-  marginLeft: "3vw",
-  textTransform: "none",
 }));
 
 export default VendorsList;

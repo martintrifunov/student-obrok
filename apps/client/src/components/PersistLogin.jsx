@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { useState, useEffect } from "react";
 import useRefreshToken from "../hooks/useRefreshToken";
 import useAuth from "../hooks/useAuth";
 import GlobalLoadingProgress from "./GlobalLoadingProgress";
@@ -22,7 +21,11 @@ const PersistLogin = () => {
       }
     };
 
-    !auth?.accessToken ? verifyRefreshToken() : setIsLoading(false);
+    if (!auth?.accessToken && persist) {
+      verifyRefreshToken();
+    } else {
+      setIsLoading(false);
+    }
 
     return () => (isMounted = false);
   }, []);
