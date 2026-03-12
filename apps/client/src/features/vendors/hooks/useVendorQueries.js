@@ -1,0 +1,47 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+
+export const vendorKeys = {
+  all: ["vendors"],
+  list: (filters) => [...vendorKeys.all, "list", filters],
+  detail: (id) => [...vendorKeys.all, "detail", id],
+};
+
+export function useVendors(searchTerm) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: vendorKeys.list(searchTerm),
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: 0 });
+      if (searchTerm) params.append("name", searchTerm);
+      const response = await axiosPrivate.get(`/vendors?${params}`);
+      return response.data.data;
+    },
+  });
+}
+
+export function useVendor(id) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: vendorKeys.detail(id),
+    queryFn: async () => {
+      const res = await axiosPrivate.get(`/vendors/${id}`);
+      return res.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useDeleteVendor() {
+  const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      await axiosPrivate.delete("/vendors", { data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
