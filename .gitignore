@@ -40,9 +40,6 @@ data/map/*
 #OSRM
 data/certbot/*
 
-#URI consts
-apps/client/src/api/consts.js
-
 #File uploads
 apps/server/src/uploads/*
 !apps/server/src/uploads/.gitkeep
