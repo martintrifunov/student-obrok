@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useContext } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Map from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -28,7 +28,7 @@ import CreditMarker from "../components/CreditMarker";
 import RoutingEngine from "../components/RoutingEngine";
 import useAuth from "../hooks/useAuth";
 import useLogout from "../hooks/useLogout";
-import { ThemeModeContext } from "../context/ThemeModeProvider";
+import { useThemeStore } from "@/store/themeStore";
 import "../assets/map.css";
 
 const INITIAL_VIEW_STATE = {
@@ -41,7 +41,8 @@ const INITIAL_VIEW_STATE = {
 
 const Home = () => {
   const theme = useTheme();
-  const { mode, toggleColorMode } = useContext(ThemeModeContext);
+  const mode = useThemeStore((state) => state.mode);
+  const toggleColorMode = useThemeStore((state) => state.toggleColorMode);
   const logout = useLogout();
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -366,7 +367,6 @@ const Home = () => {
   );
 };
 
-// UI STYLING
 const ModeSelectorContainer = styled(Stack)(({ theme }) => ({
   position: "absolute",
   top: "20px",

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -14,12 +14,14 @@ import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
-import { ThemeModeContext } from "../context/ThemeModeProvider";
+import { useThemeStore } from "@/store/themeStore";
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
   const logout = useLogout();
-  const { mode, toggleColorMode } = useContext(ThemeModeContext);
+
+  const mode = useThemeStore((state) => state.mode);
+  const toggleColorMode = useThemeStore((state) => state.toggleColorMode);
 
   const handleLogout = async () => {
     await logout();
