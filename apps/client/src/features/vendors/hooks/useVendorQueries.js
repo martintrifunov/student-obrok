@@ -45,3 +45,23 @@ export function useDeleteVendor() {
     },
   });
 }
+
+export function useSaveVendor(isEditMode, vendorId) {
+  const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (vendorData) => {
+      if (isEditMode) return axiosPrivate.put("/vendors", vendorData);
+      return axiosPrivate.post("/vendors", vendorData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      if (isEditMode) {
+        queryClient.invalidateQueries({
+          queryKey: vendorKeys.detail(vendorId),
+        });
+      }
+    },
+  });
+}
