@@ -1,4 +1,4 @@
-import { ImageModel } from "../../models/Image.model.js";
+import { ImageModel } from "./image.model.js";
 
 export class ImageRepository {
   async findAll({ page, limit }) {

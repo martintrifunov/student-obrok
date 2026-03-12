@@ -1,4 +1,4 @@
-import { ValidationError } from "../shared/errors/ValidationError.js";
+import { ValidationError } from "../errors/ValidationError.js";
 
 /**
  * Creates a Zod validation middleware.

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodObjectId } from "../../shared/utils/zodObjectId.js";
+import { zodObjectId } from "../../shared/schemas/zodObjectId.js";
 
 export const deleteImageSchema = z.object({
   id: zodObjectId,

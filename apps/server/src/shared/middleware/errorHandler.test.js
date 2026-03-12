@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { errorHandler } from "./errorHandler.js";
-import { AppError } from "../shared/errors/AppError.js";
-import { ValidationError } from "../shared/errors/ValidationError.js";
+import { AppError } from "../errors/AppError.js";
+import { ValidationError } from "../errors/ValidationError.js";
 
 describe("errorHandler", () => {
   const res = {

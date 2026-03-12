@@ -1,5 +1,5 @@
-import { AppError } from "../shared/errors/AppError.js";
-import { ValidationError } from "../shared/errors/ValidationError.js";
+import { AppError } from "../errors/AppError.js";
+import { ValidationError } from "../errors/ValidationError.js";
 
 export const errorHandler = (err, req, res, next) => {
   if (err instanceof ValidationError) {

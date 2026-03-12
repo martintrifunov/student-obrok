@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { vendorController } from "../../container.js";
-import verifyJWT from "../../middleware/verifyJWT.js";
-import { validateRequest } from "../../middleware/validateRequest.js";
+import verifyJWT from "../auth/middleware/verifyJWT.js";
+import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import {
   vendorQuerySchema,
   createVendorSchema,

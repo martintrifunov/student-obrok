@@ -1,4 +1,4 @@
-import { UserModel } from "../../models/User.model.js";
+import { UserModel } from "./user.model.js";
 
 export class AuthRepository {
   async findByUsername(username) {

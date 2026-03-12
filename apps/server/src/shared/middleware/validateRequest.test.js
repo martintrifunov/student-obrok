@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { validateRequest } from "./validateRequest.js";
-import { ValidationError } from "../shared/errors/ValidationError.js";
+import { ValidationError } from "../errors/ValidationError.js";
 import { z } from "zod";
 
 const schema = z.object({ name: z.string() });

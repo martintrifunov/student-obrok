@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authController } from "../../container.js";
-import { loginLimiter } from "../../middleware/limiters.js";
-import { validateRequest } from "../../middleware/validateRequest.js";
+import { loginLimiter } from "../../shared/middleware/rateLimiter.js";
+import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import { loginSchema } from "./auth.schema.js";
 
 const router = Router();

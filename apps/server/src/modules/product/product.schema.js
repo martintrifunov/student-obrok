@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { zodObjectId } from "../../shared/utils/zodObjectId.js";
-import { paginationSchema } from "../../shared/utils/paginationSchema.js";
+import { zodObjectId } from "../../shared/schemas/zodObjectId.js";
+import { paginationSchema } from "../../shared/schemas/paginationSchema.js";
 
 export const productQuerySchema = paginationSchema.extend({
   title: z.string().optional(),
