@@ -1,17 +1,13 @@
-import axios from "../api/axios";
-import useAuth from "./useAuth";
+import { axiosPublic } from "@/api/axios";
+import { useAuthStore } from "@/store/authStore";
 
 const useLogout = () => {
-  const { setAuth, setPersist } = useAuth();
+  const logoutAction = useAuthStore((state) => state.logout);
 
   const logout = async () => {
-    setAuth({});
-    setPersist(false);
-    localStorage.removeItem("persist");
+    logoutAction();
     try {
-      await axios("/logout", {
-        withCredentials: true,
-      });
+      await axiosPublic.get("/logout");
     } catch (err) {
       console.error(err);
     }
