@@ -4,9 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 
-import credentials from "./middleware/credentials.js";
+import credentials from "./modules/auth/middleware/credentials.js";
 import corsOptions from "./config/corsOptions.js";
-import { errorHandler } from "./middleware/errorHandler.js";
+import { errorHandler } from "./shared/middleware/errorHandler.js";
 
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { vendorRouter } from "./modules/vendor/vendor.routes.js";

@@ -1,4 +1,4 @@
-import { ProductModel } from "../../models/Product.model.js";
+import { ProductModel } from "./product.model.js";
 
 export class ProductRepository {
   #populate() {

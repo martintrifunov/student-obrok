@@ -7,6 +7,8 @@ services:
     command: osrm-routed --algorithm mld --port 5001 /data/macedonia-latest.osrm
     ports:
       - 5001:5001
+    networks:
+      - obrok_net
 
   client:
     container_name: obrok_client
@@ -16,7 +18,7 @@ services:
       dockerfile: Dockerfile.dev
       context: ./apps/client
     volumes:
-      - /app/node_modules
+      - client_node_modules:/app/node_modules
       - ./apps/client:/app
     environment:
       NODE_ENV: development
@@ -24,6 +26,8 @@ services:
       - 3500:3500
     depends_on:
       - api
+    networks:
+      - obrok_net
 
   api:
     container_name: obrok_api
@@ -31,24 +35,20 @@ services:
       dockerfile: Dockerfile.dev
       context: ./apps/server
     volumes:
-      - /app/node_modules
+      - server_node_modules:/app/node_modules
       - ./apps/server:/app
+    env_file:
+      - .env
     environment:
       NODE_ENV: development
-      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
-      DATABASE_URI: ${DATABASE_URI}
-      PORT: ${PORT}
-      ADMIN_USERNAME: ${ADMIN_USERNAME}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      CLIENT_ORIGIN: ${CLIENT_ORIGIN}
-      SERVER_ORIGIN: ${SERVER_ORIGIN}
     restart: always
     ports:
       - 5000:5000
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - obrok_net
 
   db:
     container_name: obrok_db
@@ -68,6 +68,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - obrok_net
+
+networks:
+  obrok_net:
+    driver: bridge
 
 volumes:
   student_obrok_db:
+  client_node_modules:
+  server_node_modules:

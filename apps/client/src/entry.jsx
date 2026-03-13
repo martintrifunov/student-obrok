@@ -1,20 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./components/App.jsx";
-import "./assets/index.css";
+import App from "@/components/layout/App.jsx";
+import "@/assets/index.css";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./context/AuthProvider.jsx";
-import { disableReactDevTools } from "@fvilers/disable-react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeModeProvider } from "./context/ThemeModeProvider.jsx";
-
-if (process.env.NODE_ENV === "production") {
-  disableReactDevTools();
-}
+import { ThemeProvider } from "@/theme/ThemeProvider.jsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,14 +22,12 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
-    <ThemeModeProvider>
+    <ThemeProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/*" element={<App />} />
-          </Routes>
-        </AuthProvider>
+        <Routes>
+          <Route path="/*" element={<App />} />
+        </Routes>
       </BrowserRouter>
-    </ThemeModeProvider>
+    </ThemeProvider>
   </QueryClientProvider>,
 );

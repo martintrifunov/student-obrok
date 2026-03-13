@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { imageController } from "../../container.js";
-import verifyJWT from "../../middleware/verifyJWT.js";
+import verifyJWT from "../auth/middleware/verifyJWT.js";
 import upload from "../../config/multerConfig.js";
-import { validateRequest } from "../../middleware/validateRequest.js";
+import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import { deleteImageSchema, imageParamsSchema } from "./image.schema.js";
-import { paginationSchema } from "../../shared/utils/paginationSchema.js";
+import { paginationSchema } from "../../shared/schemas/paginationSchema.js";
 
 const router = Router();
 

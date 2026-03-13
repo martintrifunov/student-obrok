@@ -1,5 +1,5 @@
-import { VendorModel } from "../../models/Vendor.model.js";
-import { ProductModel } from "../../models/Product.model.js";
+import { VendorModel } from "./vendor.model.js";
+import { ProductModel } from "../product/product.model.js";
 
 export class VendorRepository {
   #populate() {

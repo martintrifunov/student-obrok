@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { UserModel } from "../../models/User.model.js";
+import { UserModel } from "../../modules/auth/user.model.js";
 
 export const seedAdminUser = async () => {
   const existing = await UserModel.findOne({
