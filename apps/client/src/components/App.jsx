@@ -1,13 +1,13 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "../pages/NotFound";
-import Login from "../pages/Login";
+import Login from "@/features/auth/pages/Login";
 import Dashboard from "../pages/Dashboard";
-import RequireAuth from "./RequireAuth";
+import RequireAuth from "@/features/auth/components/RequireAuth";
 import AddOrEditProductForm from "@/features/products/pages/AddOrEditProductForm";
 import Layout from "./Layout";
 import DashboardLayout from "./DashboardLayout";
-import PersistLogin from "./PersistLogin";
+import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
 import Home from "../pages/Home";
 

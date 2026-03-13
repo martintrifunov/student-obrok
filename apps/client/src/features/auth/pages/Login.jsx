@@ -12,9 +12,9 @@ import {
   useTheme,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import axios from "../api/axios";
+import axios from "../../../api/axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+import useAuth from "../../../hooks/useAuth";
 
 const Login = () => {
   const { setAuth, persist, setPersist } = useAuth();

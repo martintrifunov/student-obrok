@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import FolderIcon from "@mui/icons-material/Folder";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
-import ProductsList from "../components/ProductsList";
+import ProductsList from "@/features/products/components/ProductsList";
 import VendorsList from "@/features/vendors/components/VendorsList";
 import ProductSearchBar from "../components/ProductSearchBar";
 import VendorSearchBar from "../components/VendorSearchBar";
