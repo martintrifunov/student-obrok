@@ -32,7 +32,10 @@ const MapProductInfoModal = ({ products = [] }) => {
         variant="outlined"
         color="inherit"
         fullWidth
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          setOpen(true);
+          e.currentTarget.blur();
+        }}
         startIcon={<InfoIcon />}
         sx={{ textTransform: "none", borderRadius: 2, py: 1 }}
       >
@@ -65,7 +68,7 @@ const MapProductInfoModal = ({ products = [] }) => {
             alignItems: "center",
           }}
         >
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" component="span" fontWeight="bold">
             Понуди ({products.length})
           </Typography>
           <IconButton
