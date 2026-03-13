@@ -1,5 +1,5 @@
 #!/bin/bash
-# init-ssl.sh
+set -e # Stops the script immediately if Docker fails to build
 
 domains=(obrok.net)
 rsa_key_size=4096
@@ -28,7 +28,7 @@ docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
     -subj '/CN=localhost'" certbot
 
 echo "### Starting nginx ..."
-docker compose -f docker-compose.prod.yml up --force-recreate -d nginx
+docker compose -f docker-compose.prod.yml up --build --force-recreate -d nginx
 
 echo "### Deleting dummy certificate for $domains ..."
 docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
@@ -49,6 +49,8 @@ docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
     $domain_args \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
+    --no-eff-email \
+    --non-interactive \
     --force-renewal" certbot
 
 echo "### Reloading nginx ..."
