@@ -7,13 +7,8 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { disableReactDevTools } from "@fvilers/disable-react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/theme/ThemeProvider.jsx";
-
-if (import.meta.env.NODE_ENV === "production") {
-  disableReactDevTools();
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
