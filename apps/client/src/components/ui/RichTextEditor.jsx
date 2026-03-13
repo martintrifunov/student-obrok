@@ -20,44 +20,6 @@ import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
 import LinkIcon from "@mui/icons-material/Link";
 import FormatClearIcon from "@mui/icons-material/FormatClear";
 
-const EditorContainer = styled(Box)(({ theme, $isError }) => ({
-  width: "100%",
-  display: "flex",
-  flexDirection: "column",
-  border: `1px solid ${$isError ? theme.palette.error.main : theme.palette.divider}`,
-  borderRadius: theme.shape.borderRadius,
-  overflow: "hidden",
-  "& .ProseMirror": {
-    padding: theme.spacing(2),
-    minHeight: "200px",
-    maxHeight: "350px",
-    overflowY: "auto",
-    outline: "none",
-    fontFamily: theme.typography.fontFamily,
-    fontSize: theme.typography.body1.fontSize,
-    "& p": { marginTop: 0, marginBottom: "0.5em" },
-    "& ul, & ol": { marginTop: 0, marginBottom: "0.5em", paddingLeft: "1.5em" },
-    "& blockquote": {
-      borderLeft: `4px solid ${theme.palette.divider}`,
-      paddingLeft: "1em",
-      marginLeft: 0,
-      fontStyle: "italic",
-    },
-  },
-}));
-
-const Toolbar = styled(Box)(({ theme }) => ({
-  borderBottom: `1px solid ${theme.palette.divider}`,
-  padding: theme.spacing(0.5),
-  display: "flex",
-  gap: theme.spacing(0.5),
-  flexWrap: "wrap",
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255,255,255,0.02)"
-      : theme.palette.grey[50],
-}));
-
 const RichTextEditor = ({ value, onChange, error }) => {
   const theme = useTheme();
 
@@ -65,7 +27,6 @@ const RichTextEditor = ({ value, onChange, error }) => {
     extensions: [StarterKit, Underline, Link.configure({ openOnClick: false })],
     content: value,
     onUpdate: ({ editor }) => {
-      // Returns HTML string to parent
       onChange(editor.getHTML() === "<p></p>" ? "" : editor.getHTML());
     },
   });
@@ -163,5 +124,58 @@ const RichTextEditor = ({ value, onChange, error }) => {
     </EditorContainer>
   );
 };
+
+const EditorContainer = styled(Box)(({ theme, $isError }) => ({
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  border: `1px solid ${$isError ? theme.palette.error.main : theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
+  overflow: "hidden",
+  transition: "border-color 0.2s ease-in-out",
+  "&:hover": {
+    borderColor: $isError
+      ? theme.palette.error.main
+      : theme.palette.text.primary,
+  },
+  "&:focus-within": {
+    borderColor: $isError
+      ? theme.palette.error.main
+      : theme.palette.primary.main,
+  },
+  "& .ProseMirror": {
+    backgroundColor:
+      theme.palette.mode === "dark"
+        ? theme.palette.background.default
+        : "transparent",
+    padding: theme.spacing(2),
+    minHeight: "200px",
+    maxHeight: "350px",
+    overflowY: "auto",
+    outline: "none",
+    fontFamily: theme.typography.fontFamily,
+    fontSize: theme.typography.body1.fontSize,
+    "& p": { marginTop: 0, marginBottom: "0.5em" },
+    "& ul, & ol": { marginTop: 0, marginBottom: "0.5em", paddingLeft: "1.5em" },
+    "& blockquote": {
+      borderLeft: `4px solid ${theme.palette.divider}`,
+      paddingLeft: "1em",
+      marginLeft: 0,
+      fontStyle: "italic",
+    },
+  },
+}));
+
+const Toolbar = styled(Box)(({ theme }) => ({
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  padding: theme.spacing(0.5),
+  display: "flex",
+  gap: theme.spacing(0.5),
+  flexWrap: "wrap",
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? theme.palette.background.default
+      : theme.palette.grey[100],
+}));
 
 export default RichTextEditor;
