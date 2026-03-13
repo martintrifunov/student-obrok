@@ -18,6 +18,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_PASSPHRASE }}
           envs: RELEASE_TAG
           script: |
             # Navigate to the exact absolute path on the VPS
