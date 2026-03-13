@@ -227,8 +227,8 @@ const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
   height: "2rem",
   width: "2rem",
   borderRadius: "50%",
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.mode === "dark" ? "#000" : "#fff",
+  backgroundColor: theme.palette.error.main,
+  color: "#ffffff",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
@@ -236,12 +236,12 @@ const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
   fontSize: "1rem",
   cursor: "pointer",
   border: `2px solid ${theme.palette.background.paper}`,
-  boxShadow: `0 0 10px ${theme.palette.primary.main}80`,
+  boxShadow: `0 0 10px ${theme.palette.error.main}80`,
   transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
   animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: "scale(1.15)",
-    boxShadow: `0 0 20px ${theme.palette.primary.main}, 0 0 30px ${theme.palette.primary.main}60`,
+    boxShadow: `0 0 20px ${theme.palette.error.main}, 0 0 30px ${theme.palette.error.main}60`,
   },
   "&:active": {
     transform: "scale(0.95)",
@@ -269,7 +269,7 @@ const VendorMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
   animation: "markerDrop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
-    filter: `drop-shadow(0 0 10px ${theme.palette.primary.main})`,
+    filter: `drop-shadow(0 0 10px ${theme.palette.error.main})`,
   },
   "&:active": {
     transform: `translateY(${$verticalOffset}px) scale(0.95)`,
