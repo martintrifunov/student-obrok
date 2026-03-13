@@ -40,3 +40,31 @@ export function useSaveProduct(isEditMode, productId) {
     },
   });
 }
+
+export function useProducts(searchTerm) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: productKeys.list(searchTerm),
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: 0 });
+      if (searchTerm) params.append("title", searchTerm);
+      const response = await axiosPrivate.get(`/products?${params}`);
+      return response.data.data;
+    },
+  });
+}
+
+export function useDeleteProduct() {
+  const axiosPrivate = useAxiosPrivate();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id) => {
+      await axiosPrivate.delete("/products", { data: { id } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+    },
+  });
+}
