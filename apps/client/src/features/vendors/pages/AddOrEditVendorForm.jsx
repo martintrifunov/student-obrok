@@ -25,16 +25,17 @@ import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate, useParams } from "react-router-dom";
-import FileUploader from "../components/FileUploader";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BASE_URL } from "../api/consts";
+import FileUploader from "@/components/FileUploader";
+import GlobalLoadingProgress from "@/components/GlobalLoadingProgress";
+import { BASE_URL } from "@/api/consts";
+import { useVendor, useSaveVendor } from "../hooks/useVendorQueries";
+import {
+  useImages,
+  useUploadImage,
+} from "@/features/images/hooks/useImageQueries";
 
 const AddOrEditVendorForm = () => {
   const theme = useTheme();
-  const axiosPrivate = useAxiosPrivate();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const params = useParams();
 
@@ -46,14 +47,13 @@ const AddOrEditVendorForm = () => {
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  const { data: fetchedVendor, isLoading: isFetchingVendor } = useQuery({
-    queryKey: ["vendor", params.vendorId],
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/vendors/${params.vendorId}`);
-      return res.data;
-    },
-    enabled: isEditMode,
-  });
+  const { data: fetchedVendor, isLoading: isFetchingVendor } = useVendor(
+    params.vendorId,
+  );
+  const { data: images = [], refetch: fetchImages } = useImages();
+
+  const saveMutation = useSaveVendor(isEditMode, params.vendorId);
+  const uploadImageMutation = useUploadImage();
 
   useEffect(() => {
     if (fetchedVendor) {
@@ -64,34 +64,6 @@ const AddOrEditVendorForm = () => {
       }
     }
   }, [fetchedVendor]);
-
-  const { data: images = [], refetch: fetchImages } = useQuery({
-    queryKey: ["images"],
-    queryFn: async () => {
-      const res = await axiosPrivate.get("/images?limit=0");
-      return res.data.data;
-    },
-    enabled: false,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (vendorData) => {
-      if (isEditMode) return axiosPrivate.put("/vendors", vendorData);
-      return axiosPrivate.post("/vendors", vendorData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
-      if (isEditMode) {
-        queryClient.invalidateQueries({
-          queryKey: ["vendor", params.vendorId],
-        });
-      }
-      navigate("/dashboard");
-    },
-    onError: (error) => {
-      setErrors(error.response?.data || { message: "Error saving vendor" });
-    },
-  });
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -134,18 +106,17 @@ const AddOrEditVendorForm = () => {
   const onSelectFileHandler = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await axiosPrivate.post("/images", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setSelectedImageId(res.data._id);
-      setSelectedImageTitle(res.data.title);
-      setErrors((prev) => ({ ...prev, image: undefined }));
-    } catch (err) {
-      setErrors({ message: "Failed to upload image." });
-    }
+
+    uploadImageMutation.mutate(file, {
+      onSuccess: (data) => {
+        setSelectedImageId(data._id);
+        setSelectedImageTitle(data.title);
+        setErrors((prev) => ({ ...prev, image: undefined }));
+      },
+      onError: () => {
+        setErrors({ message: "Failed to upload image." });
+      },
+    });
   };
 
   const onDeleteFileHandler = () => {
@@ -180,10 +151,19 @@ const AddOrEditVendorForm = () => {
 
     if (selectedImageId) vendorData.image = selectedImageId;
 
-    saveMutation.mutate(vendorData);
+    saveMutation.mutate(vendorData, {
+      onSuccess: () => navigate("/dashboard"),
+      onError: (error) => {
+        setErrors(error.response?.data || { message: "Error saving vendor" });
+      },
+    });
   };
 
-  if (isFetchingVendor || saveMutation.isPending) {
+  if (
+    isFetchingVendor ||
+    saveMutation.isPending ||
+    uploadImageMutation.isPending
+  ) {
     return <GlobalLoadingProgress />;
   }
 

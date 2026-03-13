@@ -8,7 +8,7 @@ import AddOrEditProductForm from "../pages/AddOrEditProductForm";
 import Layout from "./Layout";
 import DashboardLayout from "./DashboardLayout";
 import PersistLogin from "./PersistLogin";
-import AddOrEditVendorForm from "../pages/AddOrEditVendorForm";
+import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
 import Home from "../pages/Home";
 
 const App = () => {
