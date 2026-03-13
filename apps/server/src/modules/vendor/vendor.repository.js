@@ -53,6 +53,10 @@ export class VendorRepository {
       .exec();
   }
 
+  async findByName(name) {
+    return VendorModel.findOne({ name }).exec();
+  }
+
   async findAllForReport() {
     return VendorModel.find()
       .populate("products")
