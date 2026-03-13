@@ -14,7 +14,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import InfoIcon from "@mui/icons-material/Info";
 import ImageIcon from "@mui/icons-material/Image";
-import { BASE_URL } from "../api/consts";
+import { BASE_URL } from "../../../api/consts";
 
 const stripHtmlAndDecode = (html) => {
   if (!html) return "";

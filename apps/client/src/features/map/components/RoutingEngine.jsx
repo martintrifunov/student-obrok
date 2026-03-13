@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Source, Layer, useMap } from "react-map-gl/maplibre";
-import { OSRM_URL } from "../api/consts";
+import { OSRM_URL } from "../../../api/consts";
 
 const PROFILE_MAP = {
   walking: "foot",

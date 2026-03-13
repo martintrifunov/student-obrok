@@ -9,7 +9,7 @@ import Layout from "./Layout";
 import DashboardLayout from "@/features/dashboard/components/DashboardLayout";
 import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
-import Home from "../pages/Home";
+import Home from "@/features/map/pages/Home";
 
 const App = () => {
   return (
