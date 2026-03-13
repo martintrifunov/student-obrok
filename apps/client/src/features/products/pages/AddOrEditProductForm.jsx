@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import ReactQuill from "react-quill-new";
 import {
   Button,
   TextField,
@@ -35,8 +34,6 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import FileUploader from "@/components/ui/FileUploader";
 import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import { BASE_URL } from "@/api/consts";
-import "@/assets/quill.css";
-import "@/assets/quill-snow.css";
 import {
   useProduct,
   useSaveProduct,
@@ -46,6 +43,7 @@ import {
   useImages,
   useUploadImage,
 } from "@/features/images/hooks/useImageQueries";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 const modules = {
   toolbar: [
@@ -335,21 +333,15 @@ const AddOrEditProductForm = () => {
             </Box>
 
             <Box>
-              <QuillWrapper
-                sx={{
-                  border: errors.description
-                    ? `1px solid ${theme.palette.error.main}`
-                    : "none",
-                  borderRadius: 1,
-                }}
-              >
-                <ReactQuill
-                  value={product?.description || ""}
-                  onChange={(event) => handleChange(event)}
-                  theme="snow"
-                  modules={modules}
-                />
-              </QuillWrapper>
+              <RichTextEditor
+                value={product?.description || ""}
+                onChange={(htmlContent) =>
+                  handleChange({
+                    target: { name: "description", value: htmlContent },
+                  })
+                }
+                error={!!errors.description}
+              />
               {errors.description && (
                 <Typography
                   color="error"
