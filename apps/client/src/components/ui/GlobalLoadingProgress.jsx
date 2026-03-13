@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, LinearProgress, Typography, styled } from "@mui/material";
-import { RELEASE_VERSION } from "../api/consts";
+import { RELEASE_VERSION } from "@/api/consts";
 
 const GlobalLoadingProgress = () => {
   return (

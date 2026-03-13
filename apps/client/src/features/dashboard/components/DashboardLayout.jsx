@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Box, Container } from "@mui/material";
-import DashboardHeader from "./DashboardHeader";
+import DashboardHeader from "@/features/dashboard/components/DashboardHeader";
 
 const DashboardLayout = () => {
   return (

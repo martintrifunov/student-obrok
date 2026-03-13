@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Marker } from "react-map-gl/maplibre";
 import { useMap } from "react-map-gl/maplibre";
-import UserDot from "./UserDot";
+import UserDot from "@/features/map/components/UserDot";
 
 const ACCURACY_THRESHOLD = 100;
 const MOVEMENT_THRESHOLD = 15;

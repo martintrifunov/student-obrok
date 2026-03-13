@@ -25,10 +25,10 @@ import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate, useParams } from "react-router-dom";
-import FileUploader from "@/components/FileUploader";
-import GlobalLoadingProgress from "@/components/GlobalLoadingProgress";
+import FileUploader from "@/components/ui/FileUploader";
+import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import { BASE_URL } from "@/api/consts";
-import { useVendor, useSaveVendor } from "../hooks/useVendorQueries";
+import { useVendor, useSaveVendor } from "@/features/vendors/hooks/useVendorQueries";
 import {
   useImages,
   useUploadImage,

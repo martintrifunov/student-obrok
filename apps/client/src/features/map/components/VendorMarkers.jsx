@@ -1,16 +1,16 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
 import { useQuery } from "@tanstack/react-query";
-import axios from "../../../api/axios";
+import axios from "@/api/axios";
 import { Button, Typography, Box, styled, useTheme } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
-import vendorlocationMarker from "../../../assets/icons/vendor_location_marker.svg";
+import vendorlocationMarker from "@/assets/icons/vendor_location_marker.svg";
 import ImageIcon from "@mui/icons-material/Image";
 import useSupercluster from "use-supercluster";
 import { useMap } from "react-map-gl/maplibre";
-import useMapPitch from "../../../hooks/useMapPitch";
-import { BASE_URL } from "../../../api/consts";
-import MapProductInfoModal from "./MapProductInfoModal";
+import useMapPitch from "@/features/map/hooks/useMapPitch";
+import { BASE_URL } from "@/api/consts";
+import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
 
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const theme = useTheme();

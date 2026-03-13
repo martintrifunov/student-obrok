@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
 import { Typography, Box, styled } from "@mui/material";
-import creditLocationMarker from "../../../assets/icons/credit_location_marker.svg";
-import creditPopupIcon from "../../../assets/icons/credit_popup.svg";
-import useMapPitch from "../../../hooks/useMapPitch";
+import creditLocationMarker from "@/assets/icons/credit_location_marker.svg";
+import creditPopupIcon from "@/assets/icons/credit_popup.svg";
+import useMapPitch from "@/features/map/hooks/useMapPitch";
 
 const CreditMarker = () => {
   const [showPopup, setShowPopup] = useState(false);

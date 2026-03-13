@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./components/App.jsx";
-import "./assets/index.css";
+import App from "@/components/layout/App.jsx";
+import "@/assets/index.css";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -9,7 +9,7 @@ import "@fontsource/roboto/700.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { disableReactDevTools } from "@fvilers/disable-react-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "./theme/ThemeProvider.jsx";
+import { ThemeProvider } from "@/theme/ThemeProvider.jsx";
 
 if (import.meta.env.NODE_ENV === "production") {
   disableReactDevTools();

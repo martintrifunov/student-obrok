@@ -17,10 +17,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 import { useNavigate } from "react-router-dom";
-import ProductSearchBar from "./ProductSearchBar";
-import { BASE_URL } from "../api/consts";
+import ProductSearchBar from "@/features/products/components/ProductSearchBar";
+import { BASE_URL } from "@/api/consts";
 
 const stripHtmlAndDecode = (html) => {
   if (!html) return "";

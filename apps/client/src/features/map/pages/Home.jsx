@@ -21,15 +21,15 @@ import LoginIcon from "@mui/icons-material/Login";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { useNavigate } from "react-router-dom";
-import GlobalLoadingProgress from "../../../components/GlobalLoadingProgress";
-import LocateUser from "../components/LocateUser";
-import VendorMarkers from "../components/VendorMarkers";
-import CreditMarker from "../components/CreditMarker";
-import RoutingEngine from "../components/RoutingEngine";
-import useAuth from "../../../hooks/useAuth";
-import useLogout from "../../../hooks/useLogout";
+import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
+import LocateUser from "@/features/map/components/LocateUser";
+import VendorMarkers from "@/features/map/components/VendorMarkers";
+import CreditMarker from "@/features/map/components/CreditMarker";
+import RoutingEngine from "@/features/map/components/RoutingEngine";
+import useAuth from "@/features/auth/hooks/useAuth";
+import useLogout from "@/features/auth/hooks/useLogout";
 import { useThemeStore } from "@/store/themeStore";
-import "../../../assets/map.css";
+import "@/assets/map.css";
 
 const INITIAL_VIEW_STATE = {
   longitude: 21.409471852749466,

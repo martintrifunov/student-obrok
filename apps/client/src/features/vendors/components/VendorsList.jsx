@@ -24,10 +24,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
-import DashboardImageModal from "@/components/DashboardImageModal";
-import VendorProductsModal from "@/components/VendorProductsModal";
+import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
+import VendorProductsModal from "@/features/vendors/components/VendorProductsModal";
 import { BASE_URL } from "@/api/consts";
-import { useVendors, useDeleteVendor } from "../hooks/useVendorQueries";
+import {
+  useVendors,
+  useDeleteVendor,
+} from "@/features/vendors/hooks/useVendorQueries";
 
 const VendorsList = ({ searchTerm }) => {
   const theme = useTheme();
@@ -129,7 +132,7 @@ const VendorsList = ({ searchTerm }) => {
 
                     <Box display="flex" gap={2} mt={2}>
                       <Box sx={{ flex: 1 }}>
-                        <DashboardImageModal
+                        <ImagePreviewModal
                           variant="outlined"
                           image={`${BASE_URL}${vendor?.image?.url}`}
                           imageTitle={vendor?.image?.title}
@@ -216,7 +219,7 @@ const VendorsList = ({ searchTerm }) => {
                       <TableCell>{vendor.name}</TableCell>
                       <TableCell>{vendor.location.join(", ")}</TableCell>
                       <TableCell>
-                        <DashboardImageModal
+                        <ImagePreviewModal
                           imageTitle={vendor?.image?.title}
                           image={`${BASE_URL}${vendor?.image?.url}`}
                         />

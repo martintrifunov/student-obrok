@@ -13,9 +13,9 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import ProductsList from "@/features/products/components/ProductsList";
 import VendorsList from "@/features/vendors/components/VendorsList";
-import ProductSearchBar from "../../../components/ProductSearchBar";
-import VendorSearchBar from "../../../components/VendorSearchBar";
-import useAxiosPrivate from "../../../hooks/useAxiosPrivate";
+import ProductSearchBar from "@/features/products/components/ProductSearchBar";
+import VendorSearchBar from "@/features/vendors/components/VendorSearchBar";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 const Dashboard = () => {
   const navigate = useNavigate();

@@ -22,9 +22,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
-import DashboardImageModal from "@/components/DashboardImageModal";
+import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
 import { BASE_URL } from "@/api/consts";
-import { useProducts, useDeleteProduct } from "../hooks/useProductQueries";
+import {
+  useProducts,
+  useDeleteProduct,
+} from "@/features/products/hooks/useProductQueries";
 
 const ProductsList = ({ searchTerm }) => {
   const theme = useTheme();
@@ -121,7 +124,7 @@ const ProductsList = ({ searchTerm }) => {
                     </Box>
 
                     <Box display="flex" mt={2}>
-                      <DashboardImageModal
+                      <ImagePreviewModal
                         variant="outlined"
                         image={
                           product.image ? `${BASE_URL}${product.image.url}` : ""
@@ -192,7 +195,7 @@ const ProductsList = ({ searchTerm }) => {
                         <TableCell>{product.title}</TableCell>
                         <TableCell>{product.price}</TableCell>
                         <TableCell>
-                          <DashboardImageModal
+                          <ImagePreviewModal
                             imageTitle={product.image?.title}
                             image={
                               product.image

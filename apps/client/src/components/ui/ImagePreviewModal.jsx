@@ -12,7 +12,7 @@ import {
 import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import CloseIcon from "@mui/icons-material/Close";
 
-const DashboardImageModal = ({ imageTitle, image, variant = "text" }) => {
+const ImagePreviewModal = ({ imageTitle, image, variant = "text" }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -119,4 +119,4 @@ const ModalContent = styled(Box)(({ theme }) => ({
   },
 }));
 
-export default DashboardImageModal;
+export default ImagePreviewModal;

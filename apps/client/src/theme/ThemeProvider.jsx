@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ThemeProvider as MUIThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { getAppTheme } from "./theme.js";
+import { getAppTheme } from "@/theme/theme.js";
 import { useThemeStore } from "@/store/themeStore";
 
 export const ThemeProvider = ({ children }) => {

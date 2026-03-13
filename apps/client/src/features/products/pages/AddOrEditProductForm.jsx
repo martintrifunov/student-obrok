@@ -32,12 +32,15 @@ import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import FileUploader from "@/components/FileUploader";
-import GlobalLoadingProgress from "@/components/GlobalLoadingProgress";
+import FileUploader from "@/components/ui/FileUploader";
+import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import { BASE_URL } from "@/api/consts";
 import "@/assets/quill.css";
 import "@/assets/quill-snow.css";
-import { useProduct, useSaveProduct } from "../hooks/useProductQueries";
+import {
+  useProduct,
+  useSaveProduct,
+} from "@/features/products/hooks/useProductQueries";
 import { useVendorsDropdown } from "@/features/vendors/hooks/useVendorQueries";
 import {
   useImages,
