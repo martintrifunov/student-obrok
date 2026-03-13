@@ -1,17 +1,17 @@
 {
   "name": "student-obrok-server",
+  "private": true,
   "version": "1.0",
-  "description": "",
   "main": "src/server.js",
   "type": "module",
+  "author": "Martin Trifunov",
+  "license": "MIT",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "author": "Martin Trifunov",
-  "license": "MIT",
   "dependencies": {
     "@json2csv/plainjs": "^7.0.6",
     "bcrypt": "^6.0.0",
