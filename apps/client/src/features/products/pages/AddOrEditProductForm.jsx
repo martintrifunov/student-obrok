@@ -45,21 +45,6 @@ import {
 } from "@/features/images/hooks/useImageQueries";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    ["bold", "italic", "underline", "strike", "blockquote"],
-    [
-      { list: "ordered" },
-      { list: "bullet" },
-      { indent: "-1" },
-      { indent: "+1" },
-    ],
-    ["link"],
-    ["clean"],
-  ],
-};
-
 const AddOrEditProductForm = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -346,7 +331,7 @@ const AddOrEditProductForm = () => {
                 <Typography
                   color="error"
                   variant="caption"
-                  sx={{ display: "block", ml: 2, mt: -2 }}
+                  sx={{ display: "block", ml: 2, mt: 0.5 }}
                 >
                   {errors.description}
                 </Typography>
