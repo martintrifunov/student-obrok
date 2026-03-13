@@ -9,14 +9,14 @@ import Layout from "@/components/layout/Layout";
 import DashboardLayout from "@/features/dashboard/components/DashboardLayout";
 import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
-import Home from "@/features/map/pages/Home";
+import MapPage from "@/features/map/pages/MapPage";
 
 const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
         <Route element={<PersistLogin />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<MapPage />} />
           <Route path="/login" element={<Login />} />
           <Route element={<RequireAuth />}>
             <Route element={<DashboardLayout />}>

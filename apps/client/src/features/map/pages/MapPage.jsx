@@ -39,7 +39,7 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
 };
 
-const Home = () => {
+const MapPage = () => {
   const theme = useTheme();
   const mode = useThemeStore((state) => state.mode);
   const toggleColorMode = useThemeStore((state) => state.toggleColorMode);
@@ -452,4 +452,4 @@ const MenuToggleButton = styled(IconButton, {
   },
 }));
 
-export default Home;
+export default MapPage;
