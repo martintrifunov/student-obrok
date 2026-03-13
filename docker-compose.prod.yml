@@ -67,6 +67,8 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: obrok
+    ports:
+      - "127.0.0.1:6969:27017"
     volumes:
       - student_obrok_db:/data/db
     healthcheck:

@@ -53,13 +53,13 @@ services:
   db:
     container_name: obrok_db
     image: mongo:8.0
-    ports:
-      - 6969:27017
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: obrok
+    ports:
+      - "6969:27017"
     volumes:
       - student_obrok_db:/data/db
     healthcheck:

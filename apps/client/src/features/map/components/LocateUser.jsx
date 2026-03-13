@@ -134,10 +134,18 @@ const LocateUser = ({
     enableRoutingRef.current?.();
 
     if (followUserRef.current && shouldNotify) {
-      mapRef.current?.easeTo({
-        center: newPos,
-        duration: 500,
-      });
+      const currentMap = mapRef.current;
+      if (
+        currentMap &&
+        !currentMap.isZooming() &&
+        !currentMap.isPanning() &&
+        !currentMap.isMoving()
+      ) {
+        currentMap.easeTo({
+          center: newPos,
+          duration: 1000,
+        });
+      }
     }
   }, []);
 

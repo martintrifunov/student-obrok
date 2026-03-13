@@ -111,7 +111,7 @@ const CreditMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
     filter: `
       brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(5478%) hue-rotate(265deg) brightness(95%) contrast(105%)
-      drop-shadow(0 0 10px ${theme.palette.primary.main})
+      drop-shadow(0 0 12px #9c27b0) 
     `,
   },
   "&:active": {
