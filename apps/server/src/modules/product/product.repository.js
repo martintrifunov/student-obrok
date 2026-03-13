@@ -65,4 +65,18 @@ export class ProductRepository {
   async delete(product) {
     return product.deleteOne();
   }
+  
+  async bulkUpsert(products) {
+    if (!products.length) return null;
+
+    const ops = products.map(({ title, vendor, price, category }) => ({
+      updateOne: {
+        filter: { title, vendor },
+        update: { $set: { title, vendor, price, category } },
+        upsert: true,
+      },
+    }));
+
+    return ProductModel.bulkWrite(ops, { ordered: false });
+  }
 }
