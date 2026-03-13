@@ -1,4 +1,3 @@
-// apps/client/src/components/DashboardLayout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { Box, Container } from "@mui/material";

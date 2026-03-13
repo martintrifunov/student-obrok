@@ -9,7 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import useLogout from "../hooks/useLogout";
+import useLogout from "../../../hooks/useLogout";
 import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
