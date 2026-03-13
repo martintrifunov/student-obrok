@@ -4,7 +4,7 @@ import NotFound from "../pages/NotFound";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import RequireAuth from "./RequireAuth";
-import AddOrEditProductForm from "../pages/AddOrEditProductForm";
+import AddOrEditProductForm from "@/features/products/pages/AddOrEditProductForm";
 import Layout from "./Layout";
 import DashboardLayout from "./DashboardLayout";
 import PersistLogin from "./PersistLogin";

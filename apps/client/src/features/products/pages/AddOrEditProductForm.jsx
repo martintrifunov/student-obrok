@@ -32,13 +32,17 @@ import SaveIcon from "@mui/icons-material/Save";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import CheckIcon from "@mui/icons-material/Check";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import FileUploader from "../components/FileUploader";
-import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import GlobalLoadingProgress from "../components/GlobalLoadingProgress";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BASE_URL } from "../api/consts";
-import "../assets/quill.css";
-import "../assets/quill-snow.css";
+import FileUploader from "@/components/FileUploader";
+import GlobalLoadingProgress from "@/components/GlobalLoadingProgress";
+import { BASE_URL } from "@/api/consts";
+import "@/assets/quill.css";
+import "@/assets/quill-snow.css";
+import { useProduct, useSaveProduct } from "../hooks/useProductQueries";
+import { useVendorsDropdown } from "@/features/vendors/hooks/useVendorQueries";
+import {
+  useImages,
+  useUploadImage,
+} from "@/features/images/hooks/useImageQueries";
 
 const modules = {
   toolbar: [
@@ -59,8 +63,6 @@ const AddOrEditProductForm = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const axiosPrivate = useAxiosPrivate();
-  const queryClient = useQueryClient();
   const params = useParams();
 
   const isEditMode = !!params.productId;
@@ -72,24 +74,22 @@ const AddOrEditProductForm = () => {
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  const { data: vendors = [] } = useQuery({
-    queryKey: ["vendors", "dropdown"],
-    queryFn: async () => {
-      const res = await axiosPrivate.get("/vendors?limit=0");
-      return res.data.data;
-    },
-  });
+  const { data: vendors = [] } = useVendorsDropdown();
+  const {
+    data: fetchedProduct,
+    isLoading: isFetchingProduct,
+    isError: isFetchError,
+  } = useProduct(params.productId);
+  const { data: images = [], refetch: fetchImages } = useImages();
 
-  const { data: fetchedProduct, isLoading: isFetchingProduct } = useQuery({
-    queryKey: ["product", params.productId],
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/products/${params.productId}`);
-      return res.data;
-    },
-    enabled: isEditMode,
-    onError: () =>
-      navigate("/login", { state: { from: location }, replace: true }),
-  });
+  const saveMutation = useSaveProduct(isEditMode, params.productId);
+  const uploadImageMutation = useUploadImage();
+
+  useEffect(() => {
+    if (isFetchError) {
+      navigate("/login", { state: { from: location }, replace: true });
+    }
+  }, [isFetchError, location, navigate]);
 
   useEffect(() => {
     if (fetchedProduct) {
@@ -103,36 +103,6 @@ const AddOrEditProductForm = () => {
       }
     }
   }, [fetchedProduct]);
-
-  const { data: images = [], refetch: fetchImages } = useQuery({
-    queryKey: ["images"],
-    queryFn: async () => {
-      const res = await axiosPrivate.get("/images?limit=0");
-      return res.data.data;
-    },
-    enabled: false,
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (productData) => {
-      if (isEditMode) return axiosPrivate.put("/products", productData);
-      return axiosPrivate.post("/products", productData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
-      queryClient.invalidateQueries({ queryKey: ["vendor"] });
-      if (isEditMode) {
-        queryClient.invalidateQueries({
-          queryKey: ["product", params.productId],
-        });
-      }
-      navigate("/dashboard");
-    },
-    onError: (error) => {
-      setErrors(error.response?.data || { message: "Error saving product" });
-    },
-  });
 
   const handleChange = (event) => {
     if (typeof event === "string" || event?.target === undefined) {
@@ -155,18 +125,17 @@ const AddOrEditProductForm = () => {
   const onSelectFileHandler = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await axiosPrivate.post("/images", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setSelectedImageId(res.data._id);
-      setSelectedImageTitle(res.data.title);
-      setErrors((prev) => ({ ...prev, image: undefined }));
-    } catch (err) {
-      setErrors({ message: "Failed to upload image." });
-    }
+
+    uploadImageMutation.mutate(file, {
+      onSuccess: (data) => {
+        setSelectedImageId(data._id);
+        setSelectedImageTitle(data.title);
+        setErrors((prev) => ({ ...prev, image: undefined }));
+      },
+      onError: () => {
+        setErrors({ message: "Failed to upload image." });
+      },
+    });
   };
 
   const onDeleteFileHandler = () => {
@@ -198,10 +167,19 @@ const AddOrEditProductForm = () => {
 
     if (selectedImageId) productData.image = selectedImageId;
 
-    saveMutation.mutate(productData);
+    saveMutation.mutate(productData, {
+      onSuccess: () => navigate("/dashboard"),
+      onError: (error) => {
+        setErrors(error.response?.data || { message: "Error saving product" });
+      },
+    });
   };
 
-  if (isFetchingProduct || saveMutation.isPending) {
+  if (
+    isFetchingProduct ||
+    saveMutation.isPending ||
+    uploadImageMutation.isPending
+  ) {
     return <GlobalLoadingProgress />;
   }
 
