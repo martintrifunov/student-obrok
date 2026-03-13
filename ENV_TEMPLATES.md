@@ -1,28 +1,39 @@
-# ENV TEMPLATES
+# Environment Variables Configuration
 
-## Configuring ENV variables & constants:
+This project requires environment variables to be set in **two distinct locations**: the root directory (for Docker, backend, and database) and the client directory (for Vite build-time variables).
 
-Create a .env file in the root directory of the project. <br>
+## 1. Root Directory (`/.env`)
+Create a `.env` file at the root of the project. This configures the backend and database.
 
-Add & configure every necessary ENV variable. <br>
+```env
+# --- JWT Secrets ---
+ACCESS_TOKEN_SECRET="your_secure_access_secret_here"
+REFRESH_TOKEN_SECRET="your_secure_refresh_secret_here"
 
-For the root directory .env file you're gonna need:
-- ACCESS_TOKEN_SECRET=123
-- REFRESH_TOKEN_SECRET=123
-- ADMIN_USERNAME=admin
-- ADMIN_PASSWORD="123"
-- DATABASE_URI=mongodb://admin:password@obrok_db:27017/obrok?authSource=admin
-- MONGO_INITDB_ROOT_USERNAME=admin
-- MONGO_INITDB_ROOT_PASSWORD=password
-- CLIENT_ORIGIN=http://localhost:80
-- SERVER_ORIGIN=http://localhost:5000
-- PORT=5000
+# --- Admin Initial Setup ---
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="super_secure_password"
 
-If you want to configure SLL for HTTPS you're gonna need:
-- CERTBOT_EMAIL="your-email@example.com"
+# --- MongoDB Configuration ---
+# Must match the credentials below
+DATABASE_URI="mongodb://admin:super_secure_password@obrok_db:27017/obrok?authSource=admin"
+MONGO_INITDB_ROOT_USERNAME="admin"
+MONGO_INITDB_ROOT_PASSWORD="super_secure_password"
 
-For the client app you're not gonna need a .env file, just create/edit the consts.js file in apps/client/src/api/ and add these values:
-- BASE_URL = "http://localhost:5000";
-- BASE_API_URL = "http://localhost:5000/api";
-- OSRM_URL = "http://localhost:5001/route/v1";
-- RELEASE_VERSION = "Release: Example Date";
+# --- Express API Config ---
+CLIENT_ORIGIN="https://obrok.net"
+SERVER_ORIGIN="https://obrok.net/api"
+PORT=5000
+```
+
+## 2. Client Directory (`/apps/client/.env`)
+Create a `.env` file inside the `apps/client` folder. These must start with `VITE_` to be exposed to the React frontend.
+
+```env
+# For local dev, use http://localhost:5000. For prod, use your domain.
+VITE_API_URL="https://obrok.net"
+VITE_OSRM_URL="https://obrok.net/route/v1"
+
+# Automatically injected by GitHub Actions during production deployment
+VITE_RELEASE_VERSION="v2026.03.13.1"
+```

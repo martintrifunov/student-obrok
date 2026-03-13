@@ -18,19 +18,16 @@ services:
       - api
     networks:
       - obrok_prod_net
+    command: "/bin/sh -c 'while :; do sleep 12h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   certbot:
     container_name: obrok_certbot
     image: certbot/certbot
+    restart: unless-stopped
     volumes:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
-    command: >
-      certonly --webroot -w /var/www/certbot
-      --keep-until-expiring
-      --email ${CERTBOT_EMAIL}
-      -d obrok.net
-      --agree-tos
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - obrok_prod_net
 
