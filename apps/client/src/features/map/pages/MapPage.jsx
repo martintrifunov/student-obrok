@@ -151,7 +151,7 @@ const MapPage = () => {
     <Box
       sx={{
         width: "100%",
-        height: "100vh",
+        height: "100dvh",
         position: "relative",
         "& .maplibregl-popup-content": {
           backgroundColor: "background.paper",
