@@ -16,6 +16,7 @@ services:
       - 443:443
     depends_on:
       - api
+      - osrm
     networks:
       - obrok_prod_net
     command: "/bin/sh -c 'while :; do sleep 12h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
