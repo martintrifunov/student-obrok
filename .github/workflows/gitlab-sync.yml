@@ -1,17 +1,20 @@
-name: CI/CD Workflow
+name: Sync to FINKI GitLab (Disabled)
+
+# Automatic triggers are commented out to prevent failures from invalid credentials.
 
 on:
-  push:
-    branches:
-      - "main"
-  pull_request:
-    branches:
-      - "main"
+  workflow_dispatch: 
+  # push:
+  #   branches:
+  #     - "main"
+  # pull_request:
+  #   branches:
+  #     - "main"
+
 jobs:
   gitlab-sync:
     name: gitlab-sync
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
       - name: Checkout Repository
