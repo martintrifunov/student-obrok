@@ -65,3 +65,14 @@ export function useSaveVendor(isEditMode, vendorId) {
     },
   });
 }
+
+export function useVendorsDropdown() {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: [...vendorKeys.all, "dropdown"],
+    queryFn: async () => {
+      const res = await axiosPrivate.get("/vendors?limit=0");
+      return res.data.data;
+    },
+  });
+}
