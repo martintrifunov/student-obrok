@@ -9,6 +9,8 @@ import { AuthService } from "./modules/auth/auth.service.js";
 import { ImageService } from "./modules/image/image.service.js";
 import { VendorService } from "./modules/vendor/vendor.service.js";
 import { ProductService } from "./modules/product/product.service.js";
+import { GeocoderService } from "./modules/scraper/geocoder.service.js";
+import { ScraperService } from "./modules/scraper/scraper.service.js";
 
 import { AuthController } from "./modules/auth/auth.controller.js";
 import { ImageController } from "./modules/image/image.controller.js";
@@ -29,6 +31,13 @@ const productService = new ProductService(
   productRepository,
   vendorRepository,
   imageRepository,
+);
+const geocoderService = new GeocoderService();
+export const scraperService = new ScraperService(
+  vendorRepository,
+  productRepository,
+  imageRepository,
+  geocoderService,
 );
 
 export const authController = new AuthController(authService, tokenService);
