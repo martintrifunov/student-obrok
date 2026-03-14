@@ -4,20 +4,17 @@ export class ScraperService {
   constructor(
     vendorRepository,
     productRepository,
+    vendorProductRepository,
     imageRepository,
     geocoderService,
   ) {
     this.vendorRepository = vendorRepository;
     this.productRepository = productRepository;
+    this.vendorProductRepository = vendorProductRepository;
     this.imageRepository = imageRepository;
     this.geocoderService = geocoderService;
   }
 
-  /**
-   * Runs the full scrape pipeline for a given market scraper.
-   *
-   * @param {import('./markets/base.scraper.js').BaseScraper} scraper
-   */
   async runForMarket(scraper) {
     console.log(
       `[ScraperService] Starting run for ${scraper.constructor.name}`,
@@ -47,7 +44,6 @@ export class ScraperService {
         `[ScraperService] Found ${vendors.length} stores for ${scraper.constructor.name}`,
       );
 
-      // Sequential — respects Nominatim's 1 req/sec rate limit
       for (const { name, address, pricelistUrl } of vendors) {
         await this.#processVendor({
           name,
@@ -65,10 +61,6 @@ export class ScraperService {
       );
     }
   }
-
-  get geocodeSuffix() {
-  return "Македонија";
-}
 
   async #processVendor({
     name,
@@ -114,15 +106,28 @@ export class ScraperService {
 
       if (!rawProducts.length) return;
 
-      const products = rawProducts.map((p) => ({
-        ...p,
-        vendor: vendor._id,
+      const productsData = rawProducts.map(({ title, category }) => ({
+        title,
+        category,
       }));
+      const productIdMap =
+        await this.productRepository.bulkUpsertProducts(productsData);
 
-      const result = await this.productRepository.bulkUpsert(products);
+      const vendorProducts = rawProducts
+        .filter(({ title }) => productIdMap.has(title))
+        .map(({ title, price }) => ({
+          vendor: vendor._id,
+          product: productIdMap.get(title),
+          price,
+        }));
+
+      const result =
+        await this.vendorProductRepository.bulkUpsert(vendorProducts);
+
       console.log(
-        `[ScraperService] Upsert result for "${name}": ` +
-          `${result.upsertedCount} inserted, ${result.modifiedCount} updated`,
+        `[ScraperService] Upsert for "${name}": ` +
+          `${result.upsertedCount} new links, ${result.modifiedCount} price updates. ` +
+          `(${productIdMap.size} unique products)`,
       );
     } catch (err) {
       console.error(
