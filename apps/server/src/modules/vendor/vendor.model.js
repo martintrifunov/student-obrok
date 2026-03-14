@@ -13,8 +13,8 @@ const VendorSchema = new mongoose.Schema(
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
-VendorSchema.virtual("products", {
-  ref: "Product",
+VendorSchema.virtual("vendorProducts", {
+  ref: "VendorProduct",
   localField: "_id",
   foreignField: "vendor",
 });
