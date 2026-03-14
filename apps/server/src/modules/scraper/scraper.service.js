@@ -1,5 +1,7 @@
 import puppeteer from "puppeteer";
 
+const CONCURRENT_TABS = 4;
+
 export class ScraperService {
   constructor(
     vendorRepository,
@@ -16,140 +18,92 @@ export class ScraperService {
   }
 
   async runForMarket(scraper) {
-    console.log(
-      `[ScraperService] Starting run for ${scraper.constructor.name}`,
-    );
+    const startTime = performance.now();
+    console.log(`\n[ScraperService] 🚀 Starting ${scraper.constructor.name}`);
 
     const placeholderImage = await this.imageRepository.findByFilename(
       scraper.placeholderImageFilename,
     );
-    if (!placeholderImage) {
-      throw new Error(
-        `Placeholder image "${scraper.placeholderImageFilename}" not found in DB. ` +
-          `Please upload it before running the scraper.`,
-      );
-    }
-
     const browser = await puppeteer.launch({
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-      ],
+      args: ["--no-sandbox"],
     });
 
     try {
-      const page = await browser.newPage();
-      await page.setDefaultNavigationTimeout(60_000);
-      await page.setRequestInterception(true);
-      
-      page.on("request", (req) => {
-        const type = req.resourceType();
-        if (["image", "stylesheet", "font", "media"].includes(type)) {
-          req.abort();
-        } else {
-          req.continue();
-        }
-      });
+      const setupPage = await browser.newPage();
+      const vendors = await scraper.fetchVendors(setupPage);
+      await setupPage.close();
 
-      const vendors = await scraper.fetchVendors(page);
-      console.log(
-        `[ScraperService] Found ${vendors.length} stores for ${scraper.constructor.name}`,
-      );
-
-      for (const { name, address, pricelistUrl } of vendors) {
-        await this.#processVendor({
-          name,
-          address,
-          pricelistUrl,
-          page,
+      // Phase 1: Sequential Vendor Setup
+      const readyVendors = [];
+      for (const v of vendors) {
+        const vendorDoc = await this.#ensureVendorExists(
+          v.name,
+          v.address,
           scraper,
           placeholderImage,
-        });
+        );
+        readyVendors.push({ ...v, vendorDoc });
+      }
+
+      // Phase 2: Multithreaded Scrape
+      for (let i = 0; i < readyVendors.length; i += CONCURRENT_TABS) {
+        const batch = readyVendors.slice(i, i + CONCURRENT_TABS);
+        await Promise.all(
+          batch.map((v) => this.#scrapeAndSaveStore(v, scraper, browser)),
+        );
       }
     } finally {
       await browser.close();
+      const duration = ((performance.now() - startTime) / 1000).toFixed(2);
       console.log(
-        `[ScraperService] Finished run for ${scraper.constructor.name}`,
+        `\n[ScraperService] ✅ Finished ${scraper.constructor.name} in ${duration}s`,
       );
     }
   }
 
-  async #processVendor({
-    name,
-    address,
-    pricelistUrl,
-    page,
-    scraper,
-    placeholderImage,
-  }) {
+  async #ensureVendorExists(name, address, scraper, placeholderImage) {
+    let vendor = await this.vendorRepository.findByName(name);
+    if (vendor) return vendor;
+
+    const location = await this.geocoderService.geocode(
+      name,
+      scraper.geocodeSuffix,
+      address,
+    );
+    return this.vendorRepository.create({
+      name,
+      location,
+      image: placeholderImage._id,
+    });
+  }
+
+  async #scrapeAndSaveStore(vendorData, scraper, browser) {
+    const { name, pricelistUrl, vendorDoc } = vendorData;
+    const tabStartTime = performance.now();
+    const page = await browser.newPage();
+
     try {
-      let vendor = await this.vendorRepository.findByName(name);
-
-      if (!vendor) {
-        console.log(
-          `[ScraperService] New vendor "${name}". Geocoding via: "${address}"...`,
-        );
-
-        const location = await this.geocoderService.geocode(
-          name,
-          scraper.geocodeSuffix,
-          address,
-        );
-
-        vendor = await this.vendorRepository.create({
-          name,
-          location,
-          image: placeholderImage._id,
-        });
-
-        console.log(
-          `[ScraperService] Created vendor "${name}" at [${location}]`,
-        );
-      } else {
-        console.log(
-          `[ScraperService] Vendor "${name}" already exists. Skipping geocoding.`,
-        );
-      }
-
       const rawProducts = await scraper.fetchProducts(page, pricelistUrl);
-      console.log(
-        `[ScraperService] Scraped ${rawProducts.length} products for "${name}"`,
-      );
-
       if (!rawProducts.length) return;
 
-      const productsData = rawProducts.map(({ title, category }) => ({
-        title,
-        category,
-      }));
       const productIdMap =
-        await this.productRepository.bulkUpsertProducts(productsData);
+        await this.productRepository.bulkUpsertProducts(rawProducts);
+      const vendorProducts = rawProducts.map((p) => ({
+        vendor: vendorDoc._id,
+        product: productIdMap.get(p.title),
+        price: p.price,
+      }));
 
-      const vendorProducts = rawProducts
-        .filter(({ title }) => productIdMap.has(title))
-        .map(({ title, price }) => ({
-          vendor: vendor._id,
-          product: productIdMap.get(title),
-          price,
-        }));
-
-      const result =
-        await this.vendorProductRepository.bulkUpsert(vendorProducts);
-
+      await this.vendorProductRepository.bulkUpsert(vendorProducts);
+      const tabDuration = ((performance.now() - tabStartTime) / 1000).toFixed(
+        2,
+      );
       console.log(
-        `[ScraperService] Upsert for "${name}": ` +
-          `${result.upsertedCount} new links, ${result.modifiedCount} price updates. ` +
-          `(${productIdMap.size} unique products)`,
+        `[Scraper] [${name}] Done: ${rawProducts.length} items in ${tabDuration}s`,
       );
-    } catch (err) {
-      console.error(
-        `[ScraperService] Error processing vendor "${name}":`,
-        err.message,
-      );
+    } finally {
+      await page.close();
     }
   }
 }

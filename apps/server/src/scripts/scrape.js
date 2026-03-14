@@ -1,6 +1,11 @@
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+config({ path: path.resolve(__dirname, "../../../../.env") });
+
 import mongoose from "mongoose";
 import { VendorRepository } from "../modules/vendor/vendor.repository.js";
 import { ProductRepository } from "../modules/product/product.repository.js";
@@ -9,11 +14,6 @@ import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
 import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-config({ path: path.resolve(__dirname, "../../../../.env") });
 
 const ALL_SCRAPERS = {
   vero: new VeroScraper(),
@@ -37,19 +37,11 @@ async function main() {
   const uri = process.env.MONGO_URI_LOCAL ?? process.env.MONGO_URI;
 
   if (!uri) {
-    console.error(
-      "[scrape] No MongoDB URI found. " +
-        "Set MONGO_URI_LOCAL or MONGO_URI in your .env file.",
-    );
+    console.error("[scrape] No MongoDB URI found in .env");
     process.exit(1);
   }
 
-  console.log(
-    `[scrape] Connecting to MongoDB via ${
-      process.env.MONGO_URI_LOCAL ? "MONGO_URI_LOCAL" : "MONGO_URI"
-    }...`,
-  );
-
+  console.log(`[scrape] Connecting to MongoDB...`);
   await mongoose.connect(uri);
   console.log("[scrape] DB connected.\n");
 
@@ -61,12 +53,22 @@ async function main() {
     new GeocoderService(),
   );
 
+  // Start total timer
+  const globalStartTime = performance.now();
+
   for (const scraper of scrapers) {
     await scraperService.runForMarket(scraper);
   }
 
+  // Calculate total seconds
+  const totalDuration = ((performance.now() - globalStartTime) / 1000).toFixed(
+    2,
+  );
+
   await mongoose.disconnect();
-  console.log("\n[scrape] Done. DB disconnected.");
+  console.log(
+    `[scrape] 🎉 All scraping completed in ${totalDuration} seconds. DB disconnected.`,
+  );
   process.exit(0);
 }
 

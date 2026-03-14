@@ -1,6 +1,7 @@
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const DEFAULT_COORDS = [41.9981, 21.4254];
 
+// Mapping for clean transliteration
 const CYR_TO_LAT = {
   А: "A",
   Б: "B",
@@ -67,73 +68,63 @@ const CYR_TO_LAT = {
 };
 
 function transliterate(text) {
-  return text
-    .split("")
-    .map((ch) => CYR_TO_LAT[ch] ?? ch)
-    .join("");
-}
-
-const CITY_HINTS = {
-  аеродром: "Skopje",
-  карпош: "Skopje",
-  центар: "Skopje",
-  чаир: "Skopje",
-  "кисела вода": "Skopje",
-  тетово: "Tetovo",
-  битола: "Bitola",
-  куманово: "Kumanovo",
-  гевгелија: "Gevgelija",
-  богородица: "Gevgelija",
-};
-
-function extractCity(address) {
-  const lower = address.toLowerCase();
-  for (const [hint, city] of Object.entries(CITY_HINTS)) {
-    if (lower.includes(hint)) return city;
-  }
-  return null;
+  return (
+    text
+      ?.split("")
+      .map((ch) => CYR_TO_LAT[ch] ?? ch)
+      .join("") || ""
+  );
 }
 
 export class GeocoderService {
-  /**
-   * Geocodes a store using Nominatim with multiple fallback strategies.
-   *
-   * @param {string} storeName - e.g. "ВЕРО 1"
-   * @param {string} suffix    - e.g. "Македонија"
-   * @param {string} [address] - e.g. "Бул. Јане Сандански бр.111, Аеродром"
-   * @returns {Promise<[number, number]>}
-   */
   async geocode(storeName, suffix, address) {
-    const city = extractCity(address || "") || "Skopje";
-    const latinName = transliterate(storeName);
-    const latinAddress = address ? transliterate(address) : "";
+    const city = this.#getCity(address) || "";
 
-    // Try multiple query strategies in order of precision
+    // Clean the address: Remove "Бул.", "Ул.", "бр." etc.
+    const cleanAddress = address
+      ?.replace(/(Бул\.|Ул\.|ул\.|бул\.|бр\.|бр)/gi, "")
+      .split("–")[0] // Remove neighborhood hints after the dash
+      .trim();
+
+    // Strategy: Try 4 levels of queries
     const queries = [
-      // 1. Full Latin address + country
-      latinAddress && `${latinAddress}, ${city}, North Macedonia`,
-      // 2. Store name + city (e.g. "Vero 1 Skopje")
-      `${latinName} ${city} North Macedonia`,
-      // 3. Just "Vero supermarket" + city
-      `Vero supermarket ${city} North Macedonia`,
-    ].filter(Boolean);
+      `${cleanAddress}, ${city}, ${suffix}`, // 1. Specific Street + City
+      `${storeName}, ${city}, ${suffix}`, // 2. Store Name + City
+      `${transliterate(cleanAddress)}, ${transliterate(city)}, North Macedonia`, // 3. Latin Street
+      `${city}, ${suffix}`, // 4. City Fallback
+    ].filter((q) => q.length > 10); // Ignore empty/short queries
 
-    for (const query of queries) {
-      const result = await this.#search(query);
+    for (const q of queries) {
+      console.log(`[GeocoderService] Querying: "${q}"`);
+      const result = await this.#search(q);
+
       if (result) {
-        console.log(
-          `[GeocoderService] Found "${storeName}" via query: "${query}"`,
-        );
-        return result;
+        console.log(`[GeocoderService] ✅ Found match via: "${q}"`);
+        return [result.lat, result.lon];
       }
-      // Nominatim rate limit — 1 req/sec
       await this.#sleep(1100);
     }
 
+    // Generic Jitter Fallback
+    const jitterLat = (Math.random() - 0.5) * 0.01;
+    const jitterLon = (Math.random() - 0.5) * 0.01;
     console.warn(
-      `[GeocoderService] All queries failed for "${storeName}". Using fallback.`,
+      `[GeocoderService] ❌ All queries failed for ${storeName}. Using jitter.`,
     );
-    return DEFAULT_COORDS;
+    return [DEFAULT_COORDS[0] + jitterLat, DEFAULT_COORDS[1] + jitterLon];
+  }
+
+  #getCity(address) {
+    if (!address) return null;
+    const cities = [
+      "Скопје",
+      "Битола",
+      "Тетово",
+      "Куманово",
+      "Гевгелија",
+      "Велес",
+    ];
+    return cities.find((c) => address.includes(c)) || null;
   }
 
   async #search(query) {
@@ -142,31 +133,22 @@ export class GeocoderService {
       url.searchParams.set("q", query);
       url.searchParams.set("format", "json");
       url.searchParams.set("limit", "1");
-      url.searchParams.set("countrycodes", "mk");
+      url.searchParams.set("countrycodes", "mk"); // Lock to Macedonia
 
       const response = await fetch(url.toString(), {
-        headers: {
-          "User-Agent": "StudentObrok/1.0 (student-meal-locator)",
-        },
+        headers: { "User-Agent": "StudentObrok/1.0" },
       });
 
-      if (!response.ok) return null;
-
       const results = await response.json();
-      if (!results.length) return null;
-
-      const { lat, lon } = results[0];
-      return [parseFloat(lat), parseFloat(lon)];
-    } catch (err) {
-      console.error(
-        `[GeocoderService] Search error for "${query}":`,
-        err.message,
-      );
+      return results.length > 0
+        ? { lat: parseFloat(results[0].lat), lon: parseFloat(results[0].lon) }
+        : null;
+    } catch {
       return null;
     }
   }
 
   #sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((res) => setTimeout(res, ms));
   }
 }
