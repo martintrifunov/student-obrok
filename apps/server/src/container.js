@@ -2,6 +2,7 @@ import { AuthRepository } from "./modules/auth/auth.repository.js";
 import { ImageRepository } from "./modules/image/image.repository.js";
 import { VendorRepository } from "./modules/vendor/vendor.repository.js";
 import { ProductRepository } from "./modules/product/product.repository.js";
+import { VendorProductRepository } from "./modules/product/vendor-product.repository.js";
 
 import { TokenService } from "./modules/auth/token.service.js";
 import { FileService } from "./modules/image/file.service.js";
@@ -21,21 +22,32 @@ const authRepository = new AuthRepository();
 const imageRepository = new ImageRepository();
 const vendorRepository = new VendorRepository();
 const productRepository = new ProductRepository();
+const vendorProductRepository = new VendorProductRepository();
 
 const tokenService = new TokenService();
 const fileService = new FileService();
 const authService = new AuthService(authRepository, tokenService);
 const imageService = new ImageService(imageRepository, fileService);
-const vendorService = new VendorService(vendorRepository, imageRepository);
+
+const vendorService = new VendorService(
+  vendorRepository,
+  imageRepository,
+  vendorProductRepository,
+);
+
 const productService = new ProductService(
   productRepository,
   vendorRepository,
   imageRepository,
+  vendorProductRepository,
 );
+
 const geocoderService = new GeocoderService();
+
 export const scraperService = new ScraperService(
   vendorRepository,
   productRepository,
+  vendorProductRepository,
   imageRepository,
   geocoderService,
 );

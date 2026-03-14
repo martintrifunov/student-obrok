@@ -4,6 +4,7 @@ import path from "path";
 import mongoose from "mongoose";
 import { VendorRepository } from "../modules/vendor/vendor.repository.js";
 import { ProductRepository } from "../modules/product/product.repository.js";
+import { VendorProductRepository } from "../modules/product/vendor-product.repository.js";
 import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
@@ -55,6 +56,7 @@ async function main() {
   const scraperService = new ScraperService(
     new VendorRepository(),
     new ProductRepository(),
+    new VendorProductRepository(),
     new ImageRepository(),
     new GeocoderService(),
   );
