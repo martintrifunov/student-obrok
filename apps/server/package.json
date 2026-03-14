@@ -10,7 +10,10 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "scrape": "node src/scripts/scrape.js",
+    "scrape:vero": "node src/scripts/scrape.js vero",
+    "scrape:debug-vero": "node src/scripts/debug-vero.js",
   },
   "dependencies": {
     "@json2csv/plainjs": "^7.0.6",

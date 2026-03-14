@@ -15,10 +15,6 @@ export class ScraperService {
 
   /**
    * Runs the full scrape pipeline for a given market scraper.
-   * - Resolves the placeholder image for that market.
-   * - Fetches all store locations from the market's index page.
-   * - For each store: creates the vendor if it doesn't exist (with geocoding),
-   *   then bulk-upserts its products.
    *
    * @param {import('./markets/base.scraper.js').BaseScraper} scraper
    */
@@ -51,9 +47,11 @@ export class ScraperService {
         `[ScraperService] Found ${vendors.length} stores for ${scraper.constructor.name}`,
       );
 
-      for (const { name, pricelistUrl } of vendors) {
+      // Sequential — respects Nominatim's 1 req/sec rate limit
+      for (const { name, address, pricelistUrl } of vendors) {
         await this.#processVendor({
           name,
+          address,
           pricelistUrl,
           page,
           scraper,
@@ -68,8 +66,13 @@ export class ScraperService {
     }
   }
 
+  get geocodeSuffix() {
+  return "Македонија";
+}
+
   async #processVendor({
     name,
+    address,
     pricelistUrl,
     page,
     scraper,
@@ -80,12 +83,13 @@ export class ScraperService {
 
       if (!vendor) {
         console.log(
-          `[ScraperService] New vendor found: "${name}". Geocoding...`,
+          `[ScraperService] New vendor "${name}". Geocoding via: "${address}"...`,
         );
 
         const location = await this.geocoderService.geocode(
           name,
           scraper.geocodeSuffix,
+          address,
         );
 
         vendor = await this.vendorRepository.create({
