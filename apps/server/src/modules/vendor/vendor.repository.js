@@ -1,12 +1,14 @@
 import { VendorModel } from "./vendor.model.js";
-import { ProductModel } from "../product/product.model.js";
 
 export class VendorRepository {
   #populate() {
     return {
-      productsWithImage: {
-        path: "products",
-        populate: { path: "image", select: "title url mimeType" },
+      vendorProducts: {
+        path: "vendorProducts",
+        populate: {
+          path: "product",
+          populate: { path: "image", select: "title url mimeType" },
+        },
       },
       image: { path: "image", select: "title url mimeType" },
     };
@@ -21,12 +23,12 @@ export class VendorRepository {
   }
 
   async findAll({ page, limit, filter = {} }) {
-    const { productsWithImage, image } = this.#populate();
+    const { vendorProducts, image } = this.#populate();
     const query = this.#buildQuery(filter);
 
     if (limit === 0) {
       const docs = await VendorModel.find(query)
-        .populate(productsWithImage)
+        .populate(vendorProducts)
         .populate(image)
         .exec();
       return { docs, total: null };
@@ -35,7 +37,7 @@ export class VendorRepository {
     const skip = (page - 1) * limit;
     const [docs, total] = await Promise.all([
       VendorModel.find(query)
-        .populate(productsWithImage)
+        .populate(vendorProducts)
         .populate(image)
         .skip(skip)
         .limit(limit)
@@ -46,9 +48,9 @@ export class VendorRepository {
   }
 
   async findById(id) {
-    const { productsWithImage, image } = this.#populate();
+    const { vendorProducts, image } = this.#populate();
     return VendorModel.findById(id)
-      .populate(productsWithImage)
+      .populate(vendorProducts)
       .populate(image)
       .exec();
   }
@@ -59,7 +61,10 @@ export class VendorRepository {
 
   async findAllForReport() {
     return VendorModel.find()
-      .populate("products")
+      .populate({
+        path: "vendorProducts",
+        populate: { path: "product" },
+      })
       .populate("image", "title filename")
       .exec();
   }
@@ -74,9 +79,5 @@ export class VendorRepository {
 
   async delete(vendor) {
     return vendor.deleteOne();
-  }
-
-  async deleteProductsByVendor(vendorId) {
-    return ProductModel.deleteMany({ vendor: vendorId }).exec();
   }
 }
