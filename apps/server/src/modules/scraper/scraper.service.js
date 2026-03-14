@@ -32,12 +32,28 @@ export class ScraperService {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+      ],
     });
 
     try {
       const page = await browser.newPage();
-      await page.setDefaultNavigationTimeout(30_000);
+      await page.setDefaultNavigationTimeout(60_000);
+      await page.setRequestInterception(true);
+      
+      page.on("request", (req) => {
+        const type = req.resourceType();
+        if (["image", "stylesheet", "font", "media"].includes(type)) {
+          req.abort();
+        } else {
+          req.continue();
+        }
+      });
 
       const vendors = await scraper.fetchVendors(page);
       console.log(

@@ -13,7 +13,7 @@ export class VeroScraper extends BaseScraper {
   }
 
   async fetchVendors(page) {
-    await page.goto(INDEX_URL, { waitUntil: "networkidle2" });
+    await page.goto(INDEX_URL, { waitUntil: "domcontentloaded" });
 
     const entries = await page.evaluate((baseUrl) => {
       const storePattern = /^\d+_\d+\.html$/;
@@ -61,7 +61,7 @@ export class VeroScraper extends BaseScraper {
 
     // Follow pagination until no "next page" link is found
     while (currentUrl) {
-      await page.goto(currentUrl, { waitUntil: "networkidle2" });
+      await page.goto(currentUrl, { waitUntil: "domcontentloaded" });
 
       const pageProducts = await page.evaluate((maxPrice) => {
         // Find the product table — the one containing a <th> with "Назив"
