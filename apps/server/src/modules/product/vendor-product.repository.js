@@ -34,6 +34,14 @@ export class VendorProductRepository {
       });
     }
 
+    if (filter.category) {
+      pipeline.push({
+        $match: {
+          "product.category": { $regex: filter.category, $options: "i" },
+        },
+      });
+    }
+
     pipeline.push(
       {
         $lookup: {
