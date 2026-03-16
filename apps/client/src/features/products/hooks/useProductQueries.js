@@ -68,3 +68,24 @@ export function useDeleteProduct() {
     },
   });
 }
+
+export function useVendorProducts(vendorId, params = {}, options = {}) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: [...productKeys.all, "vendor", vendorId, params],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.append("page", params.page);
+      if (params.limit) searchParams.append("limit", params.limit);
+      if (params.title) searchParams.append("title", params.title);
+      if (params.category) searchParams.append("category", params.category);
+      searchParams.append("vendorId", vendorId);
+
+      const response = await axiosPrivate.get(
+        `/products?${searchParams.toString()}`,
+      );
+      return response.data;
+    },
+    enabled: !!vendorId && (options.enabled ?? true),
+  });
+}
