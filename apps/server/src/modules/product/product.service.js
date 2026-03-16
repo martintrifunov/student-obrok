@@ -117,4 +117,11 @@ export class ProductService {
     await this.vendorProductRepository.deleteByProduct(id);
     await this.productRepository.delete(product);
   }
+
+  async getCategories(vendorId) {
+    if (vendorId) {
+      return this.vendorProductRepository.getUniqueCategories(vendorId);
+    }
+    return this.productRepository.getUniqueCategories();
+  }
 }

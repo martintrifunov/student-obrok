@@ -92,3 +92,17 @@ export function useVendorProducts(vendorId, params = {}, options = {}) {
     enabled: !!vendorId && (options.enabled ?? true),
   });
 }
+
+export function useCategories(vendorId) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: [...productKeys.all, "categories", vendorId],
+    queryFn: async () => {
+      const url = vendorId
+        ? `/products/categories?vendorId=${vendorId}`
+        : `/products/categories`;
+      const response = await axiosPrivate.get(url);
+      return response.data;
+    },
+  });
+}

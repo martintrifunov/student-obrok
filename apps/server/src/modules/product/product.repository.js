@@ -1,5 +1,52 @@
 import { ProductModel } from "./product.model.js";
 
+const latToCyrMap = {
+  dzh: "џ",
+  nj: "њ",
+  lj: "љ",
+  dz: "ѕ",
+  zh: "ж",
+  sh: "ш",
+  ch: "ч",
+  gj: "ѓ",
+  kj: "ќ",
+  a: "а",
+  b: "б",
+  c: "ц",
+  d: "д",
+  e: "е",
+  f: "ф",
+  g: "г",
+  h: "х",
+  i: "и",
+  j: "ј",
+  k: "к",
+  l: "л",
+  m: "м",
+  n: "н",
+  o: "о",
+  p: "п",
+  q: "к",
+  r: "р",
+  s: "с",
+  t: "т",
+  u: "у",
+  v: "в",
+  w: "в",
+  x: "кс",
+  y: "и",
+  z: "з",
+};
+
+function buildBilingualRegex(text) {
+  if (!text) return null;
+  let cyrStr = text.toLowerCase();
+  for (const [lat, cyr] of Object.entries(latToCyrMap))
+    cyrStr = cyrStr.split(lat).join(cyr);
+  const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return `${escapeRegExp(text)}|${escapeRegExp(cyrStr)}`;
+}
+
 export class ProductRepository {
   #populate() {
     return {
@@ -17,10 +64,16 @@ export class ProductRepository {
   #buildQuery(filter = {}) {
     const query = {};
     if (filter.title) {
-      query.title = { $regex: filter.title, $options: "i" };
+      query.title = {
+        $regex: buildBilingualRegex(filter.title),
+        $options: "i",
+      };
     }
     if (filter.category) {
-      query.category = { $regex: filter.category, $options: "i" };
+      query.category = {
+        $regex: buildBilingualRegex(filter.category),
+        $options: "i",
+      };
     }
     return query;
   }
@@ -96,5 +149,11 @@ export class ProductRepository {
       .lean();
 
     return new Map(docs.map((d) => [d.title, d._id]));
+  }
+
+  async getUniqueCategories() {
+    return ProductModel.distinct("category", {
+      category: { $ne: null },
+    }).exec();
   }
 }

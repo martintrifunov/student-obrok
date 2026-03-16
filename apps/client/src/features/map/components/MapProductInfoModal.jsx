@@ -8,9 +8,6 @@ const MapProductInfoModal = ({ vendorId }) => {
 
   const handleOpen = (e) => {
     e.stopPropagation();
-    if (!vendorId) {
-      console.error("🚨 MapProductInfoModal: vendorId is undefined!");
-    }
     setOpen(true);
   };
 

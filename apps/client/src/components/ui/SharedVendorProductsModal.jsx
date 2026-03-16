@@ -13,13 +13,17 @@ import {
   Pagination,
   CircularProgress,
   Chip,
+  Autocomplete,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { BASE_URL } from "@/api/consts";
-import { useVendorProducts } from "@/features/products/hooks/useProductQueries";
+import {
+  useVendorProducts,
+  useCategories,
+} from "@/features/products/hooks/useProductQueries";
 
 const stripHtmlAndDecode = (html) => {
   if (!html) return "";
@@ -37,6 +41,7 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const [debouncedCategory, setDebouncedCategory] = useState("");
 
+  // Debounce the text inputs
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTitle(titleInput);
@@ -53,6 +58,8 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
       setPage(1);
     }
   }, [open]);
+
+  const { data: categoryOptions = [] } = useCategories(vendorId);
 
   const { data, isLoading } = useVendorProducts(
     vendorId,
@@ -112,22 +119,33 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
           <TextField
             size="small"
             fullWidth
-            placeholder="Search by title..."
+            placeholder="Пребарувај по име..."
             value={titleInput}
             onChange={(e) => setTitleInput(e.target.value)}
             InputProps={{
               startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
             }}
           />
-          <TextField
-            size="small"
+          <Autocomplete
+            options={categoryOptions}
             fullWidth
-            placeholder="Filter by category..."
-            value={categoryInput}
-            onChange={(e) => setCategoryInput(e.target.value)}
-            InputProps={{
-              startAdornment: <FilterListIcon color="action" sx={{ mr: 1 }} />,
+            size="small"
+            value={categoryInput || null}
+            onChange={(event, newValue) => {
+              setCategoryInput(newValue || "");
             }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Филтрирај во категорија..."
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: (
+                    <FilterListIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
+                  ),
+                }}
+              />
+            )}
           />
         </Box>
 
