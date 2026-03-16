@@ -7,12 +7,10 @@ export class VendorProductRepository {
 
     if (filter.minPrice !== undefined || filter.maxPrice !== undefined) {
       matchStage.price = {};
-      if (filter.minPrice !== undefined) {
+      if (filter.minPrice !== undefined)
         matchStage.price.$gte = filter.minPrice;
-      }
-      if (filter.maxPrice !== undefined) {
+      if (filter.maxPrice !== undefined)
         matchStage.price.$lte = filter.maxPrice;
-      }
     }
 
     const pipeline = [

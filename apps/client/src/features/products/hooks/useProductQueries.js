@@ -79,7 +79,10 @@ export function useVendorProducts(vendorId, params = {}, options = {}) {
       if (params.limit) searchParams.append("limit", params.limit);
       if (params.title) searchParams.append("title", params.title);
       if (params.category) searchParams.append("category", params.category);
-      searchParams.append("vendorId", vendorId);
+
+      if (vendorId) {
+        searchParams.append("vendorId", vendorId);
+      }
 
       const response = await axiosPrivate.get(
         `/products?${searchParams.toString()}`,
