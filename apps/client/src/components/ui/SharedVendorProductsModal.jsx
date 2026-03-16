@@ -27,7 +27,7 @@ const stripHtmlAndDecode = (html) => {
   return doc.body.textContent || "";
 };
 
-const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
+const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
   const theme = useTheme();
 
   const [page, setPage] = useState(1);
@@ -46,6 +46,14 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
     return () => clearTimeout(timer);
   }, [titleInput, categoryInput]);
 
+  useEffect(() => {
+    if (!open) {
+      setTitleInput("");
+      setCategoryInput("");
+      setPage(1);
+    }
+  }, [open]);
+
   const { data, isLoading } = useVendorProducts(
     vendorId,
     { page, limit: 10, title: debouncedTitle, category: debouncedCategory },
@@ -62,6 +70,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
       fullWidth
       maxWidth="md"
       scroll="paper"
+      onClick={(e) => e.stopPropagation()}
       PaperProps={{ sx: { borderRadius: 3, height: "85vh" } }}
     >
       <DialogTitle
@@ -74,8 +83,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
         }}
       >
         <Typography variant="h6" component="span" fontWeight="bold">
-          {vendorName} Products{" "}
-          {pagination?.total ? `(${pagination.total})` : ""}
+          {title} {pagination?.total ? `(${pagination.total})` : ""}
         </Typography>
         <IconButton onClick={onClose} sx={{ color: "text.secondary" }}>
           <CloseIcon />
@@ -135,7 +143,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
             </Box>
           ) : products.length === 0 ? (
             <Typography textAlign="center" color="text.secondary" py={4}>
-              This vendor has no products matching the search criteria.
+              No active products match this search.
             </Typography>
           ) : (
             <Box display="flex" flexDirection="column" gap={2}>
@@ -219,7 +227,7 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
                           whiteSpace="nowrap"
                           ml={1}
                         >
-                          {price} MKD
+                          {price} ден.
                         </Typography>
                       </Box>
                       {p?.description && (
@@ -269,4 +277,4 @@ const VendorProductsModal = ({ open, onClose, vendorId, vendorName }) => {
   );
 };
 
-export default VendorProductsModal;
+export default SharedVendorProductsModal;

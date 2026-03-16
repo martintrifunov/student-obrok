@@ -25,7 +25,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
 import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
-import VendorProductsModal from "@/features/vendors/components/VendorProductsModal";
+import SharedVendorProductsModal from "@/components/ui/SharedVendorProductsModal";
 import { BASE_URL } from "@/api/consts";
 import {
   useVendors,
@@ -280,13 +280,11 @@ const VendorsList = ({ searchTerm }) => {
           />
         </VendorsTableContainer>
       )}
-
-      {/* The Dashboard Products Modal */}
-      <VendorProductsModal
+      <SharedVendorProductsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         vendorId={selectedVendor.id}
-        vendorName={selectedVendor.name}
+        title={`${selectedVendor.name} Products`}
       />
     </>
   );
