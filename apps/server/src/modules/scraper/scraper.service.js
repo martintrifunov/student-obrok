@@ -24,13 +24,24 @@ export class ScraperService {
     const placeholderImage = await this.imageRepository.findByFilename(
       scraper.placeholderImageFilename,
     );
+    if (!placeholderImage) {
+      throw new Error(`Placeholder image not found in DB.`);
+    }
+
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+      ],
     });
 
     try {
       const setupPage = await browser.newPage();
+      await this.#optimizePage(setupPage);
       const vendors = await scraper.fetchVendors(setupPage);
       await setupPage.close();
 
@@ -62,6 +73,19 @@ export class ScraperService {
     }
   }
 
+  async #optimizePage(page) {
+    await page.setDefaultNavigationTimeout(60_000);
+    await page.setRequestInterception(true);
+    page.on("request", (req) => {
+      const type = req.resourceType();
+      if (["image", "stylesheet", "font", "media", "script"].includes(type)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+  }
+
   async #ensureVendorExists(name, address, scraper, placeholderImage) {
     let vendor = await this.vendorRepository.findByName(name);
     if (vendor) return vendor;
@@ -82,28 +106,74 @@ export class ScraperService {
     const { name, pricelistUrl, vendorDoc } = vendorData;
     const tabStartTime = performance.now();
     const page = await browser.newPage();
+    await this.#optimizePage(page);
 
     try {
-      const rawProducts = await scraper.fetchProducts(page, pricelistUrl);
-      if (!rawProducts.length) return;
+      const result = await scraper.fetchProducts(
+        page,
+        pricelistUrl,
+        vendorDoc.lastScrapedUpdate,
+      );
 
-      const productIdMap =
-        await this.productRepository.bulkUpsertProducts(rawProducts);
-      const vendorProducts = rawProducts.map((p) => ({
-        vendor: vendorDoc._id,
-        product: productIdMap.get(p.title),
-        price: p.price,
+      if (result.upToDate) {
+        const tabDuration = ((performance.now() - tabStartTime) / 1000).toFixed(
+          2,
+        );
+        console.log(
+          `[Scraper] ⚡ [${name}] No changes detected. Skipped in ${tabDuration}s.`,
+        );
+        return;
+      }
+
+      const rawProducts = result.products;
+      if (!rawProducts || !rawProducts.length) return;
+
+      const productsData = rawProducts.map(({ title, category }) => ({
+        title,
+        category,
       }));
 
+      const productIdMap = await this.#safeProductUpsert(productsData);
+
+      const vendorProducts = rawProducts
+        .filter(({ title }) => productIdMap.has(title))
+        .map(({ title, price }) => ({
+          vendor: vendorDoc._id,
+          product: productIdMap.get(title),
+          price,
+        }));
+
       await this.vendorProductRepository.bulkUpsert(vendorProducts);
+
+      if (result.newUpdateString) {
+        vendorDoc.lastScrapedUpdate = result.newUpdateString;
+        await this.vendorRepository.save(vendorDoc);
+      }
+
       const tabDuration = ((performance.now() - tabStartTime) / 1000).toFixed(
         2,
       );
       console.log(
-        `[Scraper] [${name}] Done: ${rawProducts.length} items in ${tabDuration}s`,
+        `[Scraper] ✅ [${name}] Scraped ${rawProducts.length} items in ${tabDuration}s`,
       );
+    } catch (err) {
+      console.error(`[ScraperService] Error in [${name}]:`, err.message);
     } finally {
       await page.close();
+    }
+  }
+
+  async #safeProductUpsert(productsData, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await this.productRepository.bulkUpsertProducts(productsData);
+      } catch (err) {
+        if (err.code === 11000 && attempt < retries) {
+          await new Promise((res) => setTimeout(res, 500 * attempt));
+          continue;
+        }
+        throw err;
+      }
     }
   }
 }

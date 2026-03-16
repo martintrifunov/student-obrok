@@ -9,6 +9,7 @@ const VendorSchema = new mongoose.Schema(
       ref: "Image",
       required: true,
     },
+    lastScrapedUpdate: { type: String, default: null },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );

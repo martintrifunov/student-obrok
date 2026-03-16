@@ -28,8 +28,6 @@ export class VeroScraper extends BaseScraper {
             ? td.innerText.replace(name, "").replace(/\n/g, " ").trim()
             : "";
 
-          // Keep city after "–" — it's needed for geocoding
-          // "Бул. Јане Сандански бр.111 – Аеродром" → "Бул. Јане Сандански бр.111, Аеродром"
           const address = rawAddress
             .split("–")
             .map((s) => s.trim())
@@ -44,7 +42,6 @@ export class VeroScraper extends BaseScraper {
         .filter((e) => e.name.length > 0);
     }, INDEX_URL);
 
-    // Deduplicate by name — keep the FIRST URL (page 1 of each store)
     const seen = new Map();
     for (const entry of entries) {
       if (!seen.has(entry.name)) {
@@ -55,16 +52,30 @@ export class VeroScraper extends BaseScraper {
     return Array.from(seen.values());
   }
 
-  async fetchProducts(page, storeUrl) {
+  async fetchProducts(page, storeUrl, previousUpdateString) {
     const allProducts = [];
     let currentUrl = storeUrl;
+    let pageUpdateString = null;
+    let isFirstPage = true;
 
-    // Follow pagination until no "next page" link is found
     while (currentUrl) {
       await page.goto(currentUrl, { waitUntil: "domcontentloaded" });
 
+      if (isFirstPage) {
+        pageUpdateString = await page.evaluate(() => {
+          const match = document.body.innerText.match(
+            /Последно ажурирање:\s*([^\n]+)/,
+          );
+          return match ? match[1].trim() : null;
+        });
+
+        if (previousUpdateString && pageUpdateString === previousUpdateString) {
+          return { upToDate: true };
+        }
+        isFirstPage = false;
+      }
+
       const pageProducts = await page.evaluate((maxPrice) => {
-        // Find the product table — the one containing a <th> with "Назив"
         const tables = Array.from(document.querySelectorAll("table"));
         const productTable = tables.find((t) => {
           const ths = t.querySelectorAll("th");
@@ -73,7 +84,6 @@ export class VeroScraper extends BaseScraper {
 
         if (!productTable) return [];
 
-        // Headers are <th> in the first <tr> (no <thead> on this site)
         const headerRow = productTable.querySelector("tr");
         const headers = Array.from(headerRow.querySelectorAll("th")).map((th) =>
           th.textContent.replace(/\n/g, " ").trim(),
@@ -91,9 +101,8 @@ export class VeroScraper extends BaseScraper {
           return [];
         }
 
-        // Data rows are all <tr> after the header row
         const allRows = Array.from(productTable.querySelectorAll("tr"));
-        const dataRows = allRows.slice(1); // skip header row
+        const dataRows = allRows.slice(1);
 
         return dataRows.reduce((acc, row) => {
           const cells = Array.from(row.querySelectorAll("td"));
@@ -125,10 +134,7 @@ export class VeroScraper extends BaseScraper {
 
       allProducts.push(...pageProducts);
 
-      // Check for next page link
-      // Current URL pattern: /89_1.html → next would be /89_2.html
       const nextUrl = await page.evaluate((current) => {
-        // Extract store ID and page number from current URL
         const match = current.match(/(\d+)_(\d+)\.html$/);
         if (!match) return null;
 
@@ -136,7 +142,6 @@ export class VeroScraper extends BaseScraper {
         const nextPage = parseInt(match[2], 10) + 1;
         const nextHref = `${storeId}_${nextPage}.html`;
 
-        // Check if a link to the next page exists on this page
         const link = Array.from(document.querySelectorAll("a[href]")).find(
           (a) => a.getAttribute("href") === nextHref,
         );
@@ -145,12 +150,12 @@ export class VeroScraper extends BaseScraper {
       }, currentUrl);
 
       currentUrl = nextUrl;
-
-      if (nextUrl) {
-        console.log(`[VeroScraper] Following pagination → ${nextUrl}`);
-      }
     }
 
-    return allProducts;
+    return {
+      upToDate: false,
+      products: allProducts,
+      newUpdateString: pageUpdateString,
+    };
   }
 }
