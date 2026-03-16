@@ -24,7 +24,7 @@ const MapProductInfoModal = ({ vendorId }) => {
         startIcon={<InfoIcon />}
         sx={{ textTransform: "none", borderRadius: 2, py: 1 }}
       >
-        Понуди
+        Продукти
       </Button>
 
       <SharedVendorProductsModal
@@ -34,7 +34,7 @@ const MapProductInfoModal = ({ vendorId }) => {
           setOpen(false);
         }}
         vendorId={vendorId}
-        title="Понуди"
+        title="Продукти"
       />
     </>
   );
