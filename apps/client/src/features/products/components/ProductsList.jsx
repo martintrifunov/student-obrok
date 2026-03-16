@@ -63,6 +63,14 @@ const ProductsList = ({ searchTerm }) => {
     }
   };
 
+  const getPriceRange = (vendorProducts) => {
+    if (!vendorProducts || vendorProducts.length === 0) return "N/A";
+    const prices = vendorProducts.map((vp) => vp.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `${min} ден.` : `${min} - ${max} ден.`;
+  };
+
   return (
     <>
       {isError && (
@@ -166,6 +174,9 @@ const ProductsList = ({ searchTerm }) => {
                   Category
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Price
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
                   Image
                 </TableCell>
                 <TableCell
@@ -188,6 +199,9 @@ const ProductsList = ({ searchTerm }) => {
                         <TableCell>{index + 1 + page * 5}</TableCell>
                         <TableCell>{product.title}</TableCell>
                         <TableCell>{product.category || "N/A"}</TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          {getPriceRange(product.vendorProducts)}
+                        </TableCell>
                         <TableCell>
                           <ImagePreviewModal
                             imageTitle={product.image?.title}
