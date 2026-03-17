@@ -34,7 +34,7 @@ async function main() {
     ? [ALL_SCRAPERS[target]]
     : Object.values(ALL_SCRAPERS);
 
-  const uri = process.env.MONGO_URI_LOCAL ?? process.env.MONGO_URI;
+  const uri = process.env.MONGO_URI_LOCAL ?? process.env.DATABASE_URI;
 
   if (!uri) {
     console.error("[scrape] No MongoDB URI found in .env");
