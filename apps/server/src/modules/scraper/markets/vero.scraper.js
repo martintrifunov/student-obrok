@@ -5,7 +5,7 @@ const MAX_PRICE = 840;
 
 export class VeroScraper extends BaseScraper {
   get placeholderImageFilename() {
-    return "1773443943027-b83de0eee914.png";
+    return process.env.VENDOR_IMAGE_VERO || "vero_market.png";
   }
 
   get geocodeSuffix() {
