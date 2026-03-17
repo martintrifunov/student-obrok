@@ -144,6 +144,7 @@ const AddOrEditProductForm = () => {
     if (isEditMode) productData.id = params.productId;
 
     productData.title = product.title;
+    productData.category = product.category;
     productData.description = product.description;
     productData.price = product.price ? parseFloat(product.price) : null;
 
@@ -250,6 +251,17 @@ const AddOrEditProductForm = () => {
                 )}
               </FormControl>
             </Box>
+
+            <TextField
+              name="category"
+              label="Category"
+              variant="outlined"
+              fullWidth
+              value={product?.category || ""}
+              onChange={handleChange}
+              error={!!errors.category}
+              helperText={errors.category}
+            />
 
             {selectedImageTitle && (
               <TextField
