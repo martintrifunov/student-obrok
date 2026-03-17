@@ -9,7 +9,8 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 import mongoose from "mongoose";
 import { VendorRepository } from "../modules/vendor/vendor.repository.js";
 import { ProductRepository } from "../modules/product/product.repository.js";
-import { VendorProductRepository } from "../modules/product/vendor-product.repository.js";
+import { MarketProductRepository } from "../modules/product/market-product.repository.js";
+import { MarketRepository } from "../modules/market/market.repository.js";
 import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
@@ -51,8 +52,9 @@ async function main() {
 
   const scraperService = new ScraperService(
     new VendorRepository(),
+    new MarketRepository(),
     new ProductRepository(),
-    new VendorProductRepository(),
+    new MarketProductRepository(),
     new ImageRepository(),
     new GeocoderService(),
   );
