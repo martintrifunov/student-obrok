@@ -12,9 +12,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "scrape": "node src/scripts/scrape.js",
+    "scrape:db:wipe": "node src/scripts/wipe-db-scrape-data.js",
     "scrape:vero": "node src/scripts/scrape.js vero",
+    "scrape:ramstore": "node src/scripts/scrape.js ramstore",
     "scrape:debug:vero": "node src/scripts/debug-vero.js",
-    "scrape:db:wipe": "node src/scripts/wipe-db-scrape-data.js"
+    "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js"
   },
   "dependencies": {
     "@json2csv/plainjs": "^7.0.6",

@@ -14,9 +14,11 @@ import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
 import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
+import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
 
 const ALL_SCRAPERS = {
   vero: new VeroScraper(),
+  ramstore: new RamstoreScraper(),
 };
 
 async function main() {
