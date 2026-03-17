@@ -71,9 +71,9 @@ const ProductsList = ({ searchTerm }) => {
     }
   };
 
-  const getPriceRange = (vendorProducts) => {
-    if (!vendorProducts || vendorProducts.length === 0) return "N/A";
-    const prices = vendorProducts.map((vp) => vp.price);
+  const getPriceRange = (marketProducts) => {
+    if (!marketProducts || marketProducts.length === 0) return "N/A";
+    const prices = marketProducts.map((mp) => mp.price);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     return min === max ? `${min} ден.` : `${min} - ${max} ден.`;
@@ -206,7 +206,7 @@ const ProductsList = ({ searchTerm }) => {
                       <TableCell>{product.title}</TableCell>
                       <TableCell>{product.category || "N/A"}</TableCell>
                       <TableCell sx={{ fontWeight: "bold" }}>
-                        {getPriceRange(product.vendorProducts)}
+                        {getPriceRange(product.marketProducts)}
                       </TableCell>
                       <TableCell>
                         <ImagePreviewModal
