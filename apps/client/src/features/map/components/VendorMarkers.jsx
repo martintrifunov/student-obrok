@@ -2,18 +2,36 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
 import { Button, Typography, Box, styled, useTheme } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
-import vendorlocationMarker from "@/assets/icons/vendor_location_marker.svg";
 import ImageIcon from "@mui/icons-material/Image";
 import useSupercluster from "use-supercluster";
 import { useMap } from "react-map-gl/maplibre";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
 import { BASE_URL } from "@/api/consts";
 import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
-import { useVendors } from "@/features/vendors/hooks/useVendorQueries";
+import { useMarketsForMap } from "@/features/markets/hooks/useMarketQueries";
+
+const VENDOR_MARKER_PATH =
+  "m438-441.001 184.153-184.153-42.768-42.768L438-526.537l-56-56-42.768 42.768L438-441.001Zm42 341.384Q329.001-230.463 253.539-343.154q-75.461-112.692-75.461-206.923 0-138.46 89.577-224.191Q357.231-859.999 480-859.999t212.345 85.731q89.577 85.731 89.577 224.191 0 94.231-75.461 206.923Q630.999-230.463 480-99.617Z";
+
+const VENDOR_MARKER_COLORS = {
+  vero: "crimson",
+  ramstore: "#2e7d32",
+  stokomak: "#f4c430",
+};
+
+const getVendorMarkerColor = (vendorName = "") => {
+  const normalizedName = vendorName.trim().toLowerCase();
+
+  return (
+    Object.entries(VENDOR_MARKER_COLORS).find(([vendorKey]) =>
+      normalizedName.includes(vendorKey),
+    )?.[1] ?? VENDOR_MARKER_COLORS.vero
+  );
+};
 
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const theme = useTheme();
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
   const [zoom, setZoom] = useState(16);
   const pitch = useMapPitch();
@@ -21,8 +39,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const updateTimeoutRef = useRef(null);
   const verticalOffset = useMemo(() => pitch * 0.8, [pitch]);
 
-  const { data: responseData, isLoading } = useVendors({ limit: 0 });
-  const vendors = responseData?.data || [];
+  const { data: markets = [], isLoading } = useMarketsForMap();
 
   useEffect(() => {
     if (!map) return;
@@ -46,19 +63,19 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
 
   const points = useMemo(
     () =>
-      vendors.map((vendor, index) => ({
+      markets.map((market, index) => ({
         type: "Feature",
         properties: {
           cluster: false,
-          vendorId: index,
-          vendor: vendor,
+          marketIndex: index,
+          market: market,
         },
         geometry: {
           type: "Point",
-          coordinates: [vendor.location[1], vendor.location[0]],
+          coordinates: [market.location[1], market.location[0]],
         },
       })),
-    [vendors],
+    [markets],
   );
 
   const { clusters, supercluster } = useSupercluster({
@@ -104,28 +121,32 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
             );
           }
 
-          const vendor = cluster.properties.vendor;
+          const market = cluster.properties.market;
+          const vendorName = market.vendor?.name || market.name;
           return (
-            <React.Fragment key={`vendor-${cluster.properties.vendorId}`}>
+            <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
               <Marker
                 longitude={longitude}
                 latitude={latitude}
                 anchor="bottom"
-                onClick={() => setSelectedVendor(vendor)}
+                onClick={() => setSelectedMarket(market)}
               >
-                <VendorMarkerImage
-                  src={vendorlocationMarker}
-                  alt="vendor marker"
+                <VendorMarkerIcon
+                  viewBox="0 -960 960 960"
+                  aria-label={`${market.name} marker`}
                   $verticalOffset={verticalOffset}
-                />
+                  $markerColor={getVendorMarkerColor(vendorName)}
+                >
+                  <path d={VENDOR_MARKER_PATH} />
+                </VendorMarkerIcon>
               </Marker>
 
-              {selectedVendor === vendor && (
+              {selectedMarket === market && (
                 <Popup
                   longitude={longitude}
                   latitude={latitude}
                   anchor="bottom"
-                  onClose={() => setSelectedVendor(null)}
+                  onClose={() => setSelectedMarket(null)}
                   closeOnClick={false}
                   offset={[0, -95 + verticalOffset * 1.5]}
                   maxWidth="260px"
@@ -141,7 +162,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                       }}
                     >
                       <Typography variant="h6" fontWeight="bold" noWrap>
-                        {vendor.name}
+                        {market.name}
                       </Typography>
                     </Box>
                     <Box
@@ -159,11 +180,11 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         borderBottom: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      {vendor?.image ? (
+                      {market.vendor?.image ? (
                         <Box
                           component="img"
-                          src={`${BASE_URL}${vendor.image.url}`}
-                          alt={vendor.name}
+                          src={`${BASE_URL}${market.vendor.image.url}`}
+                          alt={market.name}
                           sx={{
                             maxWidth: "100%",
                             maxHeight: "100%",
@@ -191,7 +212,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         backgroundColor: "background.paper",
                       }}
                     >
-                      <MapProductInfoModal vendorId={vendor._id} />
+                      <MapProductInfoModal marketId={market._id} />
                       <Button
                         disabled={isDisabledRoutingButton}
                         fullWidth
@@ -250,17 +271,22 @@ const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
   },
 }));
 
-const VendorMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
+const VendorMarkerIcon = styled("svg", {
+  shouldForwardProp: (prop) =>
+    prop !== "$verticalOffset" && prop !== "$markerColor",
+})(({ $verticalOffset = 0, $markerColor }) => ({
   width: 38,
   height: 95,
   display: "block",
   cursor: "pointer",
+  color: $markerColor,
+  fill: "currentColor",
   transform: `translateY(${$verticalOffset}px)`,
   transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
   animation: "markerDrop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
-    filter: `drop-shadow(0 0 10px ${theme.palette.error.main})`,
+    filter: `drop-shadow(0 0 10px ${$markerColor})`,
   },
   "&:active": {
     transform: `translateY(${$verticalOffset}px) scale(0.95)`,

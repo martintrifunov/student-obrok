@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
-import SharedVendorProductsModal from "@/components/ui/SharedVendorProductsModal";
+import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
 
-const MapProductInfoModal = ({ vendorId }) => {
+const MapProductInfoModal = ({ marketId }) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = (e) => {
@@ -24,13 +24,13 @@ const MapProductInfoModal = ({ vendorId }) => {
         Продукти
       </Button>
 
-      <SharedVendorProductsModal
+      <SharedMarketProductsModal
         open={open}
         onClose={(e) => {
           if (e) e.stopPropagation();
           setOpen(false);
         }}
-        vendorId={vendorId}
+        marketId={marketId}
         title="Продукти"
       />
     </>
