@@ -15,17 +15,14 @@ import {
   CardContent,
   useMediaQuery,
   Box,
-  Button,
   styled,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
 import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
-import SharedVendorProductsModal from "@/components/ui/SharedVendorProductsModal";
 import { BASE_URL } from "@/api/consts";
 import {
   useVendors,
@@ -40,8 +37,6 @@ const VendorsList = ({ searchTerm }) => {
 
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState({ id: null, name: "" });
 
   const debouncedSearch = useDebounce(searchTerm);
 
@@ -113,10 +108,6 @@ const VendorsList = ({ searchTerm }) => {
                         >
                           {vendor.name}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          <strong>Location:</strong>{" "}
-                          {vendor.location.join(", ")}
-                        </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
                         <IconButton
@@ -147,22 +138,6 @@ const VendorsList = ({ searchTerm }) => {
                           imageTitle={vendor?.image?.title}
                         />
                       </Box>
-                      <Button
-                        sx={{ flex: 1 }}
-                        variant="contained"
-                        color="primary"
-                        disableElevation
-                        onClick={() => {
-                          setSelectedVendor({
-                            id: vendor._id,
-                            name: vendor.name,
-                          });
-                          setModalOpen(true);
-                        }}
-                        startIcon={<LocalOfferIcon />}
-                      >
-                        Products
-                      </Button>
                     </Box>
                   </CardContent>
                 </Card>
@@ -198,13 +173,7 @@ const VendorsList = ({ searchTerm }) => {
                   Name
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Location
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
                   Image
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Products
                 </TableCell>
                 <TableCell
                   sx={{
@@ -223,27 +192,11 @@ const VendorsList = ({ searchTerm }) => {
                     <TableRow key={vendor._id}>
                       <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                       <TableCell>{vendor.name}</TableCell>
-                      <TableCell>{vendor.location.join(", ")}</TableCell>
                       <TableCell>
                         <ImagePreviewModal
                           imageTitle={vendor?.image?.title}
                           image={`${BASE_URL}${vendor?.image?.url}`}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          color="inherit"
-                          sx={{ textTransform: "none" }}
-                          onClick={() => {
-                            setSelectedVendor({
-                              id: vendor._id,
-                              name: vendor.name,
-                            });
-                            setModalOpen(true);
-                          }}
-                        >
-                          <LocalOfferIcon sx={{ marginRight: 1 }} /> View
-                        </Button>
                       </TableCell>
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
@@ -268,7 +221,7 @@ const VendorsList = ({ searchTerm }) => {
                     .fill()
                     .map((_, i) => (
                       <TableRow key={i}>
-                        {Array(6)
+                        {Array(4)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
@@ -289,13 +242,6 @@ const VendorsList = ({ searchTerm }) => {
           />
         </VendorsTableContainer>
       )}
-
-      <SharedVendorProductsModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        vendorId={selectedVendor.id}
-        title={`${selectedVendor.name} Products`}
-      />
     </>
   );
 };

@@ -68,34 +68,11 @@ const AddOrEditVendorForm = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    if (
-      errors[name] ||
-      errors["location"] ||
-      errors["location.0"] ||
-      errors["location.1"]
-    ) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: undefined,
-        location: undefined,
-        "location.0": undefined,
-        "location.1": undefined,
-      }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
 
-    if (name === "longitude") {
-      setVendor((prev) => ({
-        ...prev,
-        location: [prev?.location?.[0] || "", value],
-      }));
-    } else if (name === "latitude") {
-      setVendor((prev) => ({
-        ...prev,
-        location: [value, prev?.location?.[1] || ""],
-      }));
-    } else {
-      setVendor((prev) => ({ ...prev, [name]: value }));
-    }
+    setVendor((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleOpenImageDialog = () => {
@@ -139,15 +116,6 @@ const AddOrEditVendorForm = () => {
     if (isEditMode) vendorData.id = params.vendorId;
 
     vendorData.name = vendor.name;
-
-    if (vendor.location) {
-      vendorData.location = [
-        vendor.location[0] ? parseFloat(vendor.location[0]) : null,
-        vendor.location[1] ? parseFloat(vendor.location[1]) : null,
-      ];
-    } else {
-      vendorData.location = [null, null];
-    }
 
     if (selectedImageId) vendorData.image = selectedImageId;
 
@@ -208,35 +176,6 @@ const AddOrEditVendorForm = () => {
               error={!!errors.name}
               helperText={errors.name}
             />
-
-            <Box
-              display="flex"
-              gap={3}
-              sx={{ flexDirection: { xs: "column", sm: "row" } }}
-            >
-              <TextField
-                name="latitude"
-                label="Latitude"
-                variant="outlined"
-                type="number"
-                fullWidth
-                value={vendor?.location?.[0] ?? ""}
-                onChange={handleChange}
-                error={!!errors.location || !!errors["location.0"]}
-                helperText={errors.location || errors["location.0"]}
-              />
-              <TextField
-                name="longitude"
-                label="Longitude"
-                variant="outlined"
-                type="number"
-                fullWidth
-                value={vendor?.location?.[1] ?? ""}
-                onChange={handleChange}
-                error={!!errors.location || !!errors["location.1"]}
-                helperText={errors.location || errors["location.1"]}
-              />
-            </Box>
 
             {selectedImageTitle && (
               <TextField
