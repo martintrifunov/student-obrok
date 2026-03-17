@@ -5,19 +5,32 @@ import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 const mockVendorRepository = {
   findAll: vi.fn(),
   findById: vi.fn(),
-  findAllForReport: vi.fn(),
   create: vi.fn(),
   save: vi.fn(),
   delete: vi.fn(),
-  deleteProductsByVendor: vi.fn(),
 };
 
 const mockImageRepository = {
   findById: vi.fn(),
 };
 
+const mockMarketRepository = {
+  findByVendor: vi.fn(),
+  findAllForReport: vi.fn(),
+  delete: vi.fn(),
+};
+
+const mockMarketProductRepository = {
+  deleteByMarket: vi.fn(),
+};
+
 const makeSut = () =>
-  new VendorService(mockVendorRepository, mockImageRepository);
+  new VendorService(
+    mockVendorRepository,
+    mockImageRepository,
+    mockMarketRepository,
+    mockMarketProductRepository,
+  );
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -68,7 +81,6 @@ describe("VendorService", () => {
       await expect(
         sut.createVendor({
           name: "Vendor A",
-          location: [0, 0],
           image: "imgId",
         }),
       ).rejects.toThrow(NotFoundError);
@@ -81,13 +93,11 @@ describe("VendorService", () => {
       const sut = makeSut();
       const result = await sut.createVendor({
         name: "Vendor A",
-        location: [0, 0],
         image: "imgId",
       });
       expect(result).toEqual(created);
       expect(mockVendorRepository.create).toHaveBeenCalledWith({
         name: "Vendor A",
-        location: [0, 0],
         image: "imgId",
       });
     });
@@ -106,7 +116,6 @@ describe("VendorService", () => {
       const vendor = {
         _id: "v1",
         name: "Old",
-        location: [0, 0],
         save: vi.fn(),
       };
       mockVendorRepository.findById.mockResolvedValue(vendor);
@@ -135,16 +144,22 @@ describe("VendorService", () => {
       await expect(sut.deleteVendor("v1")).rejects.toThrow(NotFoundError);
     });
 
-    it("deletes products and vendor", async () => {
+    it("deletes markets, market products, and vendor", async () => {
       const vendor = { _id: "v1", name: "Vendor A" };
+      const markets = [
+        { _id: "m1", name: "Market 1" },
+        { _id: "m2", name: "Market 2" },
+      ];
       mockVendorRepository.findById.mockResolvedValue(vendor);
-      mockVendorRepository.deleteProductsByVendor.mockResolvedValue(null);
+      mockMarketRepository.findByVendor.mockResolvedValue(markets);
+      mockMarketProductRepository.deleteByMarket.mockResolvedValue(null);
+      mockMarketRepository.delete.mockResolvedValue(null);
       mockVendorRepository.delete.mockResolvedValue(null);
       const sut = makeSut();
       await sut.deleteVendor("v1");
-      expect(mockVendorRepository.deleteProductsByVendor).toHaveBeenCalledWith(
-        "v1",
-      );
+      expect(mockMarketRepository.findByVendor).toHaveBeenCalledWith("v1");
+      expect(mockMarketProductRepository.deleteByMarket).toHaveBeenCalledTimes(2);
+      expect(mockMarketRepository.delete).toHaveBeenCalledTimes(2);
       expect(mockVendorRepository.delete).toHaveBeenCalledWith(vendor);
     });
   });
