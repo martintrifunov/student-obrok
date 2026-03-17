@@ -9,12 +9,13 @@ const VendorSchema = new mongoose.Schema(
       ref: "Image",
       required: true,
     },
+    lastScrapedUpdate: { type: String, default: null },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
-VendorSchema.virtual("products", {
-  ref: "Product",
+VendorSchema.virtual("vendorProducts", {
+  ref: "VendorProduct",
   localField: "_id",
   foreignField: "vendor",
 });

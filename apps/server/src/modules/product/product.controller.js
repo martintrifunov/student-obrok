@@ -30,4 +30,11 @@ export class ProductController {
     await this.productService.deleteProduct(req.body.id);
     res.status(200).json({ message: "Product deleted." });
   };
+
+  getCategories = async (req, res) => {
+    const categories = await this.productService.getCategories(
+      req.query.vendorId,
+    );
+    res.status(200).json(categories);
+  };
 }

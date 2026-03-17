@@ -25,7 +25,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
 import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
-import VendorProductsModal from "@/features/vendors/components/VendorProductsModal";
+import SharedVendorProductsModal from "@/components/ui/SharedVendorProductsModal";
 import { BASE_URL } from "@/api/consts";
 import {
   useVendors,
@@ -66,7 +66,7 @@ const VendorsList = ({ searchTerm }) => {
   const handleRemoveVendor = async (vendorId) => {
     if (
       window.confirm(
-        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of the products that are by this vendor.",
+        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of its price listings as well.",
       )
     ) {
       deleteMutation.mutate(vendorId);
@@ -150,9 +150,6 @@ const VendorsList = ({ searchTerm }) => {
                           });
                           setModalOpen(true);
                         }}
-                        disabled={
-                          !vendor.products || vendor.products.length === 0
-                        }
                         startIcon={<LocalOfferIcon />}
                       >
                         Products
@@ -226,9 +223,6 @@ const VendorsList = ({ searchTerm }) => {
                       </TableCell>
                       <TableCell>
                         <Button
-                          disabled={
-                            !vendor.products || vendor.products.length === 0
-                          }
                           color="inherit"
                           sx={{ textTransform: "none" }}
                           onClick={() => {
@@ -286,12 +280,11 @@ const VendorsList = ({ searchTerm }) => {
           />
         </VendorsTableContainer>
       )}
-
-      <VendorProductsModal
+      <SharedVendorProductsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         vendorId={selectedVendor.id}
-        vendorName={selectedVendor.name}
+        title={`${selectedVendor.name} Products`}
       />
     </>
   );

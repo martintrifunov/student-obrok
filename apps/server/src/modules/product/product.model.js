@@ -1,15 +1,23 @@
 import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  price: { type: Number, required: true },
-  image: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Image",
-    required: false,
+const ProductSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true, unique: true },
+    category: { type: String, required: false },
+    description: { type: String, required: false },
+    image: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Image",
+      required: false,
+    },
   },
-  vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+  { toJSON: { virtuals: true }, toObject: { virtuals: true } },
+);
+
+ProductSchema.virtual("vendorProducts", {
+  ref: "VendorProduct",
+  localField: "_id",
+  foreignField: "product",
 });
 
 export const ProductModel = mongoose.model("Product", ProductSchema);

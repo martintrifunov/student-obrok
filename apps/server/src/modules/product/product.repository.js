@@ -1,37 +1,93 @@
 import { ProductModel } from "./product.model.js";
 
+const latToCyrMap = {
+  dzh: "џ",
+  nj: "њ",
+  lj: "љ",
+  dz: "ѕ",
+  zh: "ж",
+  sh: "ш",
+  ch: "ч",
+  gj: "ѓ",
+  kj: "ќ",
+  a: "а",
+  b: "б",
+  c: "ц",
+  d: "д",
+  e: "е",
+  f: "ф",
+  g: "г",
+  h: "х",
+  i: "и",
+  j: "ј",
+  k: "к",
+  l: "л",
+  m: "м",
+  n: "н",
+  o: "о",
+  p: "п",
+  q: "к",
+  r: "р",
+  s: "с",
+  t: "т",
+  u: "у",
+  v: "в",
+  w: "в",
+  x: "кс",
+  y: "и",
+  z: "з",
+};
+
+function buildBilingualRegex(text) {
+  if (!text) return null;
+  let cyrStr = text.toLowerCase();
+  for (const [lat, cyr] of Object.entries(latToCyrMap))
+    cyrStr = cyrStr.split(lat).join(cyr);
+  const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return `${escapeRegExp(text)}|${escapeRegExp(cyrStr)}`;
+}
+
 export class ProductRepository {
   #populate() {
     return {
-      vendor: { path: "vendor" },
       image: { path: "image", select: "title url mimeType" },
+      vendorProducts: {
+        path: "vendorProducts",
+        populate: {
+          path: "vendor",
+          populate: { path: "image", select: "title url mimeType" },
+        },
+      },
     };
   }
 
   #buildQuery(filter = {}) {
     const query = {};
     if (filter.title) {
-      query.title = { $regex: filter.title, $options: "i" };
+      query.title = {
+        $regex: buildBilingualRegex(filter.title),
+        $options: "i",
+      };
     }
-    if (filter.vendorId) {
-      query.vendor = filter.vendorId;
-    }
-    if (filter.minPrice !== undefined || filter.maxPrice !== undefined) {
-      query.price = {};
-      if (filter.minPrice !== undefined) query.price.$gte = filter.minPrice;
-      if (filter.maxPrice !== undefined) query.price.$lte = filter.maxPrice;
+    if (filter.category) {
+      query.category = {
+        $regex: buildBilingualRegex(filter.category),
+        $options: "i",
+      };
     }
     return query;
   }
 
   async findAll({ page, limit, filter = {} }) {
-    const { vendor, image } = this.#populate();
+    const { image } = this.#populate();
     const query = this.#buildQuery(filter);
+
+    const vendorProductsPopulate = { path: "vendorProducts", select: "price" };
 
     if (limit === 0) {
       const docs = await ProductModel.find(query)
-        .populate(vendor)
         .populate(image)
+        .populate(vendorProductsPopulate)
         .exec();
       return { docs, total: null };
     }
@@ -39,8 +95,8 @@ export class ProductRepository {
     const skip = (page - 1) * limit;
     const [docs, total] = await Promise.all([
       ProductModel.find(query)
-        .populate(vendor)
         .populate(image)
+        .populate(vendorProductsPopulate)
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -48,10 +104,12 @@ export class ProductRepository {
     ]);
     return { docs, total };
   }
-
   async findById(id) {
-    const { vendor, image } = this.#populate();
-    return ProductModel.findById(id).populate(vendor).populate(image).exec();
+    const { image, vendorProducts } = this.#populate();
+    return ProductModel.findById(id)
+      .populate(vendorProducts)
+      .populate(image)
+      .exec();
   }
 
   async create(data) {
@@ -64,5 +122,38 @@ export class ProductRepository {
 
   async delete(product) {
     return product.deleteOne();
+  }
+
+  async bulkUpsertProducts(products) {
+    if (!products.length) return new Map();
+
+    const uniqueByTitle = new Map();
+    for (const p of products) {
+      uniqueByTitle.set(p.title, p);
+    }
+    const unique = Array.from(uniqueByTitle.values());
+
+    const ops = unique.map(({ title, category }) => ({
+      updateOne: {
+        filter: { title },
+        update: { $set: { title, ...(category && { category }) } },
+        upsert: true,
+      },
+    }));
+
+    await ProductModel.bulkWrite(ops, { ordered: false });
+
+    const titles = unique.map((p) => p.title);
+    const docs = await ProductModel.find({ title: { $in: titles } })
+      .select("_id title")
+      .lean();
+
+    return new Map(docs.map((d) => [d.title, d._id]));
+  }
+
+  async getUniqueCategories() {
+    return ProductModel.distinct("category", {
+      category: { $ne: null },
+    }).exec();
   }
 }

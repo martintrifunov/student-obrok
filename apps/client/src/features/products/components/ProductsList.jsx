@@ -63,6 +63,14 @@ const ProductsList = ({ searchTerm }) => {
     }
   };
 
+  const getPriceRange = (vendorProducts) => {
+    if (!vendorProducts || vendorProducts.length === 0) return "N/A";
+    const prices = vendorProducts.map((vp) => vp.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `${min} ден.` : `${min} - ${max} ден.`;
+  };
+
   return (
     <>
       {isError && (
@@ -95,11 +103,8 @@ const ProductsList = ({ searchTerm }) => {
                           {product.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          <strong>Price: </strong> {product.price}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          <strong>Vendor: </strong>{" "}
-                          {product.vendor?.name || "N/A"}
+                          <strong>Category: </strong>{" "}
+                          {product.category || "N/A"}
                         </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
@@ -166,13 +171,13 @@ const ProductsList = ({ searchTerm }) => {
                   Title
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Category
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
                   Price
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
                   Image
-                </TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Vendor
                 </TableCell>
                 <TableCell
                   sx={{
@@ -193,7 +198,10 @@ const ProductsList = ({ searchTerm }) => {
                       <TableRow key={product._id}>
                         <TableCell>{index + 1 + page * 5}</TableCell>
                         <TableCell>{product.title}</TableCell>
-                        <TableCell>{product.price}</TableCell>
+                        <TableCell>{product.category || "N/A"}</TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          {getPriceRange(product.vendorProducts)}
+                        </TableCell>
                         <TableCell>
                           <ImagePreviewModal
                             imageTitle={product.image?.title}
@@ -204,7 +212,6 @@ const ProductsList = ({ searchTerm }) => {
                             }
                           />
                         </TableCell>
-                        <TableCell>{product.vendor?.name || "N/A"}</TableCell>
                         <TableCell style={{ textAlign: "right" }}>
                           <IconButton
                             color="inherit"
@@ -228,7 +235,7 @@ const ProductsList = ({ searchTerm }) => {
                     .fill()
                     .map((_, i) => (
                       <TableRow key={i}>
-                        {Array(6)
+                        {Array(5)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>

@@ -1,0 +1,79 @@
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+config({ path: path.resolve(__dirname, "../../../../.env") });
+
+import mongoose from "mongoose";
+import { VendorRepository } from "../modules/vendor/vendor.repository.js";
+import { ProductRepository } from "../modules/product/product.repository.js";
+import { VendorProductRepository } from "../modules/product/vendor-product.repository.js";
+import { ImageRepository } from "../modules/image/image.repository.js";
+import { GeocoderService } from "../modules/scraper/geocoder.service.js";
+import { ScraperService } from "../modules/scraper/scraper.service.js";
+import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
+
+const ALL_SCRAPERS = {
+  vero: new VeroScraper(),
+};
+
+async function main() {
+  const target = process.argv[2]?.toLowerCase();
+
+  if (target && !ALL_SCRAPERS[target]) {
+    console.error(
+      `[scrape] Unknown market "${target}". ` +
+        `Available: ${Object.keys(ALL_SCRAPERS).join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  const scrapers = target
+    ? [ALL_SCRAPERS[target]]
+    : Object.values(ALL_SCRAPERS);
+
+  const uri = process.env.MONGO_URI_LOCAL ?? process.env.MONGO_URI;
+
+  if (!uri) {
+    console.error("[scrape] No MongoDB URI found in .env");
+    process.exit(1);
+  }
+
+  console.log(`[scrape] Connecting to MongoDB...`);
+  await mongoose.connect(uri);
+  console.log("[scrape] DB connected.\n");
+
+  const scraperService = new ScraperService(
+    new VendorRepository(),
+    new ProductRepository(),
+    new VendorProductRepository(),
+    new ImageRepository(),
+    new GeocoderService(),
+  );
+
+  // Start total timer
+  const globalStartTime = performance.now();
+
+  for (const scraper of scrapers) {
+    await scraperService.runForMarket(scraper);
+  }
+
+  // Calculate total seconds
+  const totalDuration = ((performance.now() - globalStartTime) / 1000).toFixed(
+    2,
+  );
+
+  await mongoose.disconnect();
+  console.log(
+    `[scrape] 🎉 All scraping completed in ${totalDuration} seconds. DB disconnected.`,
+  );
+  process.exit(0);
+}
+
+main().catch((err) => {
+  console.error("[scrape] Fatal error:", err);
+  mongoose.disconnect();
+  process.exit(1);
+});

@@ -3,9 +3,10 @@ import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
 export class VendorService {
-  constructor(vendorRepository, imageRepository) {
+  constructor(vendorRepository, imageRepository, vendorProductRepository) {
     this.vendorRepository = vendorRepository;
     this.imageRepository = imageRepository;
+    this.vendorProductRepository = vendorProductRepository;
   }
 
   async getAllVendors({ page, limit, name }) {
@@ -54,26 +55,30 @@ export class VendorService {
   async deleteVendor(id) {
     const vendor = await this.vendorRepository.findById(id);
     if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
-    await this.vendorRepository.deleteProductsByVendor(id);
+    await this.vendorProductRepository.deleteByVendor(id);
     await this.vendorRepository.delete(vendor);
   }
 
   async generateReport() {
     const vendorsData = await this.vendorRepository.findAllForReport();
 
-    const rows = vendorsData.map(({ name, location, products, image }) => {
-      const productsData = products?.length
-        ? products.map((p) => `${p.title}, ${p.price} ден`).join("\n")
-        : "";
-      return {
-        name,
-        location,
-        image: image
-          ? `${process.env.SERVER_ORIGIN}/uploads/${image.filename}`
-          : "",
-        products: productsData,
-      };
-    });
+    const rows = vendorsData.map(
+      ({ name, location, vendorProducts, image }) => {
+        const productsData = vendorProducts?.length
+          ? vendorProducts
+              .map((vp) => `${vp.product.title}, ${vp.price} ден`)
+              .join("\n")
+          : "";
+        return {
+          name,
+          location,
+          image: image
+            ? `${process.env.SERVER_ORIGIN}/uploads/${image.filename}`
+            : "",
+          products: productsData,
+        };
+      },
+    );
 
     const parser = new Parser({
       fields: ["name", "location", "image", "products"],
