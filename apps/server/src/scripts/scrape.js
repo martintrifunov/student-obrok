@@ -15,10 +15,12 @@ import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
 import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
 import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
+import { StokomakScraper } from "../modules/scraper/markets/stokomak.scraper.js";
 
 const ALL_SCRAPERS = {
   vero: new VeroScraper(),
   ramstore: new RamstoreScraper(),
+  stokomak: new StokomakScraper(),
 };
 
 async function main() {
