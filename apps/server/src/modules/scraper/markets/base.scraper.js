@@ -2,15 +2,27 @@
  * Abstract base class for all market scrapers.
  *
  * To add a new market, extend this class and implement:
+ *   - get vendorName()
  *   - get placeholderImageFilename()
  *   - get geocodeSuffix()        (optional override)
- *   - async fetchVendors(page)
+ *   - async fetchMarkets(page)
  *   - async fetchProducts(page, storeUrl)
  *
  * ScraperService drives the orchestration — the scraper only
  * knows how to navigate and parse its own market's HTML.
  */
 export class BaseScraper {
+  /**
+   * The canonical vendor/chain name (e.g. "Vero", "Ramstore", "Stokomak").
+   * Used by ScraperService to auto-create the Vendor document.
+   * @returns {string}
+   */
+  get vendorName() {
+    throw new Error(
+      `${this.constructor.name} must implement vendorName`,
+    );
+  }
+
   /**
    * The filename of the pre-uploaded placeholder image for this market.
    * e.g. "vero_market.png"
@@ -37,8 +49,8 @@ export class BaseScraper {
    * @param {import('puppeteer').Page} page - A Puppeteer page instance.
    * @returns {Promise<Array<{ name: string, pricelistUrl: string }>>}
    */
-  async fetchVendors(page) {
-    throw new Error(`${this.constructor.name} must implement fetchVendors()`);
+  async fetchMarkets(page) {
+    throw new Error(`${this.constructor.name} must implement fetchMarkets()`);
   }
 
   /**

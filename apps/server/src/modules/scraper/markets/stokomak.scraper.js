@@ -4,6 +4,10 @@ const INDEX_URL = "https://stokomak.proverkanaceni.mk/";
 const MAX_PRICE = 3000;
 
 export class StokomakScraper extends BaseScraper {
+  get vendorName() {
+    return "Stokomak";
+  }
+
   get placeholderImageFilename() {
     return process.env.VENDOR_IMAGE_STOKOMAK || "stokomak_market.png";
   }
@@ -12,7 +16,7 @@ export class StokomakScraper extends BaseScraper {
     return "Македонија";
   }
 
-  async fetchVendors(page) {
+  async fetchMarkets(page) {
     await page.goto(INDEX_URL, { waitUntil: "domcontentloaded" });
 
     const entries = await page.evaluate((baseUrl) => {

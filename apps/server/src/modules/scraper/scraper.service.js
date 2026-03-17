@@ -5,14 +5,16 @@ const CONCURRENT_TABS = 4;
 export class ScraperService {
   constructor(
     vendorRepository,
+    marketRepository,
     productRepository,
-    vendorProductRepository,
+    marketProductRepository,
     imageRepository,
     geocoderService,
   ) {
     this.vendorRepository = vendorRepository;
+    this.marketRepository = marketRepository;
     this.productRepository = productRepository;
-    this.vendorProductRepository = vendorProductRepository;
+    this.marketProductRepository = marketProductRepository;
     this.imageRepository = imageRepository;
     this.geocoderService = geocoderService;
   }
@@ -27,6 +29,11 @@ export class ScraperService {
     if (!placeholderImage) {
       throw new Error(`Placeholder image not found in DB.`);
     }
+
+    const vendorDoc = await this.#ensureVendorExists(
+      scraper.vendorName,
+      placeholderImage,
+    );
 
     const browser = await puppeteer.launch({
       headless: true,
@@ -43,26 +50,26 @@ export class ScraperService {
     try {
       const setupPage = await browser.newPage();
       await this.#optimizePage(setupPage);
-      const vendors = await scraper.fetchVendors(setupPage);
+      const markets = await scraper.fetchMarkets(setupPage);
       await setupPage.close();
 
-      // Phase 1: Sequential Vendor Setup
-      const readyVendors = [];
-      for (const v of vendors) {
-        const vendorDoc = await this.#ensureVendorExists(
-          v.name,
-          v.address,
+      // Phase 1: Sequential Market Setup
+      const readyMarkets = [];
+      for (const m of markets) {
+        const marketDoc = await this.#ensureMarketExists(
+          m.name,
+          m.address,
           scraper,
-          placeholderImage,
+          vendorDoc,
         );
-        readyVendors.push({ ...v, vendorDoc });
+        readyMarkets.push({ ...m, marketDoc });
       }
 
       // Phase 2: Multithreaded Scrape
-      for (let i = 0; i < readyVendors.length; i += CONCURRENT_TABS) {
-        const batch = readyVendors.slice(i, i + CONCURRENT_TABS);
+      for (let i = 0; i < readyMarkets.length; i += CONCURRENT_TABS) {
+        const batch = readyMarkets.slice(i, i + CONCURRENT_TABS);
         await Promise.all(
-          batch.map((v) => this.#scrapeAndSaveStore(v, scraper, browser)),
+          batch.map((m) => this.#scrapeAndSaveStore(m, scraper, browser)),
         );
       }
     } finally {
@@ -87,24 +94,34 @@ export class ScraperService {
     });
   }
 
-  async #ensureVendorExists(name, address, scraper, placeholderImage) {
-    let vendor = await this.vendorRepository.findByName(name);
+  async #ensureVendorExists(vendorName, placeholderImage) {
+    let vendor = await this.vendorRepository.findByName(vendorName);
     if (vendor) return vendor;
+
+    return this.vendorRepository.create({
+      name: vendorName,
+      image: placeholderImage._id,
+    });
+  }
+
+  async #ensureMarketExists(name, address, scraper, vendorDoc) {
+    let market = await this.marketRepository.findByName(name);
+    if (market) return market;
 
     const location = await this.geocoderService.geocode(
       name,
       scraper.geocodeSuffix,
       address,
     );
-    return this.vendorRepository.create({
+    return this.marketRepository.create({
       name,
       location,
-      image: placeholderImage._id,
+      vendor: vendorDoc._id,
     });
   }
 
-  async #scrapeAndSaveStore(vendorData, scraper, browser) {
-    const { name, pricelistUrl, vendorDoc } = vendorData;
+  async #scrapeAndSaveStore(marketData, scraper, browser) {
+    const { name, pricelistUrl, marketDoc } = marketData;
     const tabStartTime = performance.now();
     const page = await browser.newPage();
     await this.#optimizePage(page);
@@ -113,7 +130,7 @@ export class ScraperService {
       const result = await scraper.fetchProducts(
         page,
         pricelistUrl,
-        vendorDoc.lastScrapedUpdate,
+        marketDoc.lastScrapedUpdate,
       );
 
       if (result.upToDate) {
@@ -136,19 +153,19 @@ export class ScraperService {
 
       const productIdMap = await this.#safeProductUpsert(productsData);
 
-      const vendorProducts = rawProducts
+      const marketProducts = rawProducts
         .filter(({ title }) => productIdMap.has(title))
         .map(({ title, price }) => ({
-          vendor: vendorDoc._id,
+          market: marketDoc._id,
           product: productIdMap.get(title),
           price,
         }));
 
-      await this.vendorProductRepository.bulkUpsert(vendorProducts);
+      await this.marketProductRepository.bulkUpsert(marketProducts);
 
       if (result.newUpdateString) {
-        vendorDoc.lastScrapedUpdate = result.newUpdateString;
-        await this.vendorRepository.save(vendorDoc);
+        marketDoc.lastScrapedUpdate = result.newUpdateString;
+        await this.marketRepository.save(marketDoc);
       }
 
       const tabDuration = ((performance.now() - tabStartTime) / 1000).toFixed(

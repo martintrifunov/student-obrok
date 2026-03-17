@@ -4,6 +4,10 @@ const INDEX_URL = "https://ramstore.com.mk/marketi/";
 const MAX_PRICE = 840;
 
 export class RamstoreScraper extends BaseScraper {
+  get vendorName() {
+    return "Ramstore";
+  }
+
   get placeholderImageFilename() {
     return process.env.VENDOR_IMAGE_RAMSTORE || "ramstore_market.png";
   }
@@ -12,7 +16,7 @@ export class RamstoreScraper extends BaseScraper {
     return "Македонија";
   }
 
-  async fetchVendors(page) {
+  async fetchMarkets(page) {
     await page.goto(INDEX_URL, { waitUntil: "domcontentloaded" });
 
     const entries = await page.evaluate(() => {
