@@ -9,15 +9,10 @@ import useMapPitch from "@/features/map/hooks/useMapPitch";
 import { BASE_URL } from "@/api/consts";
 import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
 import { useMarketsForMap } from "@/features/markets/hooks/useMarketQueries";
+import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
 
 const VENDOR_MARKER_PATH =
   "m438-441.001 184.153-184.153-42.768-42.768L438-526.537l-56-56-42.768 42.768L438-441.001Zm42 341.384Q329.001-230.463 253.539-343.154q-75.461-112.692-75.461-206.923 0-138.46 89.577-224.191Q357.231-859.999 480-859.999t212.345 85.731q89.577 85.731 89.577 224.191 0 94.231-75.461 206.923Q630.999-230.463 480-99.617Z";
-
-const VENDOR_MARKER_COLORS = {
-  vero: "crimson",
-  ramstore: "#2e7d32",
-  stokomak: "#f4c430",
-};
 
 const getVendorMarkerColor = (vendorName = "") => {
   const normalizedName = vendorName.trim().toLowerCase();
