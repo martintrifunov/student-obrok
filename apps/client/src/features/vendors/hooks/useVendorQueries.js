@@ -7,15 +7,18 @@ export const vendorKeys = {
   detail: (id) => [...vendorKeys.all, "detail", id],
 };
 
-export function useVendors(searchTerm) {
+export function useVendors({ searchTerm, page = 1, limit = 5 } = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: vendorKeys.list(searchTerm),
+    queryKey: [...vendorKeys.all, "list", searchTerm, page, limit],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: 0 });
+      const params = new URLSearchParams();
+      if (page) params.append("page", page);
+      if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("name", searchTerm);
+
       const response = await axiosPrivate.get(`/vendors?${params}`);
-      return response.data.data;
+      return response.data;
     },
   });
 }

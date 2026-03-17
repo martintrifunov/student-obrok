@@ -41,15 +41,18 @@ export function useSaveProduct(isEditMode, productId) {
   });
 }
 
-export function useProducts(searchTerm) {
+export function useProducts({ searchTerm, page = 1, limit = 5 } = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: productKeys.list(searchTerm),
+    queryKey: [...productKeys.all, "list", searchTerm, page, limit],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: 0 });
+      const params = new URLSearchParams();
+      if (page) params.append("page", page);
+      if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("title", searchTerm);
+
       const response = await axiosPrivate.get(`/products?${params}`);
-      return response.data.data;
+      return response.data;
     },
   });
 }

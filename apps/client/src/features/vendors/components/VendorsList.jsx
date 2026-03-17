@@ -39,6 +39,7 @@ const VendorsList = ({ searchTerm }) => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [page, setPage] = useState(0);
+  const rowsPerPage = 5;
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState({ id: null, name: "" });
 
@@ -49,11 +50,18 @@ const VendorsList = ({ searchTerm }) => {
   }, [debouncedSearch]);
 
   const {
-    data: vendors = [],
+    data: responseData,
     isLoading,
     isError,
     error,
-  } = useVendors(debouncedSearch);
+  } = useVendors({
+    searchTerm: debouncedSearch,
+    page: page + 1,
+    limit: rowsPerPage,
+  });
+
+  const vendors = responseData?.data || [];
+  const totalVendors = responseData?.pagination?.total || 0;
 
   const deleteMutation = useDeleteVendor();
 
@@ -78,10 +86,11 @@ const VendorsList = ({ searchTerm }) => {
       {isError && (
         <Error variant="p">{error?.response?.data?.message || "Error"}</Error>
       )}
+
       {isSmallScreen ? (
         <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? vendors.slice(page * 5, page * 5 + 5).map((vendor) => (
+            ? vendors.map((vendor) => (
                 <Card
                   key={vendor._id}
                   sx={{
@@ -210,9 +219,9 @@ const VendorsList = ({ searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? vendors.slice(page * 5, page * 5 + 5).map((vendor, index) => (
+                ? vendors.map((vendor, index) => (
                     <TableRow key={vendor._id}>
-                      <TableCell>{index + 1 + page * 5}</TableCell>
+                      <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                       <TableCell>{vendor.name}</TableCell>
                       <TableCell>{vendor.location.join(", ")}</TableCell>
                       <TableCell>
@@ -272,14 +281,15 @@ const VendorsList = ({ searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={vendors.length}
+            count={totalVendors}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={5}
+            rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[]}
           />
         </VendorsTableContainer>
       )}
+
       <SharedVendorProductsModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
