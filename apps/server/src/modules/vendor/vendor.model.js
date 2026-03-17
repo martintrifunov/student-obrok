@@ -3,19 +3,17 @@ import mongoose from "mongoose";
 const VendorSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    location: [{ type: Number, required: true }],
     image: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Image",
       required: true,
     },
-    lastScrapedUpdate: { type: String, default: null },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
-VendorSchema.virtual("vendorProducts", {
-  ref: "VendorProduct",
+VendorSchema.virtual("markets", {
+  ref: "Market",
   localField: "_id",
   foreignField: "vendor",
 });
