@@ -17,10 +17,10 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import ImageIcon from "@mui/icons-material/Image";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { BASE_URL } from "@/api/consts";
+import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
   useMarketProducts,
   useCategories,
@@ -80,7 +80,12 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
       maxWidth="md"
       scroll="paper"
       onClick={(e) => e.stopPropagation()}
-      PaperProps={{ sx: { borderRadius: isMobile ? 0 : 3, height: isMobile ? "100%" : "85vh" } }}
+      PaperProps={{
+        sx: {
+          borderRadius: isMobile ? 0 : 3,
+          height: isMobile ? "100%" : "85vh",
+        },
+      }}
     >
       <DialogTitle
         sx={{
@@ -171,6 +176,7 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
               {products.map((item) => {
                 const p = item.product || item;
                 const price = item.price || p.price || "N/A";
+                const CategoryIcon = getCategoryIcon(p?.category);
 
                 return (
                   <Card
@@ -189,31 +195,54 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
                         width: isMobile ? "100%" : 140,
                         height: isMobile ? 140 : 140,
                         flexShrink: 0,
+                        position: "relative",
                         backgroundColor:
                           theme.palette.mode === "dark"
                             ? "grey.900"
                             : "grey.100",
-                        borderRight: isMobile ? "none" : `1px solid ${theme.palette.divider}`,
-                        borderBottom: isMobile ? `1px solid ${theme.palette.divider}` : "none",
+                        borderRight: isMobile
+                          ? "none"
+                          : `1px solid ${theme.palette.divider}`,
+                        borderBottom: isMobile
+                          ? `1px solid ${theme.palette.divider}`
+                          : "none",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
                       {p?.image ? (
-                        <Box
-                          component="img"
-                          src={`${BASE_URL}${p.image.url}`}
-                          alt={p.title}
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
+                        <>
+                          <Box
+                            component="img"
+                            src={`${BASE_URL}${p.image.url}`}
+                            alt={p.title}
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              bottom: 6,
+                              left: 6,
+                              backgroundColor: "rgba(0, 0, 0, 0.55)",
+                              borderRadius: "8px",
+                              padding: "3px 6px",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CategoryIcon
+                              sx={{ fontSize: 18, color: "#fff" }}
+                            />
+                          </Box>
+                        </>
                       ) : (
-                        <ImageIcon
-                          sx={{ fontSize: 40, color: theme.palette.grey[400] }}
+                        <CategoryIcon
+                          sx={{ fontSize: 44, color: theme.palette.grey[400] }}
                         />
                       )}
                     </Box>

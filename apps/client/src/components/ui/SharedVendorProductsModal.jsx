@@ -16,10 +16,10 @@ import {
   Autocomplete,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import ImageIcon from "@mui/icons-material/Image";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { BASE_URL } from "@/api/consts";
+import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
   useVendorProducts,
   useCategories,
@@ -168,6 +168,7 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
               {products.map((item) => {
                 const p = item.product || item;
                 const price = item.price || p.price || "N/A";
+                const CategoryIcon = getCategoryIcon(p?.category);
 
                 return (
                   <Card
@@ -185,6 +186,7 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
                         width: 140,
                         height: 140,
                         flexShrink: 0,
+                        position: "relative",
                         backgroundColor:
                           theme.palette.mode === "dark"
                             ? "grey.900"
@@ -196,19 +198,37 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
                       }}
                     >
                       {p?.image ? (
-                        <Box
-                          component="img"
-                          src={`${BASE_URL}${p.image.url}`}
-                          alt={p.title}
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
+                        <>
+                          <Box
+                            component="img"
+                            src={`${BASE_URL}${p.image.url}`}
+                            alt={p.title}
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              bottom: 6,
+                              left: 6,
+                              backgroundColor: "rgba(0, 0, 0, 0.55)",
+                              borderRadius: "8px",
+                              padding: "3px 6px",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <CategoryIcon
+                              sx={{ fontSize: 18, color: "#fff" }}
+                            />
+                          </Box>
+                        </>
                       ) : (
-                        <ImageIcon
-                          sx={{ fontSize: 40, color: theme.palette.grey[400] }}
+                        <CategoryIcon
+                          sx={{ fontSize: 44, color: theme.palette.grey[400] }}
                         />
                       )}
                     </Box>
