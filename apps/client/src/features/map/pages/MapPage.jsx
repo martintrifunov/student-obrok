@@ -253,8 +253,8 @@ const MapPage = () => {
             </ModeButton>
           </ModeSelectorContainer>
 
-          <CancelRouteButton variant="contained" onClick={handleCancelRoute}>
-            <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
+          <CancelRouteButton onClick={handleCancelRoute}>
+            <CloseIcon />
           </CancelRouteButton>
         </>
       )}
@@ -268,6 +268,11 @@ const MapPage = () => {
             display: "flex",
             alignItems: "center",
             gap: 1.5,
+            [theme.breakpoints.down("sm")]: {
+              bottom: "20px",
+              left: "12px",
+              gap: 1,
+            },
           }}
         >
           <MenuToggleButton
@@ -377,6 +382,11 @@ const ModeSelectorContainer = styled(Stack)(({ theme }) => ({
   borderRadius: "14px",
   boxShadow: theme.shadows[4],
   border: `1px solid ${theme.palette.divider}`,
+  [theme.breakpoints.down("sm")]: {
+    top: "12px",
+    left: "12px",
+    padding: "4px",
+  },
 }));
 
 const ModeButton = styled(Button, {
@@ -402,22 +412,30 @@ const ModeButton = styled(Button, {
       ? theme.palette.primary.main
       : theme.palette.action.hover,
   },
+  [theme.breakpoints.down("sm")]: {
+    minWidth: "38px",
+    height: "38px",
+  },
 }));
 
-const CancelRouteButton = styled(Button)(({ theme }) => ({
+const CancelRouteButton = styled(IconButton)(({ theme }) => ({
   position: "absolute",
   top: "20px",
   right: "20px",
   zIndex: 1000,
-  backgroundColor: theme.palette.error.main,
+  backgroundColor: "crimson",
   color: "#fff",
-  borderRadius: "12px",
-  padding: "10px 20px",
-  textTransform: "none",
-  fontWeight: "bold",
+  width: "48px",
+  height: "48px",
   boxShadow: theme.shadows[4],
   "&:hover": {
-    backgroundColor: theme.palette.error.dark,
+    backgroundColor: "#b71c1c",
+  },
+  [theme.breakpoints.down("sm")]: {
+    top: "12px",
+    right: "12px",
+    width: "42px",
+    height: "42px",
   },
 }));
 
@@ -442,6 +460,10 @@ const MenuToggleButton = styled(IconButton, {
   boxShadow: theme.shadows[6],
   border: `1px solid ${$expanded ? "transparent" : $isDark ? "#334155" : theme.palette.divider}`,
   transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  [theme.breakpoints.down("sm")]: {
+    width: "48px",
+    height: "48px",
+  },
   "&:hover": {
     backgroundColor: $expanded
       ? theme.palette.primary.dark
