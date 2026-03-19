@@ -200,7 +200,10 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         backgroundColor: "background.paper",
                       }}
                     >
-                      <MapProductInfoModal marketId={market._id} />
+                      <MapProductInfoModal
+                        marketId={market._id}
+                        marketName={market.name}
+                      />
                       <Button
                         disabled={isDisabledRoutingButton}
                         fullWidth

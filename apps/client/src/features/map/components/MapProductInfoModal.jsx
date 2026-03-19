@@ -3,7 +3,7 @@ import { Button } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
 
-const MapProductInfoModal = ({ marketId }) => {
+const MapProductInfoModal = ({ marketId, marketName }) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = (e) => {
@@ -31,7 +31,7 @@ const MapProductInfoModal = ({ marketId }) => {
           setOpen(false);
         }}
         marketId={marketId}
-        title="Продукти"
+        title={`${marketName || "Маркет"} Продукти`}
       />
     </>
   );
