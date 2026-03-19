@@ -24,6 +24,8 @@ const getVendorMarkerColor = (vendorName = "") => {
   );
 };
 
+const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
+
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const theme = useTheme();
   const [selectedMarket, setSelectedMarket] = useState(null);
@@ -230,11 +232,11 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   );
 };
 
-const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
+const ClusterMarker = styled("div")(({ pointCount }) => ({
   height: "2rem",
   width: "2rem",
   borderRadius: "50%",
-  backgroundColor: theme.palette.error.main,
+  backgroundColor: CLUSTER_MARKER_COLOR,
   color: "#ffffff",
   display: "flex",
   justifyContent: "center",
@@ -242,13 +244,12 @@ const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
   fontWeight: 900,
   fontSize: "1rem",
   cursor: "pointer",
-  border: `2px solid ${theme.palette.background.paper}`,
-  boxShadow: `0 0 10px ${theme.palette.error.main}80`,
+  boxShadow: `0 0 10px ${CLUSTER_MARKER_COLOR}`,
   transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
   animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: "scale(1.15)",
-    boxShadow: `0 0 20px ${theme.palette.error.main}, 0 0 30px ${theme.palette.error.main}60`,
+    boxShadow: `0 0 20px ${CLUSTER_MARKER_COLOR}, 0 0 30px ${CLUSTER_MARKER_COLOR}`,
   },
   "&:active": {
     transform: "scale(0.95)",
