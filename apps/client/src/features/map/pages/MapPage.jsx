@@ -9,6 +9,7 @@ import {
   useTheme,
   Collapse,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
@@ -41,6 +42,7 @@ const INITIAL_VIEW_STATE = {
 
 const MapPage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const mode = useThemeStore((state) => state.mode);
   const toggleColorMode = useThemeStore((state) => state.toggleColorMode);
   const logout = useLogout();
@@ -253,9 +255,15 @@ const MapPage = () => {
             </ModeButton>
           </ModeSelectorContainer>
 
-          <CancelRouteButton onClick={handleCancelRoute}>
-            <CloseIcon />
-          </CancelRouteButton>
+          {isMobile ? (
+            <CancelRouteIconButton onClick={handleCancelRoute}>
+              <CloseIcon />
+            </CancelRouteIconButton>
+          ) : (
+            <CancelRouteButton variant="contained" onClick={handleCancelRoute}>
+              <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
+            </CancelRouteButton>
+          )}
         </>
       )}
       {!isLoading && (
@@ -418,24 +426,35 @@ const ModeButton = styled(Button, {
   },
 }));
 
-const CancelRouteButton = styled(IconButton)(({ theme }) => ({
+const CancelRouteButton = styled(Button)(({ theme }) => ({
   position: "absolute",
   top: "20px",
   right: "20px",
   zIndex: 1000,
+  backgroundColor: theme.palette.error.main,
+  color: "#fff",
+  borderRadius: "12px",
+  padding: "10px 20px",
+  textTransform: "none",
+  fontWeight: "bold",
+  boxShadow: theme.shadows[4],
+  "&:hover": {
+    backgroundColor: theme.palette.error.dark,
+  },
+}));
+
+const CancelRouteIconButton = styled(IconButton)(({ theme }) => ({
+  position: "absolute",
+  top: "12px",
+  right: "12px",
+  zIndex: 1000,
   backgroundColor: "crimson",
   color: "#fff",
-  width: "48px",
-  height: "48px",
+  width: "42px",
+  height: "42px",
   boxShadow: theme.shadows[4],
   "&:hover": {
     backgroundColor: "#b71c1c",
-  },
-  [theme.breakpoints.down("sm")]: {
-    top: "12px",
-    right: "12px",
-    width: "42px",
-    height: "42px",
   },
 }));
 
