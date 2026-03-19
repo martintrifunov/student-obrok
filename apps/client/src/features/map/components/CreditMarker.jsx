@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
 import { Typography, Box, styled } from "@mui/material";
-import creditLocationMarker from "@/assets/icons/credit_location_marker.svg";
 import creditPopupIcon from "@/assets/icons/credit_popup.svg";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
+import { CREDIT_MARKER_PATH, MARKER_VIEWBOX } from "@/features/map/config/markerPaths";
 
 const CreditMarker = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -24,11 +24,13 @@ const CreditMarker = () => {
         anchor="bottom"
         onClick={() => setShowPopup(!showPopup)}
       >
-        <CreditMarkerImage
-          src={creditLocationMarker}
-          alt="credit marker"
+        <CreditMarkerIcon
+          viewBox={MARKER_VIEWBOX}
+          aria-label="credit marker"
           $verticalOffset={verticalOffset}
-        />
+        >
+          <path d={CREDIT_MARKER_PATH} />
+        </CreditMarkerIcon>
       </Marker>
 
       {showPopup && (
@@ -97,11 +99,13 @@ const CreditMarker = () => {
   );
 };
 
-const CreditMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
+const CreditMarkerIcon = styled("svg")(({ $verticalOffset = 0 }) => ({
   width: 38,
   height: 95,
   display: "block",
   cursor: "pointer",
+  color: "#368b96",
+  fill: "currentColor",
   transform: `translateY(${$verticalOffset}px)`,
   filter:
     "brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(5478%) hue-rotate(265deg) brightness(95%) contrast(105%)",
