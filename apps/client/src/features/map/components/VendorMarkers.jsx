@@ -11,16 +11,7 @@ import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
 import { useMarketsForMap } from "@/features/markets/hooks/useMarketQueries";
 import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
 import { MARKER_VIEWBOX, VENDOR_MARKER_PATH } from "@/features/map/config/markerPaths";
-
-const getVendorMarkerColor = (vendorName = "") => {
-  const normalizedName = vendorName.trim().toLowerCase();
-
-  return (
-    Object.entries(VENDOR_MARKER_COLORS).find(([vendorKey]) =>
-      normalizedName.includes(vendorKey),
-    )?.[1] ?? VENDOR_MARKER_COLORS.vero
-  );
-};
+import { getClusterGradient, getVendorMarkerColor } from "@/features/map/utils/markerUtils";
 
 const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
 
@@ -89,6 +80,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
             cluster.properties;
 
           if (isCluster) {
+            const clusterGradient = getClusterGradient(cluster, supercluster);
             return (
               <Marker
                 key={`cluster-${cluster.id}`}
@@ -109,6 +101,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                     });
                   }}
                   pointCount={pointCount}
+                  $gradient={clusterGradient}
                 >
                   {pointCount}
                 </ClusterMarker>
@@ -132,7 +125,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                   $verticalOffset={verticalOffset}
                   $markerColor={getVendorMarkerColor(vendorName)}
                 >
-                  <path d={VENDOR_MARKER_PATH} />
+                  <path d={VENDOR_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
                 </VendorMarkerIcon>
               </Marker>
 
@@ -230,40 +223,55 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   );
 };
 
-const ClusterMarker = styled("div")(({ pointCount }) => ({
-  height: "2rem",
-  width: "2rem",
-  borderRadius: "50%",
-  backgroundColor: CLUSTER_MARKER_COLOR,
-  color: "#ffffff",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  fontWeight: 900,
-  fontSize: "1rem",
-  cursor: "pointer",
-  boxShadow: `0 0 10px ${CLUSTER_MARKER_COLOR}`,
-  transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  "&:hover": {
-    transform: "scale(1.15)",
-    boxShadow: `0 0 20px ${CLUSTER_MARKER_COLOR}, 0 0 30px ${CLUSTER_MARKER_COLOR}`,
-  },
-  "&:active": {
-    transform: "scale(0.95)",
-  },
-  ...(pointCount > 10 && {
-    height: "2.5rem",
-    width: "2.5rem",
-    fontSize: "1.1rem",
-  }),
-  ...(pointCount > 50 && { height: "3rem", width: "3rem", fontSize: "1.2rem" }),
-  "@keyframes clusterPop": {
-    "0%": { opacity: 0, transform: "scale(0)" },
-    "50%": { transform: "scale(1.1)" },
-    "100%": { opacity: 1, transform: "scale(1)" },
-  },
-}));
+const ClusterMarker = styled("div", {
+  shouldForwardProp: (prop) => prop !== "$gradient",
+})(({ pointCount, $gradient }) => {
+  const background = $gradient || CLUSTER_MARKER_COLOR;
+  const glowColor =
+    typeof $gradient === "string" && !$gradient.includes("gradient")
+      ? $gradient
+      : CLUSTER_MARKER_COLOR;
+
+  return {
+    height: "2rem",
+    width: "2rem",
+    borderRadius: "50%",
+    background,
+    color: "#ffffff",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontWeight: 900,
+    fontSize: "1rem",
+    cursor: "pointer",
+    boxShadow: `0 0 14px ${glowColor}99`,
+    border: "2px solid rgba(255, 255, 255, 0.85)",
+    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "&:hover": {
+      transform: "scale(1.15)",
+      boxShadow: `0 0 22px ${glowColor}, inset 0 0 10px rgba(255, 255, 255, 0.3)`,
+    },
+    "&:active": {
+      transform: "scale(0.95)",
+    },
+    ...(pointCount > 10 && {
+      height: "2.5rem",
+      width: "2.5rem",
+      fontSize: "1.1rem",
+    }),
+    ...(pointCount > 50 && {
+      height: "3rem",
+      width: "3rem",
+      fontSize: "1.2rem",
+    }),
+    "@keyframes clusterPop": {
+      "0%": { opacity: 0, transform: "scale(0)" },
+      "50%": { transform: "scale(1.1)" },
+      "100%": { opacity: 1, transform: "scale(1)" },
+    },
+  };
+});
 
 const VendorMarkerIcon = styled("svg", {
   shouldForwardProp: (prop) =>
