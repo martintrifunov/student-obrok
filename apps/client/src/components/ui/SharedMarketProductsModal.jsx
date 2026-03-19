@@ -14,6 +14,7 @@ import {
   CircularProgress,
   Chip,
   Autocomplete,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
@@ -33,6 +34,7 @@ const stripHtmlAndDecode = (html) => {
 
 const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [page, setPage] = useState(1);
   const [titleInput, setTitleInput] = useState("");
@@ -74,10 +76,11 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
       open={open}
       onClose={onClose}
       fullWidth
+      fullScreen={isMobile}
       maxWidth="md"
       scroll="paper"
       onClick={(e) => e.stopPropagation()}
-      PaperProps={{ sx: { borderRadius: 3, height: "85vh" } }}
+      PaperProps={{ sx: { borderRadius: isMobile ? 0 : 3, height: isMobile ? "100%" : "85vh" } }}
     >
       <DialogTitle
         sx={{
@@ -113,6 +116,7 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
             borderBottom: `1px solid ${theme.palette.divider}`,
             display: "flex",
             gap: 2,
+            flexDirection: isMobile ? "column" : "row",
           }}
         >
           <TextField
@@ -173,22 +177,24 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
                     key={item._id}
                     sx={{
                       display: "flex",
-                      flexDirection: "row",
+                      flexDirection: isMobile ? "column" : "row",
                       borderRadius: 2,
                       border: `1px solid ${theme.palette.divider}`,
                       boxShadow: "0px 2px 10px rgba(0,0,0,0.03)",
+                      overflow: "hidden",
                     }}
                   >
                     <Box
                       sx={{
-                        width: 140,
-                        height: 140,
+                        width: isMobile ? "100%" : 140,
+                        height: isMobile ? 140 : 140,
                         flexShrink: 0,
                         backgroundColor:
                           theme.palette.mode === "dark"
                             ? "grey.900"
                             : "grey.100",
-                        borderRight: `1px solid ${theme.palette.divider}`,
+                        borderRight: isMobile ? "none" : `1px solid ${theme.palette.divider}`,
+                        borderBottom: isMobile ? `1px solid ${theme.palette.divider}` : "none",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -220,7 +226,7 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
                         justifyContent="space-between"
                         alignItems="flex-start"
                       >
-                        <Box>
+                        <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
                           <Typography
                             variant="subtitle1"
                             fontWeight="bold"
@@ -233,7 +239,7 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
                               label={p.category}
                               size="small"
                               variant="outlined"
-                              sx={{ mt: 1, borderRadius: 1 }}
+                              sx={{ mt: 1, borderRadius: 1, maxWidth: "100%" }}
                             />
                           )}
                         </Box>
@@ -286,6 +292,8 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
               onChange={(e, val) => setPage(val)}
               color="primary"
               shape="rounded"
+              size={isMobile ? "small" : "medium"}
+              siblingCount={isMobile ? 0 : 1}
             />
           </Box>
         )}
