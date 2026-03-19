@@ -29,7 +29,7 @@ const CreditMarker = () => {
           aria-label="credit marker"
           $verticalOffset={verticalOffset}
         >
-          <path d={CREDIT_MARKER_PATH} />
+          <path d={CREDIT_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
         </CreditMarkerIcon>
       </Marker>
 
@@ -85,11 +85,9 @@ const CreditMarker = () => {
                 >
                   Мартин Трифунов
                 </Typography>
-                , е веб апликација дизајнирана да помогне на студентите во
-                наоѓањето на економични оброци за ручек на удобен начин. Со
-                нудење на корисен интерфејс, ја упрости процедурата за наоѓање
-                на блиски ресторани со попусти, во соодветство со потребите на
-                студентите со ограничен буџет.
+                . Студентски Оброк е модерна веб апликација дизајнирана да им
+                помогне на студентите да пронајдат пристапни и буџетски понуди
+                за оброци во нивна близина преку интерактивна 3D мапа.
               </Typography>
             </Box>
           </CreditPopup>
@@ -104,19 +102,14 @@ const CreditMarkerIcon = styled("svg")(({ $verticalOffset = 0 }) => ({
   height: 95,
   display: "block",
   cursor: "pointer",
-  color: "#368b96",
+  color: "#9c27b0",
   fill: "currentColor",
   transform: `translateY(${$verticalOffset}px)`,
-  filter:
-    "brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(5478%) hue-rotate(265deg) brightness(95%) contrast(105%)",
   transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
   animation: "markerDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
-    filter: `
-      brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(5478%) hue-rotate(265deg) brightness(95%) contrast(105%)
-      drop-shadow(0 0 12px #9c27b0) 
-    `,
+    filter: `drop-shadow(0 0 12px #9c27b0)`,
   },
   "&:active": {
     transform: `translateY(${$verticalOffset}px) scale(0.95)`,
