@@ -1,7 +1,15 @@
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
-const DEFAULT_COORDS = [41.9981, 21.4254];
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
+import { normalizeMarketName } from "./normalize-market-name.js";
 
-// Mapping for clean transliteration
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
+const COORDS_PATH = resolve(__dirname, "../../data/market-coordinates.json");
+
 const CYR_TO_LAT = {
   А: "A",
   Б: "B",
@@ -77,22 +85,48 @@ function transliterate(text) {
 }
 
 export class GeocoderService {
+  #staticCoords;
+
+  constructor() {
+    try {
+      this.#staticCoords = JSON.parse(readFileSync(COORDS_PATH, "utf-8"));
+      console.log(
+        `[GeocoderService] Loaded ${Object.keys(this.#staticCoords).length} static coordinates.`,
+      );
+    } catch {
+      this.#staticCoords = {};
+      console.warn(
+        "[GeocoderService] No market-coordinates.json found — static lookup disabled.",
+      );
+    }
+  }
+
   async geocode(storeName, suffix, address) {
+    // --- Tier 1: Static JSON lookup ---
+    const key = normalizeMarketName(storeName);
+    if (this.#staticCoords[key]) {
+      console.log(`[GeocoderService] ✅ Static lookup hit for "${key}".`);
+      return this.#staticCoords[key];
+    }
+
+    // --- Tier 2: Nominatim fallback ---
+    console.log(
+      `[GeocoderService] Static miss for "${key}", trying Nominatim...`,
+    );
+
     const city = this.#getCity(address) || "";
 
-    // Clean the address: Remove "Бул.", "Ул.", "бр." etc.
     const cleanAddress = address
       ?.replace(/(Бул\.|Ул\.|ул\.|бул\.|бр\.|бр)/gi, "")
-      .split("–")[0] // Remove neighborhood hints after the dash
+      .split("–")[0]
       .trim();
 
-    // Strategy: Try 4 levels of queries
     const queries = [
-      `${cleanAddress}, ${city}, ${suffix}`, // 1. Specific Street + City
-      `${storeName}, ${city}, ${suffix}`, // 2. Store Name + City
-      `${transliterate(cleanAddress)}, ${transliterate(city)}, North Macedonia`, // 3. Latin Street
-      `${city}, ${suffix}`, // 4. City Fallback
-    ].filter((q) => q.length > 10); // Ignore empty/short queries
+      `${cleanAddress}, ${city}, ${suffix}`,
+      `${storeName}, ${city}, ${suffix}`,
+      `${transliterate(cleanAddress)}, ${transliterate(city)}, North Macedonia`,
+      `${city}, ${suffix}`,
+    ].filter((q) => q.length > 10);
 
     for (const q of queries) {
       console.log(`[GeocoderService] Querying: "${q}"`);
@@ -105,13 +139,12 @@ export class GeocoderService {
       await this.#sleep(1100);
     }
 
-    // Generic Jitter Fallback
-    const jitterLat = (Math.random() - 0.5) * 0.01;
-    const jitterLon = (Math.random() - 0.5) * 0.01;
+    // --- No jitter — return null so the caller can handle failure explicitly ---
     console.warn(
-      `[GeocoderService] ❌ All queries failed for ${storeName}. Using jitter.`,
+      `[GeocoderService] ❌ All queries failed for "${key}". ` +
+        "Add coordinates manually to market-coordinates.json.",
     );
-    return [DEFAULT_COORDS[0] + jitterLat, DEFAULT_COORDS[1] + jitterLon];
+    return null;
   }
 
   #getCity(address) {
@@ -123,6 +156,27 @@ export class GeocoderService {
       "Куманово",
       "Гевгелија",
       "Велес",
+      "Штип",
+      "Струга",
+      "Охрид",
+      "Прилеп",
+      "Кавадарци",
+      "Кичево",
+      "Гостивар",
+      "Струмица",
+      "Кочани",
+      "Неготино",
+      "Виница",
+      "Берово",
+      "Свети Николе",
+      "Демир Хисар",
+      "Радовиш",
+      "Пробиштип",
+      "Делчево",
+      "Крива Паланка",
+      "Дебар",
+      "Ресен",
+      "Валандово",
     ];
     return cities.find((c) => address.includes(c)) || null;
   }

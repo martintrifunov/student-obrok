@@ -17,7 +17,9 @@
     "scrape:ramstore": "node src/scripts/scrape.js ramstore",
     "scrape:stokomak": "node src/scripts/scrape.js stokomak",
     "scrape:debug:vero": "node src/scripts/debug-vero.js",
-    "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js"
+    "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js",
+    "coords:populate": "node src/scripts/populate-coordinates.js",
+    "coords:seed": "node src/scripts/seed-coordinates.js"
   },
   "dependencies": {
     "@json2csv/plainjs": "^7.0.6",

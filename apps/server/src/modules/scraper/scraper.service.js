@@ -62,7 +62,9 @@ export class ScraperService {
           scraper,
           vendorDoc,
         );
-        readyMarkets.push({ ...m, marketDoc });
+        if (marketDoc) {
+          readyMarkets.push({ ...m, marketDoc });
+        }
       }
 
       // Phase 2: Multithreaded Scrape
@@ -113,6 +115,14 @@ export class ScraperService {
       scraper.geocodeSuffix,
       address,
     );
+
+    if (!location) {
+      console.warn(
+        `[ScraperService] ⚠️  Skipping market "${name}" — no coordinates available.`,
+      );
+      return null;
+    }
+
     return this.marketRepository.create({
       name,
       location,
