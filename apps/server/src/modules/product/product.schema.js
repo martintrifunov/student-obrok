@@ -5,7 +5,7 @@ import { paginationSchema } from "../../shared/schemas/paginationSchema.js";
 export const productQuerySchema = paginationSchema.extend({
   title: z.string().optional(),
   category: z.string().optional(),
-  vendorId: zodObjectId.optional(),
+  marketId: zodObjectId.optional(),
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
 });
@@ -21,14 +21,14 @@ export const createProductSchema = z
     description: z.string().min(1, "Description cannot be empty.").optional(),
     category: z.string().min(1, "Category cannot be empty.").optional(),
     image: zodObjectId.optional(),
-    vendor: zodObjectId.optional(),
+    market: zodObjectId.optional(),
     price: z.number().positive("Price must be greater than 0.").optional(),
   })
   .refine(
-    (data) => !(data.vendor && !data.price) && !(data.price && !data.vendor),
+    (data) => !(data.market && !data.price) && !(data.price && !data.market),
     {
-      message: "Vendor and price must be provided together.",
-      path: ["vendor"],
+      message: "Market and price must be provided together.",
+      path: ["market"],
     },
   );
 

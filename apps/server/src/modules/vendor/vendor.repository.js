@@ -4,6 +4,7 @@ export class VendorRepository {
   #populate() {
     return {
       image: { path: "image", select: "title url mimeType" },
+      markets: { path: "markets" },
     };
   }
 
@@ -16,39 +17,37 @@ export class VendorRepository {
   }
 
   async findAll({ page, limit, filter = {} }) {
-    const { image } = this.#populate();
+    const { image, markets } = this.#populate();
     const query = this.#buildQuery(filter);
 
     if (limit === 0) {
-      const docs = await VendorModel.find(query).populate(image).exec();
+      const docs = await VendorModel.find(query)
+        .populate(image)
+        .populate(markets)
+        .exec();
       return { docs, total: null };
     }
 
     const skip = (page - 1) * limit;
     const [docs, total] = await Promise.all([
-      VendorModel.find(query).populate(image).skip(skip).limit(limit).exec(),
+      VendorModel.find(query)
+        .populate(image)
+        .populate(markets)
+        .skip(skip)
+        .limit(limit)
+        .exec(),
       VendorModel.countDocuments(query).exec(),
     ]);
     return { docs, total };
   }
 
   async findById(id) {
-    const { image } = this.#populate();
-    return VendorModel.findById(id).populate(image).exec();
+    const { image, markets } = this.#populate();
+    return VendorModel.findById(id).populate(image).populate(markets).exec();
   }
 
   async findByName(name) {
     return VendorModel.findOne({ name }).exec();
-  }
-
-  async findAllForReport() {
-    return VendorModel.find()
-      .populate({
-        path: "vendorProducts",
-        populate: { path: "product" },
-      })
-      .populate("image", "title filename")
-      .exec();
   }
 
   async create(data) {

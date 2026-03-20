@@ -13,8 +13,10 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import ProductsList from "@/features/products/components/ProductsList";
 import VendorsList from "@/features/vendors/components/VendorsList";
+import MarketsList from "@/features/markets/components/MarketsList";
 import ProductSearchBar from "@/features/products/components/ProductSearchBar";
 import VendorSearchBar from "@/features/vendors/components/VendorSearchBar";
+import MarketSearchBar from "@/features/markets/components/MarketSearchBar";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 const Dashboard = () => {
@@ -24,6 +26,7 @@ const Dashboard = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [vendorSearchTerm, setVendorSearchTerm] = useState("");
+  const [marketSearchTerm, setMarketSearchTerm] = useState("");
   const [generating, setIsGenerating] = useState(false);
   const [errorBag, setErrorBag] = useState("");
 
@@ -95,6 +98,36 @@ const Dashboard = () => {
         </Stack>
       </Box>
       <VendorsList searchTerm={vendorSearchTerm} />
+
+      <Typography variant="h5" sx={{ fontWeight: "bold", mt: 6, mb: 2 }}>
+        Markets Management
+      </Typography>
+      <Box
+        sx={{
+          mb: 3,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", md: "center" },
+          gap: 2,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: { md: "400px" } }}>
+          <MarketSearchBar
+            handleSearchChange={(e) => setMarketSearchTerm(e.target.value)}
+          />
+        </Box>
+        <Button
+          sx={{ width: { xs: "100%", md: "auto" } }}
+          variant="contained"
+          onClick={() => navigate("/dashboard/market")}
+          startIcon={<AddIcon />}
+        >
+          {isMobile ? "Market" : "Register Market"}
+        </Button>
+      </Box>
+      <MarketsList searchTerm={marketSearchTerm} />
+
       <Typography variant="h5" sx={{ fontWeight: "bold", mt: 6, mb: 2 }}>
         Products Overview
       </Typography>

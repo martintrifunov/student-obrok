@@ -31,7 +31,7 @@ export function useSaveProduct(isEditMode, productId) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
-      queryClient.invalidateQueries({ queryKey: ["vendor"] });
+      queryClient.invalidateQueries({ queryKey: ["markets"] });
       if (isEditMode) {
         queryClient.invalidateQueries({
           queryKey: productKeys.detail(productId),
@@ -41,15 +41,18 @@ export function useSaveProduct(isEditMode, productId) {
   });
 }
 
-export function useProducts(searchTerm) {
+export function useProducts({ searchTerm, page = 1, limit = 5 } = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: productKeys.list(searchTerm),
+    queryKey: [...productKeys.all, "list", searchTerm, page, limit],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: 0 });
+      const params = new URLSearchParams();
+      if (page) params.append("page", page);
+      if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("title", searchTerm);
+
       const response = await axiosPrivate.get(`/products?${params}`);
-      return response.data.data;
+      return response.data;
     },
   });
 }
@@ -65,14 +68,15 @@ export function useDeleteProduct() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["markets"] });
     },
   });
 }
 
-export function useVendorProducts(vendorId, params = {}, options = {}) {
+export function useMarketProducts(marketId, params = {}, options = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: [...productKeys.all, "vendor", vendorId, params],
+    queryKey: [...productKeys.all, "market", marketId, params],
     queryFn: async () => {
       const searchParams = new URLSearchParams();
       if (params.page) searchParams.append("page", params.page);
@@ -80,8 +84,8 @@ export function useVendorProducts(vendorId, params = {}, options = {}) {
       if (params.title) searchParams.append("title", params.title);
       if (params.category) searchParams.append("category", params.category);
 
-      if (vendorId) {
-        searchParams.append("vendorId", vendorId);
+      if (marketId) {
+        searchParams.append("marketId", marketId);
       }
 
       const response = await axiosPrivate.get(
@@ -89,17 +93,17 @@ export function useVendorProducts(vendorId, params = {}, options = {}) {
       );
       return response.data;
     },
-    enabled: !!vendorId && (options.enabled ?? true),
+    enabled: !!marketId && (options.enabled ?? true),
   });
 }
 
-export function useCategories(vendorId) {
+export function useCategories(marketId) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: [...productKeys.all, "categories", vendorId],
+    queryKey: [...productKeys.all, "categories", marketId],
     queryFn: async () => {
-      const url = vendorId
-        ? `/products/categories?vendorId=${vendorId}`
+      const url = marketId
+        ? `/products/categories?marketId=${marketId}`
         : `/products/categories`;
       const response = await axiosPrivate.get(url);
       return response.data;

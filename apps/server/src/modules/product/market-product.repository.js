@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { VendorProductModel } from "./vendor-product.model.js";
+import { MarketProductModel } from "./market-product.model.js";
 
 const latToCyrMap = {
   dzh: "џ",
@@ -49,9 +49,9 @@ function buildBilingualRegex(text) {
   return `${escapeRegExp(text)}|${escapeRegExp(cyrStr)}`;
 }
 
-export class VendorProductRepository {
-  async findByVendor({ vendorId, page, limit, filter = {} }) {
-    const matchStage = { vendor: new mongoose.Types.ObjectId(vendorId) };
+export class MarketProductRepository {
+  async findByMarket({ marketId, page, limit, filter = {} }) {
+    const matchStage = { market: new mongoose.Types.ObjectId(marketId) };
 
     if (filter.minPrice !== undefined || filter.maxPrice !== undefined) {
       matchStage.price = {};
@@ -102,24 +102,24 @@ export class VendorProductRepository {
     );
 
     if (limit === 0) {
-      const docs = await VendorProductModel.aggregate(pipeline);
+      const docs = await MarketProductModel.aggregate(pipeline);
       return { docs, total: null };
     }
 
     const countPipeline = [...pipeline, { $count: "total" }];
-    const [countResult] = await VendorProductModel.aggregate(countPipeline);
+    const [countResult] = await MarketProductModel.aggregate(countPipeline);
     const total = countResult?.total || 0;
 
     const skip = (page - 1) * limit;
     pipeline.push({ $skip: skip }, { $limit: limit });
 
-    const docs = await VendorProductModel.aggregate(pipeline);
+    const docs = await MarketProductModel.aggregate(pipeline);
     return { docs, total };
   }
 
-  async getUniqueCategories(vendorId) {
+  async getUniqueCategories(marketId) {
     const pipeline = [
-      { $match: { vendor: new mongoose.Types.ObjectId(vendorId) } },
+      { $match: { market: new mongoose.Types.ObjectId(marketId) } },
       {
         $lookup: {
           from: "products",
@@ -133,38 +133,43 @@ export class VendorProductRepository {
       { $match: { _id: { $ne: null } } },
       { $sort: { _id: 1 } },
     ];
-    const results = await VendorProductModel.aggregate(pipeline);
+    const results = await MarketProductModel.aggregate(pipeline);
     return results.map((r) => r._id);
   }
 
   async findByProduct(productId) {
-    return VendorProductModel.find({ product: productId })
+    return MarketProductModel.find({ product: productId })
       .populate({
-        path: "vendor",
-        populate: { path: "image", select: "title url mimeType" },
+        path: "market",
+        populate: {
+          path: "vendor",
+          populate: { path: "image", select: "title url mimeType" },
+        },
       })
       .exec();
   }
 
   async bulkUpsert(entries) {
     if (!entries.length) return null;
-    const ops = entries.map(({ vendor, product, price }) => ({
+    const ops = entries.map(({ market, product, price }) => ({
       updateOne: {
-        filter: { vendor, product },
-        update: { $set: { vendor, product, price } },
+        filter: { market, product },
+        update: { $set: { market, product, price } },
         upsert: true,
       },
     }));
-    return VendorProductModel.bulkWrite(ops, { ordered: false });
+    return MarketProductModel.bulkWrite(ops, { ordered: false });
   }
 
   async create(data) {
-    return VendorProductModel.create(data);
+    return MarketProductModel.create(data);
   }
-  async deleteByVendor(vendorId) {
-    return VendorProductModel.deleteMany({ vendor: vendorId }).exec();
+
+  async deleteByMarket(marketId) {
+    return MarketProductModel.deleteMany({ market: marketId }).exec();
   }
+
   async deleteByProduct(productId) {
-    return VendorProductModel.deleteMany({ product: productId }).exec();
+    return MarketProductModel.deleteMany({ product: productId }).exec();
   }
 }

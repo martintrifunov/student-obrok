@@ -35,6 +35,7 @@ const ProductsList = ({ searchTerm }) => {
   const location = useLocation();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [page, setPage] = useState(0);
+  const rowsPerPage = 5;
 
   const debouncedSearch = useDebounce(searchTerm);
 
@@ -43,11 +44,18 @@ const ProductsList = ({ searchTerm }) => {
   }, [debouncedSearch]);
 
   const {
-    data: products = [],
+    data: responseData,
     isLoading,
     isError,
     error,
-  } = useProducts(debouncedSearch);
+  } = useProducts({
+    searchTerm: debouncedSearch,
+    page: page + 1,
+    limit: rowsPerPage,
+  });
+
+  const products = responseData?.data || [];
+  const totalProducts = responseData?.pagination?.total || 0;
 
   const deleteMutation = useDeleteProduct();
 
@@ -63,9 +71,9 @@ const ProductsList = ({ searchTerm }) => {
     }
   };
 
-  const getPriceRange = (vendorProducts) => {
-    if (!vendorProducts || vendorProducts.length === 0) return "N/A";
-    const prices = vendorProducts.map((vp) => vp.price);
+  const getPriceRange = (marketProducts) => {
+    if (!marketProducts || marketProducts.length === 0) return "N/A";
+    const prices = marketProducts.map((mp) => mp.price);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     return min === max ? `${min} ден.` : `${min} - ${max} ден.`;
@@ -79,7 +87,7 @@ const ProductsList = ({ searchTerm }) => {
       {isSmallScreen ? (
         <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? products.slice(page * 5, page * 5 + 5).map((product) => (
+            ? products.map((product) => (
                 <Card
                   key={product._id}
                   sx={{
@@ -192,50 +200,48 @@ const ProductsList = ({ searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? products
-                    .slice(page * 5, page * 5 + 5)
-                    .map((product, index) => (
-                      <TableRow key={product._id}>
-                        <TableCell>{index + 1 + page * 5}</TableCell>
-                        <TableCell>{product.title}</TableCell>
-                        <TableCell>{product.category || "N/A"}</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>
-                          {getPriceRange(product.vendorProducts)}
-                        </TableCell>
-                        <TableCell>
-                          <ImagePreviewModal
-                            imageTitle={product.image?.title}
-                            image={
-                              product.image
-                                ? `${BASE_URL}${product.image.url}`
-                                : ""
-                            }
-                          />
-                        </TableCell>
-                        <TableCell style={{ textAlign: "right" }}>
-                          <IconButton
-                            color="inherit"
-                            onClick={() =>
-                              navigate(`/dashboard/product/${product._id}`)
-                            }
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            color="inherit"
-                            onClick={() => handleRemoveProduct(product._id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                ? products.map((product, index) => (
+                    <TableRow key={product._id}>
+                      <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
+                      <TableCell>{product.title}</TableCell>
+                      <TableCell>{product.category || "N/A"}</TableCell>
+                      <TableCell sx={{ fontWeight: "bold" }}>
+                        {getPriceRange(product.marketProducts)}
+                      </TableCell>
+                      <TableCell>
+                        <ImagePreviewModal
+                          imageTitle={product.image?.title}
+                          image={
+                            product.image
+                              ? `${BASE_URL}${product.image.url}`
+                              : ""
+                          }
+                        />
+                      </TableCell>
+                      <TableCell style={{ textAlign: "right" }}>
+                        <IconButton
+                          color="inherit"
+                          onClick={() =>
+                            navigate(`/dashboard/product/${product._id}`)
+                          }
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="inherit"
+                          onClick={() => handleRemoveProduct(product._id)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 : Array(5)
                     .fill()
                     .map((_, i) => (
                       <TableRow key={i}>
-                        {Array(5)
+                        {Array(6)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
@@ -248,10 +254,10 @@ const ProductsList = ({ searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={products.length}
+            count={totalProducts}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={5}
+            rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[]}
           />
         </TableWrapper>

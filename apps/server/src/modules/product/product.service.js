@@ -4,14 +4,14 @@ import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 export class ProductService {
   constructor(
     productRepository,
-    vendorRepository,
+    marketRepository,
     imageRepository,
-    vendorProductRepository,
+    marketProductRepository,
   ) {
     this.productRepository = productRepository;
-    this.vendorRepository = vendorRepository;
+    this.marketRepository = marketRepository;
     this.imageRepository = imageRepository;
-    this.vendorProductRepository = vendorProductRepository;
+    this.marketProductRepository = marketProductRepository;
   }
 
   async getAllProducts({
@@ -19,19 +19,19 @@ export class ProductService {
     limit = 10,
     title,
     category,
-    vendorId,
+    marketId,
     minPrice,
     maxPrice,
   }) {
-    if (vendorId) {
+    if (marketId) {
       const filter = {};
       if (title) filter.title = title;
       if (category) filter.category = category;
       if (minPrice !== undefined) filter.minPrice = minPrice;
       if (maxPrice !== undefined) filter.maxPrice = maxPrice;
 
-      const { docs, total } = await this.vendorProductRepository.findByVendor({
-        vendorId,
+      const { docs, total } = await this.marketProductRepository.findByMarket({
+        marketId,
         page,
         limit,
         filter,
@@ -65,10 +65,10 @@ export class ProductService {
     return product;
   }
 
-  async createProduct({ title, description, category, vendor, price, image }) {
-    if (vendor) {
-      const foundVendor = await this.vendorRepository.findById(vendor);
-      if (!foundVendor) throw new NotFoundError("Vendor not found.");
+  async createProduct({ title, description, category, market, price, image }) {
+    if (market) {
+      const foundMarket = await this.marketRepository.findById(market);
+      if (!foundMarket) throw new NotFoundError("Market not found.");
     }
 
     if (image) {
@@ -83,9 +83,9 @@ export class ProductService {
       image: image || null,
     });
 
-    if (vendor && price !== undefined) {
-      await this.vendorProductRepository.create({
-        vendor,
+    if (market && price !== undefined) {
+      await this.marketProductRepository.create({
+        market,
         product: product._id,
         price,
       });
@@ -114,13 +114,13 @@ export class ProductService {
   async deleteProduct(id) {
     const product = await this.productRepository.findById(id);
     if (!product) throw new NotFoundError(`No product matches ID ${id}.`);
-    await this.vendorProductRepository.deleteByProduct(id);
+    await this.marketProductRepository.deleteByProduct(id);
     await this.productRepository.delete(product);
   }
 
-  async getCategories(vendorId) {
-    if (vendorId) {
-      return this.vendorProductRepository.getUniqueCategories(vendorId);
+  async getCategories(marketId) {
+    if (marketId) {
+      return this.marketProductRepository.getUniqueCategories(marketId);
     }
     return this.productRepository.getUniqueCategories();
   }

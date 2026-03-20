@@ -10,7 +10,7 @@ const mockProductRepository = {
   delete: vi.fn(),
 };
 
-const mockVendorRepository = {
+const mockMarketRepository = {
   findById: vi.fn(),
 };
 
@@ -18,11 +18,18 @@ const mockImageRepository = {
   findById: vi.fn(),
 };
 
+const mockMarketProductRepository = {
+  findByMarket: vi.fn(),
+  create: vi.fn(),
+  deleteByProduct: vi.fn(),
+};
+
 const makeSut = () =>
   new ProductService(
     mockProductRepository,
-    mockVendorRepository,
+    mockMarketRepository,
     mockImageRepository,
+    mockMarketProductRepository,
   );
 
 beforeEach(() => vi.clearAllMocks());
@@ -57,13 +64,32 @@ describe("ProductService", () => {
         page: 1,
         limit: 10,
         title: "Pizza",
-        minPrice: 50,
       });
 
       expect(mockProductRepository.findAll).toHaveBeenCalledWith({
         page: 1,
         limit: 10,
-        filter: { title: "Pizza", minPrice: 50 },
+        filter: { title: "Pizza" },
+      });
+    });
+
+    it("delegates to marketProductRepository when marketId is given", async () => {
+      mockMarketProductRepository.findByMarket.mockResolvedValue({
+        docs: [{ title: "Bread" }],
+        total: 1,
+      });
+      const sut = makeSut();
+      const result = await sut.getAllProducts({
+        page: 1,
+        limit: 10,
+        marketId: "m1",
+      });
+      expect(result.data).toEqual([{ title: "Bread" }]);
+      expect(mockMarketProductRepository.findByMarket).toHaveBeenCalledWith({
+        marketId: "m1",
+        page: 1,
+        limit: 10,
+        filter: {},
       });
     });
   });
@@ -85,58 +111,55 @@ describe("ProductService", () => {
   });
 
   describe("createProduct", () => {
-    it("throws NotFoundError if vendor does not exist", async () => {
-      mockVendorRepository.findById.mockResolvedValue(null);
+    it("throws NotFoundError if market does not exist", async () => {
+      mockMarketRepository.findById.mockResolvedValue(null);
       const sut = makeSut();
       await expect(
-        sut.createProduct({ title: "Pizza", vendor: "v1" }),
+        sut.createProduct({ title: "Pizza", market: "m1", price: 100 }),
       ).rejects.toThrow(NotFoundError);
     });
 
     it("throws NotFoundError if image does not exist", async () => {
-      mockVendorRepository.findById.mockResolvedValue({ _id: "v1" });
       mockImageRepository.findById.mockResolvedValue(null);
       const sut = makeSut();
       await expect(
-        sut.createProduct({ title: "Pizza", vendor: "v1", image: "badImg" }),
+        sut.createProduct({ title: "Pizza", image: "badImg" }),
       ).rejects.toThrow(NotFoundError);
     });
 
-    it("creates product without image", async () => {
-      mockVendorRepository.findById.mockResolvedValue({ _id: "v1" });
+    it("creates product without market", async () => {
       const created = { _id: "p1", title: "Pizza" };
       mockProductRepository.create.mockResolvedValue(created);
       const sut = makeSut();
       const result = await sut.createProduct({
         title: "Pizza",
         description: "Desc",
-        price: 100,
-        vendor: "v1",
       });
       expect(result).toEqual(created);
       expect(mockProductRepository.create).toHaveBeenCalledWith({
         title: "Pizza",
         description: "Desc",
-        price: 100,
-        vendor: "v1",
+        category: undefined,
         image: null,
       });
     });
 
-    it("creates product with image", async () => {
-      mockVendorRepository.findById.mockResolvedValue({ _id: "v1" });
-      mockImageRepository.findById.mockResolvedValue({ _id: "img1" });
+    it("creates product with market and price", async () => {
+      mockMarketRepository.findById.mockResolvedValue({ _id: "m1" });
       const created = { _id: "p1", title: "Pizza" };
       mockProductRepository.create.mockResolvedValue(created);
       const sut = makeSut();
       const result = await sut.createProduct({
         title: "Pizza",
-        description: "Desc",
+        market: "m1",
         price: 100,
-        vendor: "v1",
-        image: "img1",
       });
       expect(result).toEqual(created);
+      expect(mockMarketProductRepository.create).toHaveBeenCalledWith({
+        market: "m1",
+        product: "p1",
+        price: 100,
+      });
     });
   });
 
@@ -154,7 +177,6 @@ describe("ProductService", () => {
         _id: "p1",
         title: "Old",
         description: "Desc",
-        price: 100,
       };
       mockProductRepository.findById.mockResolvedValue(product);
       mockProductRepository.save.mockResolvedValue({
@@ -185,12 +207,14 @@ describe("ProductService", () => {
       await expect(sut.deleteProduct("p1")).rejects.toThrow(NotFoundError);
     });
 
-    it("deletes product", async () => {
+    it("deletes market products and product", async () => {
       const product = { _id: "p1", title: "Pizza" };
       mockProductRepository.findById.mockResolvedValue(product);
+      mockMarketProductRepository.deleteByProduct.mockResolvedValue(null);
       mockProductRepository.delete.mockResolvedValue(null);
       const sut = makeSut();
       await sut.deleteProduct("p1");
+      expect(mockMarketProductRepository.deleteByProduct).toHaveBeenCalledWith("p1");
       expect(mockProductRepository.delete).toHaveBeenCalledWith(product);
     });
   });

@@ -12,6 +12,7 @@ import { authRouter } from "./modules/auth/auth.routes.js";
 import { vendorRouter } from "./modules/vendor/vendor.routes.js";
 import { productRouter } from "./modules/product/product.routes.js";
 import { imageRouter } from "./modules/image/image.routes.js";
+import { marketRouter } from "./modules/market/market.routes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api", authRouter);
 app.use("/api/vendors", vendorRouter);
 app.use("/api/products", productRouter);
 app.use("/api/images", imageRouter);
+app.use("/api/markets", marketRouter);
 
 app.use(errorHandler);
 

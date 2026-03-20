@@ -33,7 +33,7 @@ export class ProductController {
 
   getCategories = async (req, res) => {
     const categories = await this.productService.getCategories(
-      req.query.vendorId,
+      req.query.marketId,
     );
     res.status(200).json(categories);
   };

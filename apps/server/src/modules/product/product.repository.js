@@ -51,13 +51,6 @@ export class ProductRepository {
   #populate() {
     return {
       image: { path: "image", select: "title url mimeType" },
-      vendorProducts: {
-        path: "vendorProducts",
-        populate: {
-          path: "vendor",
-          populate: { path: "image", select: "title url mimeType" },
-        },
-      },
     };
   }
 
@@ -82,12 +75,12 @@ export class ProductRepository {
     const { image } = this.#populate();
     const query = this.#buildQuery(filter);
 
-    const vendorProductsPopulate = { path: "vendorProducts", select: "price" };
+    const marketProductsPopulate = { path: "marketProducts", select: "price" };
 
     if (limit === 0) {
       const docs = await ProductModel.find(query)
         .populate(image)
-        .populate(vendorProductsPopulate)
+        .populate(marketProductsPopulate)
         .exec();
       return { docs, total: null };
     }
@@ -96,7 +89,7 @@ export class ProductRepository {
     const [docs, total] = await Promise.all([
       ProductModel.find(query)
         .populate(image)
-        .populate(vendorProductsPopulate)
+        .populate(marketProductsPopulate)
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -105,9 +98,18 @@ export class ProductRepository {
     return { docs, total };
   }
   async findById(id) {
-    const { image, vendorProducts } = this.#populate();
+    const { image } = this.#populate();
     return ProductModel.findById(id)
-      .populate(vendorProducts)
+      .populate({
+        path: "marketProducts",
+        populate: {
+          path: "market",
+          populate: {
+            path: "vendor",
+            populate: { path: "image", select: "title url mimeType" },
+          },
+        },
+      })
       .populate(image)
       .exec();
   }

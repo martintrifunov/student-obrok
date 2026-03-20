@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
-const VendorProductSchema = new mongoose.Schema({
-  vendor: {
+const MarketProductSchema = new mongoose.Schema({
+  market: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Vendor",
+    ref: "Market",
     required: true,
   },
   product: {
@@ -14,9 +14,9 @@ const VendorProductSchema = new mongoose.Schema({
   price: { type: Number, required: true },
 });
 
-VendorProductSchema.index({ vendor: 1, product: 1 }, { unique: true });
+MarketProductSchema.index({ market: 1, product: 1 }, { unique: true });
 
-export const VendorProductModel = mongoose.model(
-  "VendorProduct",
-  VendorProductSchema,
+export const MarketProductModel = mongoose.model(
+  "MarketProduct",
+  MarketProductSchema,
 );

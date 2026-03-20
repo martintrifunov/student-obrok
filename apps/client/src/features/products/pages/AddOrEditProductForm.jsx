@@ -38,7 +38,7 @@ import {
   useProduct,
   useSaveProduct,
 } from "@/features/products/hooks/useProductQueries";
-import { useVendorsDropdown } from "@/features/vendors/hooks/useVendorQueries";
+import { useMarketsDropdown } from "@/features/markets/hooks/useMarketQueries";
 import {
   useImages,
   useUploadImage,
@@ -55,12 +55,12 @@ const AddOrEditProductForm = () => {
 
   const [product, setProduct] = useState({});
   const [errors, setErrors] = useState({});
-  const [selectedVendorId, setSelectedVendorId] = useState("");
+  const [selectedMarketId, setSelectedMarketId] = useState("");
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  const { data: vendors = [] } = useVendorsDropdown();
+  const { data: markets = [] } = useMarketsDropdown();
   const {
     data: fetchedProduct,
     isLoading: isFetchingProduct,
@@ -80,8 +80,8 @@ const AddOrEditProductForm = () => {
   useEffect(() => {
     if (fetchedProduct) {
       setProduct(fetchedProduct);
-      if (fetchedProduct.vendor) {
-        setSelectedVendorId(fetchedProduct.vendor._id || fetchedProduct.vendor);
+      if (fetchedProduct.market) {
+        setSelectedMarketId(fetchedProduct.market._id || fetchedProduct.market);
       }
       if (fetchedProduct.image) {
         setSelectedImageId(fetchedProduct.image._id);
@@ -99,7 +99,7 @@ const AddOrEditProductForm = () => {
     const { name, value } = event.target;
     setErrors((prev) => ({ ...prev, [name]: undefined }));
 
-    if (name === "vendor") setSelectedVendorId(value);
+    if (name === "market") setSelectedMarketId(value);
     else setProduct((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -144,11 +144,12 @@ const AddOrEditProductForm = () => {
     if (isEditMode) productData.id = params.productId;
 
     productData.title = product.title;
+    productData.category = product.category;
     productData.description = product.description;
     productData.price = product.price ? parseFloat(product.price) : null;
 
-    if (!isEditMode && selectedVendorId) {
-      productData.vendor = selectedVendorId;
+    if (!isEditMode && selectedMarketId) {
+      productData.market = selectedMarketId;
     }
 
     if (selectedImageId) productData.image = selectedImageId;
@@ -229,27 +230,38 @@ const AddOrEditProductForm = () => {
                 sx={{ flex: 1 }}
               />
 
-              <FormControl fullWidth sx={{ flex: 1 }} error={!!errors.vendor}>
-                <InputLabel id="vendor-select-label">Vendor</InputLabel>
+              <FormControl fullWidth sx={{ flex: 1 }} error={!!errors.market}>
+                <InputLabel id="market-select-label">Market</InputLabel>
                 <Select
-                  labelId="vendor-select-label"
-                  name="vendor"
-                  value={selectedVendorId || ""}
-                  label="Vendor"
+                  labelId="market-select-label"
+                  name="market"
+                  value={selectedMarketId || ""}
+                  label="Market"
                   onChange={handleChange}
                   disabled={isEditMode}
                 >
-                  {vendors.map((vendor) => (
-                    <MenuItem key={vendor._id} value={vendor._id}>
-                      {vendor.name}
+                  {markets.map((market) => (
+                    <MenuItem key={market._id} value={market._id}>
+                      {market.name}{market.vendor?.name ? ` (${market.vendor.name})` : ""}
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.vendor && (
-                  <FormHelperText>{errors.vendor}</FormHelperText>
+                {errors.market && (
+                  <FormHelperText>{errors.market}</FormHelperText>
                 )}
               </FormControl>
             </Box>
+
+            <TextField
+              name="category"
+              label="Category"
+              variant="outlined"
+              fullWidth
+              value={product?.category || ""}
+              onChange={handleChange}
+              error={!!errors.category}
+              helperText={errors.category}
+            />
 
             {selectedImageTitle && (
               <TextField

@@ -15,21 +15,22 @@ import {
   CardContent,
   useMediaQuery,
   Box,
+  Button,
   styled,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useNavigate, useLocation } from "react-router-dom";
 import useDebounce from "@/hooks/useDebounce";
-import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
-import { BASE_URL } from "@/api/consts";
+import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
 import {
-  useVendors,
-  useDeleteVendor,
-} from "@/features/vendors/hooks/useVendorQueries";
+  useMarkets,
+  useDeleteMarket,
+} from "@/features/markets/hooks/useMarketQueries";
 
-const VendorsList = ({ searchTerm }) => {
+const MarketsList = ({ searchTerm }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -37,6 +38,8 @@ const VendorsList = ({ searchTerm }) => {
 
   const [page, setPage] = useState(0);
   const rowsPerPage = 5;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedMarket, setSelectedMarket] = useState({ id: null, name: "" });
 
   const debouncedSearch = useDebounce(searchTerm);
 
@@ -49,16 +52,16 @@ const VendorsList = ({ searchTerm }) => {
     isLoading,
     isError,
     error,
-  } = useVendors({
+  } = useMarkets({
     searchTerm: debouncedSearch,
     page: page + 1,
     limit: rowsPerPage,
   });
 
-  const vendors = responseData?.data || [];
-  const totalVendors = responseData?.pagination?.total || 0;
+  const markets = responseData?.data || [];
+  const totalMarkets = responseData?.pagination?.total || 0;
 
-  const deleteMutation = useDeleteVendor();
+  const deleteMutation = useDeleteMarket();
 
   useEffect(() => {
     if (isError && error?.response?.status === 401) {
@@ -66,13 +69,13 @@ const VendorsList = ({ searchTerm }) => {
     }
   }, [isError, error, navigate, location]);
 
-  const handleRemoveVendor = async (vendorId) => {
+  const handleRemoveMarket = async (marketId) => {
     if (
       window.confirm(
-        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of its price listings as well.",
+        "Are you sure you want to remove this market?\nThis WILL REMOVE all of its price listings as well.",
       )
     ) {
-      deleteMutation.mutate(vendorId);
+      deleteMutation.mutate(marketId);
     }
   };
 
@@ -85,9 +88,9 @@ const VendorsList = ({ searchTerm }) => {
       {isSmallScreen ? (
         <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? vendors.map((vendor) => (
+            ? markets.map((market) => (
                 <Card
-                  key={vendor._id}
+                  key={market._id}
                   sx={{
                     borderRadius: 2,
                     border: `1px solid ${theme.palette.divider}`,
@@ -106,7 +109,15 @@ const VendorsList = ({ searchTerm }) => {
                           variant="h6"
                           sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
                         >
-                          {vendor.name}
+                          {market.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Vendor:</strong>{" "}
+                          {market.vendor?.name || "N/A"}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Location:</strong>{" "}
+                          {market.location.join(", ")}
                         </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
@@ -114,7 +125,7 @@ const VendorsList = ({ searchTerm }) => {
                           size="small"
                           color="inherit"
                           onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
+                            navigate(`/dashboard/market/${market._id}`)
                           }
                         >
                           <EditIcon fontSize="small" />
@@ -122,7 +133,7 @@ const VendorsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
-                          onClick={() => handleRemoveVendor(vendor._id)}
+                          onClick={() => handleRemoveMarket(market._id)}
                           disabled={deleteMutation.isPending}
                         >
                           <DeleteIcon fontSize="small" />
@@ -131,13 +142,22 @@ const VendorsList = ({ searchTerm }) => {
                     </Box>
 
                     <Box display="flex" gap={2} mt={2}>
-                      <Box sx={{ flex: 1 }}>
-                        <ImagePreviewModal
-                          variant="outlined"
-                          image={`${BASE_URL}${vendor?.image?.url}`}
-                          imageTitle={vendor?.image?.title}
-                        />
-                      </Box>
+                      <Button
+                        sx={{ flex: 1 }}
+                        variant="contained"
+                        color="primary"
+                        disableElevation
+                        onClick={() => {
+                          setSelectedMarket({
+                            id: market._id,
+                            name: market.name,
+                          });
+                          setModalOpen(true);
+                        }}
+                        startIcon={<LocalOfferIcon />}
+                      >
+                        Products
+                      </Button>
                     </Box>
                   </CardContent>
                 </Card>
@@ -155,7 +175,7 @@ const VendorsList = ({ searchTerm }) => {
                 ))}
         </Stack>
       ) : (
-        <VendorsTableContainer>
+        <MarketsTableContainer>
           <Table sx={{ minWidth: 600 }}>
             <TableHead
               sx={{
@@ -173,7 +193,13 @@ const VendorsList = ({ searchTerm }) => {
                   Name
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Image
+                  Vendor
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Location
+                </TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
+                  Products
                 </TableCell>
                 <TableCell
                   sx={{
@@ -188,28 +214,39 @@ const VendorsList = ({ searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? vendors.map((vendor, index) => (
-                    <TableRow key={vendor._id}>
+                ? markets.map((market, index) => (
+                    <TableRow key={market._id}>
                       <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
-                      <TableCell>{vendor.name}</TableCell>
+                      <TableCell>{market.name}</TableCell>
+                      <TableCell>{market.vendor?.name || "N/A"}</TableCell>
+                      <TableCell>{market.location.join(", ")}</TableCell>
                       <TableCell>
-                        <ImagePreviewModal
-                          imageTitle={vendor?.image?.title}
-                          image={`${BASE_URL}${vendor?.image?.url}`}
-                        />
+                        <Button
+                          color="inherit"
+                          sx={{ textTransform: "none" }}
+                          onClick={() => {
+                            setSelectedMarket({
+                              id: market._id,
+                              name: market.name,
+                            });
+                            setModalOpen(true);
+                          }}
+                        >
+                          <LocalOfferIcon sx={{ marginRight: 1 }} /> View
+                        </Button>
                       </TableCell>
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
                           color="inherit"
                           onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
+                            navigate(`/dashboard/market/${market._id}`)
                           }
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           color="inherit"
-                          onClick={() => handleRemoveVendor(vendor._id)}
+                          onClick={() => handleRemoveMarket(market._id)}
                           disabled={deleteMutation.isPending}
                         >
                           <DeleteIcon />
@@ -221,7 +258,7 @@ const VendorsList = ({ searchTerm }) => {
                     .fill()
                     .map((_, i) => (
                       <TableRow key={i}>
-                        {Array(4)
+                        {Array(6)
                           .fill()
                           .map((_, idx) => (
                             <TableCell key={idx}>
@@ -234,19 +271,26 @@ const VendorsList = ({ searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={totalVendors}
+            count={totalMarkets}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[]}
           />
-        </VendorsTableContainer>
+        </MarketsTableContainer>
       )}
+
+      <SharedMarketProductsModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        marketId={selectedMarket.id}
+        title={`${selectedMarket.name} Products`}
+      />
     </>
   );
 };
 
-const VendorsTableContainer = styled(TableContainer)(({ theme }) => ({
+const MarketsTableContainer = styled(TableContainer)(({ theme }) => ({
   width: "100%",
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.divider}`,
@@ -261,4 +305,4 @@ const Error = styled(Typography)(() => ({
   justifyContent: "center",
 }));
 
-export default VendorsList;
+export default MarketsList;

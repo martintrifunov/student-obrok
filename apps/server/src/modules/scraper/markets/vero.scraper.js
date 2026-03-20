@@ -4,6 +4,10 @@ const INDEX_URL = "https://pricelist.vero.com.mk/";
 const MAX_PRICE = 840;
 
 export class VeroScraper extends BaseScraper {
+  get vendorName() {
+    return "Vero";
+  }
+
   get placeholderImageFilename() {
     return process.env.VENDOR_IMAGE_VERO || "vero_market.png";
   }
@@ -12,7 +16,7 @@ export class VeroScraper extends BaseScraper {
     return "Македонија";
   }
 
-  async fetchVendors(page) {
+  async fetchMarkets(page) {
     await page.goto(INDEX_URL, { waitUntil: "domcontentloaded" });
 
     const entries = await page.evaluate((baseUrl) => {

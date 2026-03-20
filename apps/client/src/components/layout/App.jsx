@@ -9,6 +9,7 @@ import Layout from "@/components/layout/Layout";
 import DashboardLayout from "@/features/dashboard/components/DashboardLayout";
 import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
+import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
 import MapPage from "@/features/map/pages/MapPage";
 
 const App = () => {
@@ -36,6 +37,14 @@ const App = () => {
               <Route
                 path="/dashboard/vendor"
                 element={<AddOrEditVendorForm />}
+              />
+              <Route
+                path="/dashboard/market/:marketId"
+                element={<AddOrEditMarketForm />}
+              />
+              <Route
+                path="/dashboard/market"
+                element={<AddOrEditMarketForm />}
               />
             </Route>
           </Route>

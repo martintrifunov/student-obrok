@@ -9,6 +9,7 @@ import {
   useTheme,
   Collapse,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
@@ -41,6 +42,7 @@ const INITIAL_VIEW_STATE = {
 
 const MapPage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const mode = useThemeStore((state) => state.mode);
   const toggleColorMode = useThemeStore((state) => state.toggleColorMode);
   const logout = useLogout();
@@ -253,9 +255,15 @@ const MapPage = () => {
             </ModeButton>
           </ModeSelectorContainer>
 
-          <CancelRouteButton variant="contained" onClick={handleCancelRoute}>
-            <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
-          </CancelRouteButton>
+          {isMobile ? (
+            <CancelRouteIconButton onClick={handleCancelRoute}>
+              <CloseIcon />
+            </CancelRouteIconButton>
+          ) : (
+            <CancelRouteButton variant="contained" onClick={handleCancelRoute}>
+              <CloseIcon sx={{ marginRight: "5px" }} /> Откажи ја рутата
+            </CancelRouteButton>
+          )}
         </>
       )}
       {!isLoading && (
@@ -268,6 +276,11 @@ const MapPage = () => {
             display: "flex",
             alignItems: "center",
             gap: 1.5,
+            [theme.breakpoints.down("sm")]: {
+              bottom: "20px",
+              left: "12px",
+              gap: 1,
+            },
           }}
         >
           <MenuToggleButton
@@ -377,6 +390,11 @@ const ModeSelectorContainer = styled(Stack)(({ theme }) => ({
   borderRadius: "14px",
   boxShadow: theme.shadows[4],
   border: `1px solid ${theme.palette.divider}`,
+  [theme.breakpoints.down("sm")]: {
+    top: "12px",
+    left: "12px",
+    padding: "4px",
+  },
 }));
 
 const ModeButton = styled(Button, {
@@ -402,6 +420,10 @@ const ModeButton = styled(Button, {
       ? theme.palette.primary.main
       : theme.palette.action.hover,
   },
+  [theme.breakpoints.down("sm")]: {
+    minWidth: "38px",
+    height: "38px",
+  },
 }));
 
 const CancelRouteButton = styled(Button)(({ theme }) => ({
@@ -418,6 +440,21 @@ const CancelRouteButton = styled(Button)(({ theme }) => ({
   boxShadow: theme.shadows[4],
   "&:hover": {
     backgroundColor: theme.palette.error.dark,
+  },
+}));
+
+const CancelRouteIconButton = styled(IconButton)(({ theme }) => ({
+  position: "absolute",
+  top: "12px",
+  right: "12px",
+  zIndex: 1000,
+  backgroundColor: "crimson",
+  color: "#fff",
+  width: "42px",
+  height: "42px",
+  boxShadow: theme.shadows[4],
+  "&:hover": {
+    backgroundColor: "#b71c1c",
   },
 }));
 
@@ -442,6 +479,10 @@ const MenuToggleButton = styled(IconButton, {
   boxShadow: theme.shadows[6],
   border: `1px solid ${$expanded ? "transparent" : $isDark ? "#334155" : theme.palette.divider}`,
   transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+  [theme.breakpoints.down("sm")]: {
+    width: "48px",
+    height: "48px",
+  },
   "&:hover": {
     backgroundColor: $expanded
       ? theme.palette.primary.dark

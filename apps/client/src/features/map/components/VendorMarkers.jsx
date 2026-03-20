@@ -1,20 +1,23 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Marker, Popup } from "react-map-gl/maplibre";
-import { useQuery } from "@tanstack/react-query";
-import axios from "@/api/axios";
 import { Button, Typography, Box, styled, useTheme } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
-import vendorlocationMarker from "@/assets/icons/vendor_location_marker.svg";
 import ImageIcon from "@mui/icons-material/Image";
 import useSupercluster from "use-supercluster";
 import { useMap } from "react-map-gl/maplibre";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
 import { BASE_URL } from "@/api/consts";
 import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
+import { useMarketsForMap } from "@/features/markets/hooks/useMarketQueries";
+import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
+import { MARKER_VIEWBOX, VENDOR_MARKER_PATH } from "@/features/map/config/markerPaths";
+import { getClusterGradient, getVendorMarkerColor } from "@/features/map/utils/markerUtils";
+
+const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
 
 const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const theme = useTheme();
-  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
   const [zoom, setZoom] = useState(16);
   const pitch = useMapPitch();
@@ -22,16 +25,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   const updateTimeoutRef = useRef(null);
   const verticalOffset = useMemo(() => pitch * 0.8, [pitch]);
 
-  const { data: vendors = [], isLoading } = useQuery({
-    queryKey: ["vendors", "map"],
-    queryFn: async () => {
-      const response = await axios.get("/vendors?limit=0", {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
-      return response.data.data;
-    },
-  });
+  const { data: markets = [], isLoading } = useMarketsForMap();
 
   useEffect(() => {
     if (!map) return;
@@ -55,19 +49,19 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
 
   const points = useMemo(
     () =>
-      vendors.map((vendor, index) => ({
+      markets.map((market, index) => ({
         type: "Feature",
         properties: {
           cluster: false,
-          vendorId: index,
-          vendor: vendor,
+          marketIndex: index,
+          market: market,
         },
         geometry: {
           type: "Point",
-          coordinates: [vendor.location[1], vendor.location[0]],
+          coordinates: [market.location[1], market.location[0]],
         },
       })),
-    [vendors],
+    [markets],
   );
 
   const { clusters, supercluster } = useSupercluster({
@@ -86,6 +80,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
             cluster.properties;
 
           if (isCluster) {
+            const clusterGradient = getClusterGradient(cluster, supercluster);
             return (
               <Marker
                 key={`cluster-${cluster.id}`}
@@ -106,6 +101,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                     });
                   }}
                   pointCount={pointCount}
+                  $gradient={clusterGradient}
                 >
                   {pointCount}
                 </ClusterMarker>
@@ -113,28 +109,32 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
             );
           }
 
-          const vendor = cluster.properties.vendor;
+          const market = cluster.properties.market;
+          const vendorName = market.vendor?.name || market.name;
           return (
-            <React.Fragment key={`vendor-${cluster.properties.vendorId}`}>
+            <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
               <Marker
                 longitude={longitude}
                 latitude={latitude}
                 anchor="bottom"
-                onClick={() => setSelectedVendor(vendor)}
+                onClick={() => setSelectedMarket(market)}
               >
-                <VendorMarkerImage
-                  src={vendorlocationMarker}
-                  alt="vendor marker"
+                <VendorMarkerIcon
+                  viewBox={MARKER_VIEWBOX}
+                  aria-label={`${market.name} marker`}
                   $verticalOffset={verticalOffset}
-                />
+                  $markerColor={getVendorMarkerColor(vendorName)}
+                >
+                  <path d={VENDOR_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
+                </VendorMarkerIcon>
               </Marker>
 
-              {selectedVendor === vendor && (
+              {selectedMarket === market && (
                 <Popup
                   longitude={longitude}
                   latitude={latitude}
                   anchor="bottom"
-                  onClose={() => setSelectedVendor(null)}
+                  onClose={() => setSelectedMarket(null)}
                   closeOnClick={false}
                   offset={[0, -95 + verticalOffset * 1.5]}
                   maxWidth="260px"
@@ -150,7 +150,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                       }}
                     >
                       <Typography variant="h6" fontWeight="bold" noWrap>
-                        {vendor.name}
+                        {market.name}
                       </Typography>
                     </Box>
                     <Box
@@ -168,11 +168,11 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         borderBottom: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      {vendor?.image ? (
+                      {market.vendor?.image ? (
                         <Box
                           component="img"
-                          src={`${BASE_URL}${vendor.image.url}`}
-                          alt={vendor.name}
+                          src={`${BASE_URL}${market.vendor.image.url}`}
+                          alt={market.name}
                           sx={{
                             maxWidth: "100%",
                             maxHeight: "100%",
@@ -200,7 +200,10 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         backgroundColor: "background.paper",
                       }}
                     >
-                      <MapProductInfoModal vendorId={vendor._id} />
+                      <MapProductInfoModal
+                        marketId={market._id}
+                        marketName={market.name}
+                      />
                       <Button
                         disabled={isDisabledRoutingButton}
                         fullWidth
@@ -223,53 +226,72 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
   );
 };
 
-const ClusterMarker = styled("div")(({ theme, pointCount }) => ({
-  height: "2rem",
-  width: "2rem",
-  borderRadius: "50%",
-  backgroundColor: theme.palette.error.main,
-  color: "#ffffff",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  fontWeight: 900,
-  fontSize: "1rem",
-  cursor: "pointer",
-  border: `2px solid ${theme.palette.background.paper}`,
-  boxShadow: `0 0 10px ${theme.palette.error.main}80`,
-  transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-  "&:hover": {
-    transform: "scale(1.15)",
-    boxShadow: `0 0 20px ${theme.palette.error.main}, 0 0 30px ${theme.palette.error.main}60`,
-  },
-  "&:active": {
-    transform: "scale(0.95)",
-  },
-  ...(pointCount > 10 && {
-    height: "2.5rem",
-    width: "2.5rem",
-    fontSize: "1.1rem",
-  }),
-  ...(pointCount > 50 && { height: "3rem", width: "3rem", fontSize: "1.2rem" }),
-  "@keyframes clusterPop": {
-    "0%": { opacity: 0, transform: "scale(0)" },
-    "50%": { transform: "scale(1.1)" },
-    "100%": { opacity: 1, transform: "scale(1)" },
-  },
-}));
+const ClusterMarker = styled("div", {
+  shouldForwardProp: (prop) => prop !== "$gradient",
+})(({ pointCount, $gradient }) => {
+  const background = $gradient || CLUSTER_MARKER_COLOR;
+  const glowColor =
+    typeof $gradient === "string" && !$gradient.includes("gradient")
+      ? $gradient
+      : CLUSTER_MARKER_COLOR;
 
-const VendorMarkerImage = styled("img")(({ theme, $verticalOffset = 0 }) => ({
+  return {
+    height: "2rem",
+    width: "2rem",
+    borderRadius: "50%",
+    background,
+    color: "#ffffff",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    fontWeight: 900,
+    fontSize: "1rem",
+    cursor: "pointer",
+    boxShadow: `0 0 14px ${glowColor}99`,
+    border: "2px solid rgba(255, 255, 255, 0.85)",
+    transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    animation: "clusterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "&:hover": {
+      transform: "scale(1.15)",
+      boxShadow: `0 0 22px ${glowColor}, inset 0 0 10px rgba(255, 255, 255, 0.3)`,
+    },
+    "&:active": {
+      transform: "scale(0.95)",
+    },
+    ...(pointCount > 10 && {
+      height: "2.5rem",
+      width: "2.5rem",
+      fontSize: "1.1rem",
+    }),
+    ...(pointCount > 50 && {
+      height: "3rem",
+      width: "3rem",
+      fontSize: "1.2rem",
+    }),
+    "@keyframes clusterPop": {
+      "0%": { opacity: 0, transform: "scale(0)" },
+      "50%": { transform: "scale(1.1)" },
+      "100%": { opacity: 1, transform: "scale(1)" },
+    },
+  };
+});
+
+const VendorMarkerIcon = styled("svg", {
+  shouldForwardProp: (prop) =>
+    prop !== "$verticalOffset" && prop !== "$markerColor",
+})(({ $verticalOffset = 0, $markerColor }) => ({
   width: 38,
   height: 95,
   display: "block",
   cursor: "pointer",
+  color: $markerColor,
+  fill: "currentColor",
   transform: `translateY(${$verticalOffset}px)`,
   transition: "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
   animation: "markerDrop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
   "&:hover": {
     transform: `translateY(${$verticalOffset}px) scale(1.1)`,
-    filter: `drop-shadow(0 0 10px ${theme.palette.error.main})`,
+    filter: `drop-shadow(0 0 10px ${$markerColor})`,
   },
   "&:active": {
     transform: `translateY(${$verticalOffset}px) scale(0.95)`,
