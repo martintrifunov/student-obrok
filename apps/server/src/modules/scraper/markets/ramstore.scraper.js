@@ -2,6 +2,14 @@ import { BaseScraper } from "./base.scraper.js";
 
 const INDEX_URL = "https://ramstore.com.mk/marketi/";
 const MAX_PRICE = 840;
+const NAV_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_NAV_TIMEOUT_MS ?? "90000",
+  10,
+);
+const PAGINATION_WAIT_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_PAGINATION_WAIT_TIMEOUT_MS ?? "15000",
+  10,
+);
 
 export class RamstoreScraper extends BaseScraper {
   get vendorName() {
@@ -79,7 +87,24 @@ export class RamstoreScraper extends BaseScraper {
   async fetchProducts(page, storeUrl, previousUpdateString) {
     const allProducts = [];
 
-    await page.goto(storeUrl, { waitUntil: "networkidle0" });
+    try {
+      await page.goto(storeUrl, {
+        waitUntil: "networkidle2",
+        timeout: NAV_TIMEOUT_MS,
+      });
+    } catch (err) {
+      console.warn(
+        `[RamstoreScraper] Slow navigation for ${storeUrl}, retrying with domcontentloaded: ${err.message}`,
+      );
+      await page.goto(storeUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: NAV_TIMEOUT_MS,
+      });
+    }
+
+    await page.waitForSelector("table.dataTable, table", {
+      timeout: PAGINATION_WAIT_TIMEOUT_MS,
+    });
 
     const pageUpdateString = await page.evaluate(() => {
       const match = document.body.innerText.match(
@@ -168,19 +193,20 @@ export class RamstoreScraper extends BaseScraper {
       hasNextPage = pageData.hasNextBtn;
 
       if (hasNextPage) {
-        await page.evaluate((oldInfo) => {
+        await page.evaluate((oldInfo, maxWaitMs) => {
           return new Promise((resolve) => {
             document.querySelector(".paginate_button.next").click();
+            const startedAt = Date.now();
             const check = setInterval(() => {
               const newInfo =
                 document.querySelector(".dataTables_info")?.innerText || "";
-              if (newInfo !== oldInfo) {
+              if (newInfo !== oldInfo || Date.now() - startedAt > maxWaitMs) {
                 clearInterval(check);
                 resolve();
               }
             }, 50);
           });
-        }, pageData.info);
+        }, pageData.info, PAGINATION_WAIT_TIMEOUT_MS);
 
         pageCount++;
         if (pageCount % 10 === 0)
