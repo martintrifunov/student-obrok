@@ -52,7 +52,7 @@ services:
     environment:
       NODE_ENV: production
     volumes:
-      - ./data/uploads:/app/uploads
+      - ./apps/server/src/uploads:/app/src/uploads
     depends_on:
       db:
         condition: service_healthy
