@@ -1,6 +1,13 @@
 import puppeteer from "puppeteer";
 
-const CONCURRENT_TABS = 4;
+const CONCURRENT_TABS = Number.parseInt(
+  process.env.SCRAPER_CONCURRENT_TABS ?? "4",
+  10,
+);
+const NAV_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_NAV_TIMEOUT_MS ?? "90000",
+  10,
+);
 
 export class ScraperService {
   constructor(
@@ -22,6 +29,9 @@ export class ScraperService {
   async runForMarket(scraper) {
     const startTime = performance.now();
     console.log(`\n[ScraperService] 🚀 Starting ${scraper.constructor.name}`);
+    console.log(
+      `[ScraperService] Settings: concurrency=${CONCURRENT_TABS}, navTimeout=${NAV_TIMEOUT_MS}ms`,
+    );
 
     const placeholderImage = await this.imageRepository.findByFilename(
       scraper.placeholderImageFilename,
@@ -84,7 +94,8 @@ export class ScraperService {
   }
 
   async #optimizePage(page) {
-    await page.setDefaultNavigationTimeout(60_000);
+    await page.setDefaultNavigationTimeout(NAV_TIMEOUT_MS);
+    await page.setDefaultTimeout(NAV_TIMEOUT_MS);
     await page.setRequestInterception(true);
     page.on("request", (req) => {
       const type = req.resourceType();
