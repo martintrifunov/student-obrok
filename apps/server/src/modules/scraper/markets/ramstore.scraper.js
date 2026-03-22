@@ -10,6 +10,10 @@ const PAGINATION_WAIT_TIMEOUT_MS = Number.parseInt(
   process.env.SCRAPER_PAGINATION_WAIT_TIMEOUT_MS ?? "15000",
   10,
 );
+const UPDATE_TEXT_WAIT_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_UPDATE_TEXT_WAIT_TIMEOUT_MS ?? "12000",
+  10,
+);
 
 export class RamstoreScraper extends BaseScraper {
   get vendorName() {
@@ -102,12 +106,29 @@ export class RamstoreScraper extends BaseScraper {
       });
     }
 
-    const pageUpdateString = await page.evaluate(() => {
-      const match = document.body.innerText.match(
-        /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i,
-      );
-      return match ? match[1].trim() : null;
-    });
+    let pageUpdateString = await this.#readUpdateString(page);
+
+    if (!pageUpdateString) {
+      try {
+        await page.waitForFunction(
+          () =>
+            /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i.test(
+              document.body.innerText,
+            ),
+          { timeout: UPDATE_TEXT_WAIT_TIMEOUT_MS },
+        );
+        pageUpdateString = await this.#readUpdateString(page);
+      } catch {
+      }
+    }
+
+    if (!pageUpdateString) {
+      await page.goto(storeUrl, {
+        waitUntil: "networkidle2",
+        timeout: NAV_TIMEOUT_MS,
+      });
+      pageUpdateString = await this.#readUpdateString(page);
+    }
 
     if (previousUpdateString && pageUpdateString === previousUpdateString) {
       return { upToDate: true };
@@ -125,6 +146,7 @@ export class RamstoreScraper extends BaseScraper {
       await page.waitForSelector("table.dataTable, table", {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
+      pageUpdateString ??= await this.#readUpdateString(page);
     }
 
     // Fast path: read DataTables data directly instead of clicking through pages.
@@ -325,5 +347,14 @@ export class RamstoreScraper extends BaseScraper {
       newUpdateString:
         pageUpdateString || new Date().toISOString().split("T")[0],
     };
+  }
+
+  async #readUpdateString(page) {
+    return page.evaluate(() => {
+      const match = document.body.innerText.match(
+        /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i,
+      );
+      return match ? match[1].trim() : null;
+    });
   }
 }
