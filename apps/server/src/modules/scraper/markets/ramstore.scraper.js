@@ -114,20 +114,12 @@ export class RamstoreScraper extends BaseScraper {
           () =>
             /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i.test(
               document.body.innerText,
-            ),
+            ) || !!document.querySelector("table.dataTable, table"),
           { timeout: UPDATE_TEXT_WAIT_TIMEOUT_MS },
         );
         pageUpdateString = await this.#readUpdateString(page);
       } catch {
       }
-    }
-
-    if (!pageUpdateString) {
-      await page.goto(storeUrl, {
-        waitUntil: "networkidle2",
-        timeout: NAV_TIMEOUT_MS,
-      });
-      pageUpdateString = await this.#readUpdateString(page);
     }
 
     if (previousUpdateString && pageUpdateString === previousUpdateString) {
@@ -139,14 +131,10 @@ export class RamstoreScraper extends BaseScraper {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
     } catch {
-      await page.goto(storeUrl, {
-        waitUntil: "networkidle2",
-        timeout: NAV_TIMEOUT_MS,
-      });
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       await page.waitForSelector("table.dataTable, table", {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
-      pageUpdateString ??= await this.#readUpdateString(page);
     }
 
     // Fast path: read DataTables data directly instead of clicking through pages.
