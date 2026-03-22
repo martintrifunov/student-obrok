@@ -131,7 +131,7 @@ export class RamstoreScraper extends BaseScraper {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
       await page.waitForSelector("table.dataTable, table", {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
@@ -220,8 +220,7 @@ export class RamstoreScraper extends BaseScraper {
       return {
         upToDate: false,
         products: allProducts,
-        newUpdateString:
-          pageUpdateString || new Date().toISOString().split("T")[0],
+        newUpdateString: pageUpdateString || null,
       };
     }
 
@@ -332,8 +331,7 @@ export class RamstoreScraper extends BaseScraper {
     return {
       upToDate: false,
       products: Array.from(latestByTitle.values()),
-      newUpdateString:
-        pageUpdateString || new Date().toISOString().split("T")[0],
+      newUpdateString: pageUpdateString || null,
     };
   }
 
