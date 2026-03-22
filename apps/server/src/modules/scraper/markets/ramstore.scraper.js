@@ -117,6 +117,94 @@ export class RamstoreScraper extends BaseScraper {
       return { upToDate: true };
     }
 
+    // Fast path: read DataTables data directly instead of clicking through pages.
+    const fastPath = await page.evaluate((maxPrice) => {
+      const table = document.querySelector("table.dataTable, table");
+      if (!table) return { supported: false, products: [] };
+
+      const hasJQuery = typeof window.jQuery !== "undefined";
+      const hasDataTable = hasJQuery && !!window.jQuery.fn?.DataTable;
+      if (!hasDataTable) return { supported: false, products: [] };
+
+      const dt = window.jQuery(table).DataTable();
+      if (!dt) return { supported: false, products: [] };
+
+      const headerRow = table.querySelector("thead tr, tr:first-child");
+      if (!headerRow) return { supported: false, products: [] };
+
+      const headers = Array.from(headerRow.querySelectorAll("th, td")).map(
+        (th) => th.textContent.toLowerCase().replace(/\n/g, " ").trim(),
+      );
+
+      const indexOf = (keywords) =>
+        headers.findIndex((h) => keywords.some((k) => h.includes(k)));
+      const colTitle = indexOf(["назив"]);
+      const colPrice = indexOf(["продажна цена"]);
+      const colCategory = indexOf(["опис на производ", "опис на стока"]);
+      const colAvailable = indexOf(["достапност"]);
+
+      if (colTitle === -1 || colPrice === -1) {
+        return { supported: false, products: [] };
+      }
+
+      const asText = (value) => {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "string") {
+          const div = document.createElement("div");
+          div.innerHTML = value;
+          return (div.textContent || "").trim();
+        }
+        return String(value).trim();
+      };
+
+      const rows = dt.rows({ search: "applied" }).data().toArray();
+      const products = [];
+
+      for (const row of rows) {
+        const cells = Array.isArray(row) ? row : Object.values(row || {});
+        if (!cells.length) continue;
+
+        if (
+          colAvailable !== -1 &&
+          asText(cells[colAvailable]).toUpperCase() === "НЕ"
+        ) {
+          continue;
+        }
+
+        const rawPrice = asText(cells[colPrice])
+          .replace(",", ".")
+          .replace(/[^\d.]/g, "");
+        const price = Number.parseFloat(rawPrice);
+        if (Number.isNaN(price) || price > maxPrice) continue;
+
+        const title = asText(cells[colTitle]);
+        if (!title) continue;
+
+        const category =
+          colCategory !== -1 ? asText(cells[colCategory]) || "Општо" : "Општо";
+
+        products.push({ title, price, category });
+      }
+
+      return { supported: true, products };
+    }, MAX_PRICE);
+
+    if (fastPath.supported) {
+      // Keep the latest seen price per title to avoid unnecessary duplicate writes.
+      const latestByTitle = new Map();
+      for (const p of fastPath.products) {
+        latestByTitle.set(p.title, p);
+      }
+      allProducts.push(...latestByTitle.values());
+
+      return {
+        upToDate: false,
+        products: allProducts,
+        newUpdateString:
+          pageUpdateString || new Date().toISOString().split("T")[0],
+      };
+    }
+
     await page.evaluate(() => {
       const select = document.querySelector('select[name$="_length"]');
       if (select) {
@@ -214,9 +302,16 @@ export class RamstoreScraper extends BaseScraper {
       }
     }
 
+    // Fallback path can also produce duplicate titles from repeated pages.
+    // Keep latest seen price per title before persisting.
+    const latestByTitle = new Map();
+    for (const p of allProducts) {
+      latestByTitle.set(p.title, p);
+    }
+
     return {
       upToDate: false,
-      products: allProducts,
+      products: Array.from(latestByTitle.values()),
       newUpdateString:
         pageUpdateString || new Date().toISOString().split("T")[0],
     };
