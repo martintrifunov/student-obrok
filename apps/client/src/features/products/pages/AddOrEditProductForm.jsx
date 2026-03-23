@@ -59,6 +59,7 @@ const AddOrEditProductForm = () => {
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [hasMultipleMarkets, setHasMultipleMarkets] = useState(false);
 
   const { data: markets = [] } = useMarketsDropdown();
   const {
@@ -80,9 +81,22 @@ const AddOrEditProductForm = () => {
   useEffect(() => {
     if (fetchedProduct) {
       setProduct(fetchedProduct);
-      if (fetchedProduct.market) {
-        setSelectedMarketId(fetchedProduct.market._id || fetchedProduct.market);
+
+      // Product ↔ Market is many-to-many via marketProducts.
+      const mps = fetchedProduct.marketProducts || [];
+      const multi = mps.length > 1;
+      setHasMultipleMarkets(multi);
+
+      if (!multi) {
+        const mp = mps[0];
+        if (mp?.market) {
+          setSelectedMarketId(mp.market._id || mp.market);
+        }
+        if (mp?.price !== undefined) {
+          setProduct((prev) => ({ ...prev, price: mp.price }));
+        }
       }
+
       if (fetchedProduct.image) {
         setSelectedImageId(fetchedProduct.image._id);
         setSelectedImageTitle(fetchedProduct.image.title);
@@ -226,7 +240,12 @@ const AddOrEditProductForm = () => {
                 value={product?.price || ""}
                 onChange={handleChange}
                 error={!!errors.price}
-                helperText={errors.price}
+                helperText={
+                  hasMultipleMarkets
+                    ? "Sold at multiple markets — edit prices individually"
+                    : errors.price
+                }
+                disabled={hasMultipleMarkets}
                 sx={{ flex: 1 }}
               />
 
