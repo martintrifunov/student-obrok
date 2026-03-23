@@ -27,17 +27,17 @@ import TuneIcon from "@mui/icons-material/Tune";
 import { useNavigate } from "react-router-dom";
 import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import LocateUser from "@/features/map/components/LocateUser";
-import VendorMarkers from "@/features/map/components/VendorMarkers";
+import MarketMarkers from "@/features/map/components/MarketMarkers";
 import CreditMarker from "@/features/map/components/CreditMarker";
 import RoutingEngine from "@/features/map/components/RoutingEngine";
 import useAuth from "@/features/auth/hooks/useAuth";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { useThemeStore } from "@/store/themeStore";
-import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
+import MARKER_COLORS from "@/features/map/config/markerColors";
 import {
-  DEFAULT_VISIBLE_VENDORS,
-  KNOWN_VENDOR_NAMES,
-} from "@/features/map/config/defaultVisibleVendors";
+  DEFAULT_VISIBLE_CHAINS,
+  KNOWN_CHAIN_NAMES,
+} from "@/features/map/config/defaultVisibleChains";
 import "@/assets/map.css";
 
 const INITIAL_VIEW_STATE = {
@@ -48,25 +48,25 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
 };
 
-const VISIBLE_VENDORS_STORAGE_KEY = "obrok.map.visibleVendors";
+const VISIBLE_CHAINS_STORAGE_KEY = "obrok.map.visibleChains";
 
-const getInitialVisibleVendors = () => {
+const getInitialVisibleChains = () => {
   try {
-    const raw = window.localStorage.getItem(VISIBLE_VENDORS_STORAGE_KEY);
-    if (!raw) return new Set(DEFAULT_VISIBLE_VENDORS);
+    const raw = window.localStorage.getItem(VISIBLE_CHAINS_STORAGE_KEY);
+    if (!raw) return new Set(DEFAULT_VISIBLE_CHAINS);
 
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set(DEFAULT_VISIBLE_VENDORS);
+    if (!Array.isArray(parsed)) return new Set(DEFAULT_VISIBLE_CHAINS);
 
     if (parsed.length === 0) return new Set();
 
     const valid = parsed.filter(
-      (name) => typeof name === "string" && KNOWN_VENDOR_NAMES.includes(name),
+      (name) => typeof name === "string" && KNOWN_CHAIN_NAMES.includes(name),
     );
 
-    return valid.length > 0 ? new Set(valid) : new Set(DEFAULT_VISIBLE_VENDORS);
+    return valid.length > 0 ? new Set(valid) : new Set(DEFAULT_VISIBLE_CHAINS);
   } catch {
-    return new Set(DEFAULT_VISIBLE_VENDORS);
+    return new Set(DEFAULT_VISIBLE_CHAINS);
   }
 };
 
@@ -86,15 +86,15 @@ const MapPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabledRoutingButton, setIsDisabledRoutingButton] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
-  const [visibleVendors, setVisibleVendors] = useState(
-    getInitialVisibleVendors,
+  const [visibleChains, setVisibleChains] = useState(
+    getInitialVisibleChains,
   );
   const [filterAnchor, setFilterAnchor] = useState(null);
 
   const mapRef = useRef(null);
 
-  const handleToggleVendor = useCallback((name) => {
-    setVisibleVendors((prev) => {
+  const handleToggleChain = useCallback((name) => {
+    setVisibleChains((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
       else next.add(name);
@@ -105,17 +105,17 @@ const MapPage = () => {
   useEffect(() => {
     try {
       window.localStorage.setItem(
-        VISIBLE_VENDORS_STORAGE_KEY,
-        JSON.stringify(Array.from(visibleVendors)),
+        VISIBLE_CHAINS_STORAGE_KEY,
+        JSON.stringify(Array.from(visibleChains)),
       );
     } catch {}
-  }, [visibleVendors]);
+  }, [visibleChains]);
 
   const handleUserLocation = useCallback((location) => {
     setUserLocation(location);
   }, []);
 
-  const handleVendorLocation = useCallback(
+  const handleChainLocation = useCallback(
     (location) => {
       if (!userLocation) return;
       setRouteStart([userLocation[0], userLocation[1]]);
@@ -285,10 +285,10 @@ const MapPage = () => {
           followUser={!hasRoute}
         />
         <CreditMarker />
-        <VendorMarkers
-          onVendorLocation={handleVendorLocation}
+        <MarketMarkers
+          onChainLocation={handleChainLocation}
           isDisabledRoutingButton={isDisabledRoutingButton || hasRoute}
-          visibleVendors={visibleVendors}
+          visibleChains={visibleChains}
         />
         {hasRoute && (
           <RoutingEngine
@@ -471,13 +471,13 @@ const MapPage = () => {
               },
             }}
           >
-            {KNOWN_VENDOR_NAMES.map((name) => {
-              const color = VENDOR_MARKER_COLORS[name.toLowerCase()];
-              const active = visibleVendors.has(name);
+            {KNOWN_CHAIN_NAMES.map((name) => {
+              const color = MARKER_COLORS[name.toLowerCase()];
+              const active = visibleChains.has(name);
               return (
                 <Box
                   key={name}
-                  onClick={() => handleToggleVendor(name)}
+                    onClick={() => handleToggleChain(name)}
                   sx={{
                     display: "flex",
                     alignItems: "center",
