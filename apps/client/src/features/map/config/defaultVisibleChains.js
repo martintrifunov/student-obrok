@@ -1,12 +1,12 @@
-import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
+import MARKER_COLORS from "@/features/map/config/markerColors";
 
 const FALLBACK = ["Vero", "Ramstore"];
 
-export const KNOWN_VENDOR_NAMES = Object.keys(VENDOR_MARKER_COLORS).map(
+export const KNOWN_CHAIN_NAMES = Object.keys(MARKER_COLORS).map(
   (key) => key.charAt(0).toUpperCase() + key.slice(1),
 );
 
-const parseDefaultVisibleVendors = () => {
+const parseDefaultVisibleChains = () => {
   const raw = import.meta.env.VITE_DEFAULT_VISIBLE_VENDORS;
   if (!raw) return FALLBACK;
 
@@ -17,11 +17,11 @@ const parseDefaultVisibleVendors = () => {
 
   if (requested.length === 0) return FALLBACK;
 
-  const valid = KNOWN_VENDOR_NAMES.filter((name) =>
+  const valid = KNOWN_CHAIN_NAMES.filter((name) =>
     requested.includes(name.toLowerCase()),
   );
 
   return valid.length > 0 ? valid : FALLBACK;
 };
 
-export const DEFAULT_VISIBLE_VENDORS = parseDefaultVisibleVendors();
+export const DEFAULT_VISIBLE_CHAINS = parseDefaultVisibleChains();
