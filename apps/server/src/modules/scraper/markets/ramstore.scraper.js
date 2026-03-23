@@ -106,26 +106,9 @@ export class RamstoreScraper extends BaseScraper {
       });
     }
 
-    let pageUpdateString = await this.#readUpdateString(page);
-
-    if (!pageUpdateString) {
-      try {
-        await page.waitForFunction(
-          () =>
-            /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i.test(
-              document.body.innerText,
-            ) || !!document.querySelector("table.dataTable, table"),
-          { timeout: UPDATE_TEXT_WAIT_TIMEOUT_MS },
-        );
-        pageUpdateString = await this.#readUpdateString(page);
-      } catch {
-      }
-    }
-
-    if (previousUpdateString && pageUpdateString === previousUpdateString) {
-      return { upToDate: true };
-    }
-
+    // Wait for the table first — the page needs JS to render both the table
+    // and the update text, so by the time the table is ready the update string
+    // is usually present too.
     try {
       await page.waitForSelector("table.dataTable, table", {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
@@ -135,6 +118,26 @@ export class RamstoreScraper extends BaseScraper {
       await page.waitForSelector("table.dataTable, table", {
         timeout: PAGINATION_WAIT_TIMEOUT_MS,
       });
+    }
+
+    let pageUpdateString = await this.#readUpdateString(page);
+
+    if (!pageUpdateString) {
+      try {
+        await page.waitForFunction(
+          () =>
+            /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i.test(
+              document.body.innerText,
+            ),
+          { timeout: UPDATE_TEXT_WAIT_TIMEOUT_MS },
+        );
+        pageUpdateString = await this.#readUpdateString(page);
+      } catch {
+      }
+    }
+
+    if (previousUpdateString && pageUpdateString === previousUpdateString) {
+      return { upToDate: true };
     }
 
     // Fast path: read DataTables data directly instead of clicking through pages.
