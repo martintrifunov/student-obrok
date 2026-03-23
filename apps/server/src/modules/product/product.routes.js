@@ -17,7 +17,7 @@ router.get(
   validateRequest(productQuerySchema, "query"),
   productController.getAll,
 );
-router.get("/categories", verifyJWT, productController.getCategories);
+router.get("/categories", productController.getCategories);
 router.get(
   "/:id",
   validateRequest(productParamsSchema, "params"),
