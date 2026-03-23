@@ -68,7 +68,7 @@ export class BaseScraper {
 
   parseUpdateDate(raw) {
     if (!raw) return null;
-    const m = raw.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    const m = raw.match(/(\d{1,2})[./](\d{1,2})[./](\d{4})\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
     if (!m) return null;
     let [, day, month, year, hours, minutes, ampm] = m;
     hours = Number(hours);
