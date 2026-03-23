@@ -31,7 +31,7 @@ const stripHtmlAndDecode = (html) => {
   return doc.body.textContent || "";
 };
 
-const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
+const SharedChainProductsModal = ({ open, onClose, vendorId, title }) => {
   const theme = useTheme();
 
   const [page, setPage] = useState(1);
@@ -315,4 +315,4 @@ const SharedVendorProductsModal = ({ open, onClose, vendorId, title }) => {
   );
 };
 
-export default SharedVendorProductsModal;
+export default SharedChainProductsModal;
