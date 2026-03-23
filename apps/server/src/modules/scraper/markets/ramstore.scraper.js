@@ -16,7 +16,7 @@ const UPDATE_TEXT_WAIT_TIMEOUT_MS = Number.parseInt(
 );
 
 export class RamstoreScraper extends BaseScraper {
-  get vendorName() {
+  get chainName() {
     return "Ramstore";
   }
 

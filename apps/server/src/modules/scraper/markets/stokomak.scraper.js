@@ -4,7 +4,7 @@ const INDEX_URL = "https://stokomak.proverkanaceni.mk/";
 const MAX_PRICE = 3000;
 
 export class StokomakScraper extends BaseScraper {
-  get vendorName() {
+  get chainName() {
     return "Stokomak";
   }
 

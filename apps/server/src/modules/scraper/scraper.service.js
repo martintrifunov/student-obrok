@@ -11,14 +11,14 @@ const NAV_TIMEOUT_MS = Number.parseInt(
 
 export class ScraperService {
   constructor(
-    vendorRepository,
+    chainRepository,
     marketRepository,
     productRepository,
     marketProductRepository,
     imageRepository,
     geocoderService,
   ) {
-    this.vendorRepository = vendorRepository;
+    this.chainRepository = chainRepository;
     this.marketRepository = marketRepository;
     this.productRepository = productRepository;
     this.marketProductRepository = marketProductRepository;
@@ -40,8 +40,8 @@ export class ScraperService {
       throw new Error(`Placeholder image not found in DB.`);
     }
 
-    const vendorDoc = await this.#ensureVendorExists(
-      scraper.vendorName,
+    const chainDoc = await this.#ensureChainExists(
+      scraper.chainName,
       placeholderImage,
     );
 
@@ -70,7 +70,7 @@ export class ScraperService {
           m.name,
           m.address,
           scraper,
-          vendorDoc,
+          chainDoc,
         );
         if (marketDoc) {
           readyMarkets.push({ ...m, marketDoc });
@@ -107,17 +107,17 @@ export class ScraperService {
     });
   }
 
-  async #ensureVendorExists(vendorName, placeholderImage) {
-    let vendor = await this.vendorRepository.findByName(vendorName);
-    if (vendor) return vendor;
+  async #ensureChainExists(chainName, placeholderImage) {
+    let chain = await this.chainRepository.findByName(chainName);
+    if (chain) return chain;
 
-    return this.vendorRepository.create({
-      name: vendorName,
+    return this.chainRepository.create({
+      name: chainName,
       image: placeholderImage._id,
     });
   }
 
-  async #ensureMarketExists(name, address, scraper, vendorDoc) {
+  async #ensureMarketExists(name, address, scraper, chainDoc) {
     let market = await this.marketRepository.findByName(name);
     if (market) return market;
 
@@ -137,7 +137,7 @@ export class ScraperService {
     return this.marketRepository.create({
       name,
       location,
-      vendor: vendorDoc._id,
+      chain: chainDoc._id,
     });
   }
 

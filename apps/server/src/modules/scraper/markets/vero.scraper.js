@@ -4,7 +4,7 @@ const INDEX_URL = "https://pricelist.vero.com.mk/";
 const MAX_PRICE = 840;
 
 export class VeroScraper extends BaseScraper {
-  get vendorName() {
+  get chainName() {
     return "Vero";
   }
 
