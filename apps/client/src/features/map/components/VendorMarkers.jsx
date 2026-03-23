@@ -3,6 +3,7 @@ import { Marker, Popup } from "react-map-gl/maplibre";
 import { Button, Typography, Box, styled, useTheme } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import ImageIcon from "@mui/icons-material/Image";
+import UpdateIcon from "@mui/icons-material/Update";
 import useSupercluster from "use-supercluster";
 import { useMap } from "react-map-gl/maplibre";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
@@ -215,6 +216,14 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         Добиј насоки
                         <ArrowRightAltIcon sx={{ marginLeft: 0.5 }} />
                       </Button>
+                      {market.lastScrapedUpdate && (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
+                          <UpdateIcon sx={{ fontSize: 13, color: "text.disabled" }} />
+                          <Typography variant="caption" sx={{ color: "text.disabled", fontSize: "0.68rem" }}>
+                            {new Date(market.lastScrapedUpdate).toLocaleString("mk-MK", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   </VendorPopup>
                 </Popup>
