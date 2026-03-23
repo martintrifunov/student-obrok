@@ -16,7 +16,7 @@ import { getClusterGradient, getVendorMarkerColor } from "@/features/map/utils/m
 
 const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
 
-const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
+const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendors }) => {
   const theme = useTheme();
   const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
@@ -48,9 +48,17 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
     };
   }, [map]);
 
+  const filteredMarkets = useMemo(
+    () =>
+      visibleVendors
+        ? markets.filter((m) => visibleVendors.has(m.vendor?.name))
+        : markets,
+    [markets, visibleVendors],
+  );
+
   const points = useMemo(
     () =>
-      markets.map((market, index) => ({
+      filteredMarkets.map((market, index) => ({
         type: "Feature",
         properties: {
           cluster: false,
@@ -62,7 +70,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
           coordinates: [market.location[1], market.location[0]],
         },
       })),
-    [markets],
+    [filteredMarkets],
   );
 
   const { clusters, supercluster } = useSupercluster({

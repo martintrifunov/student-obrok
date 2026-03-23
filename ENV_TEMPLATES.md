@@ -33,6 +33,7 @@ Create a `.env` file inside the `apps/client` folder. These must start with `VIT
 # For local dev, use http://localhost:5000. For prod, use your domain.
 VITE_API_URL="https://obrok.net"
 VITE_OSRM_URL="https://obrok.net/route/v1"
+VITE_DEFAULT_VISIBLE_VENDORS="Vero,Ramstore"
 
 # Automatically injected by GitHub Actions during production deployment
 VITE_RELEASE_VERSION="v2026.03.13.1"

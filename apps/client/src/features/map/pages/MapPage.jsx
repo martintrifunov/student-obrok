@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Map from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -10,6 +10,8 @@ import {
   Collapse,
   IconButton,
   useMediaQuery,
+  Popover,
+  Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import HomeIcon from "@mui/icons-material/Home";
@@ -21,6 +23,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import TuneIcon from "@mui/icons-material/Tune";
 import { useNavigate } from "react-router-dom";
 import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import LocateUser from "@/features/map/components/LocateUser";
@@ -30,6 +33,11 @@ import RoutingEngine from "@/features/map/components/RoutingEngine";
 import useAuth from "@/features/auth/hooks/useAuth";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { useThemeStore } from "@/store/themeStore";
+import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
+import {
+  DEFAULT_VISIBLE_VENDORS,
+  KNOWN_VENDOR_NAMES,
+} from "@/features/map/config/defaultVisibleVendors";
 import "@/assets/map.css";
 
 const INITIAL_VIEW_STATE = {
@@ -38,6 +46,28 @@ const INITIAL_VIEW_STATE = {
   zoom: 16,
   pitch: 0,
   bearing: 0,
+};
+
+const VISIBLE_VENDORS_STORAGE_KEY = "obrok.map.visibleVendors";
+
+const getInitialVisibleVendors = () => {
+  try {
+    const raw = window.localStorage.getItem(VISIBLE_VENDORS_STORAGE_KEY);
+    if (!raw) return new Set(DEFAULT_VISIBLE_VENDORS);
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set(DEFAULT_VISIBLE_VENDORS);
+
+    if (parsed.length === 0) return new Set();
+
+    const valid = parsed.filter(
+      (name) => typeof name === "string" && KNOWN_VENDOR_NAMES.includes(name),
+    );
+
+    return valid.length > 0 ? new Set(valid) : new Set(DEFAULT_VISIBLE_VENDORS);
+  } catch {
+    return new Set(DEFAULT_VISIBLE_VENDORS);
+  }
 };
 
 const MapPage = () => {
@@ -56,8 +86,30 @@ const MapPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabledRoutingButton, setIsDisabledRoutingButton] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
+  const [visibleVendors, setVisibleVendors] = useState(
+    getInitialVisibleVendors,
+  );
+  const [filterAnchor, setFilterAnchor] = useState(null);
 
   const mapRef = useRef(null);
+
+  const handleToggleVendor = useCallback((name) => {
+    setVisibleVendors((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        VISIBLE_VENDORS_STORAGE_KEY,
+        JSON.stringify(Array.from(visibleVendors)),
+      );
+    } catch {}
+  }, [visibleVendors]);
 
   const handleUserLocation = useCallback((location) => {
     setUserLocation(location);
@@ -149,6 +201,24 @@ const MapPage = () => {
   const isDark = theme.palette.mode === "dark";
   const isLoggedIn = !!auth?.accessToken;
 
+  const filterButton = (
+    <IconButton
+      onClick={(e) =>
+        setFilterAnchor(filterAnchor ? null : e.currentTarget)
+      }
+      sx={{
+        color: theme.palette.text.primary,
+        backgroundColor: filterAnchor
+          ? theme.palette.action.selected
+          : isDark
+            ? "#0f172a"
+            : theme.palette.action.hover,
+      }}
+    >
+      <TuneIcon />
+    </IconButton>
+  );
+
   return (
     <Box
       sx={{
@@ -218,6 +288,7 @@ const MapPage = () => {
         <VendorMarkers
           onVendorLocation={handleVendorLocation}
           isDisabledRoutingButton={isDisabledRoutingButton || hasRoute}
+          visibleVendors={visibleVendors}
         />
         {hasRoute && (
           <RoutingEngine
@@ -284,7 +355,10 @@ const MapPage = () => {
           }}
         >
           <MenuToggleButton
-            onClick={() => setMenuExpanded(!menuExpanded)}
+            onClick={() => {
+              setMenuExpanded(!menuExpanded);
+              setFilterAnchor(null);
+            }}
             $expanded={menuExpanded}
             $isDark={isDark}
           >
@@ -334,6 +408,7 @@ const MapPage = () => {
                   >
                     {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
                   </IconButton>
+                  {filterButton}
                   <IconButton
                     onClick={handleLogoutClick}
                     color="error"
@@ -359,6 +434,7 @@ const MapPage = () => {
                   >
                     {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
                   </IconButton>
+                  {filterButton}
                   <IconButton
                     onClick={handleLoginClick}
                     color="primary"
@@ -374,6 +450,77 @@ const MapPage = () => {
               )}
             </Box>
           </Collapse>
+
+          <Popover
+            open={Boolean(filterAnchor)}
+            anchorEl={filterAnchor}
+            onClose={() => setFilterAnchor(null)}
+            anchorOrigin={{ vertical: "top", horizontal: "left" }}
+            transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  borderRadius: 3,
+                  p: 1.5,
+                  minWidth: 160,
+                  backgroundColor: isDark ? "#1e293b" : "#ffffff",
+                  border: `1px solid ${isDark ? "#334155" : theme.palette.divider}`,
+                  boxShadow: theme.shadows[8],
+                  mb: 1,
+                },
+              },
+            }}
+          >
+            {KNOWN_VENDOR_NAMES.map((name) => {
+              const color = VENDOR_MARKER_COLORS[name.toLowerCase()];
+              const active = visibleVendors.has(name);
+              return (
+                <Box
+                  key={name}
+                  onClick={() => handleToggleVendor(name)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 1.5,
+                    py: 0.8,
+                    borderRadius: 2,
+                    cursor: "pointer",
+                    transition: "background-color 0.15s",
+                    "&:hover": {
+                      backgroundColor: isDark
+                        ? "#334155"
+                        : theme.palette.action.hover,
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: active ? color : "transparent",
+                      border: `2px solid ${color}`,
+                      flexShrink: 0,
+                      transition: "background-color 0.15s",
+                    }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      color: active
+                        ? theme.palette.text.primary
+                        : theme.palette.text.disabled,
+                      userSelect: "none",
+                    }}
+                  >
+                    {name}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Popover>
         </Box>
       )}
     </Box>
