@@ -184,8 +184,8 @@ export class ScraperService {
 
       await this.marketProductRepository.bulkUpsert(marketProducts);
 
-      if (result.newUpdateString) {
-        marketDoc.lastScrapedUpdate = result.newUpdateString;
+      if (result.newUpdateDate) {
+        marketDoc.lastScrapedUpdate = result.newUpdateDate;
         await this.marketRepository.save(marketDoc);
       }
 

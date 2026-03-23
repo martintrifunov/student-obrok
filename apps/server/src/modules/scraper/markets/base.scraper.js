@@ -65,4 +65,15 @@ export class BaseScraper {
   async fetchProducts(page, storeUrl) {
     throw new Error(`${this.constructor.name} must implement fetchProducts()`);
   }
+
+  parseUpdateDate(raw) {
+    if (!raw) return null;
+    const m = raw.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!m) return null;
+    let [, day, month, year, hours, minutes, ampm] = m;
+    hours = Number(hours);
+    if (ampm?.toUpperCase() === 'PM' && hours < 12) hours += 12;
+    if (ampm?.toUpperCase() === 'AM' && hours === 12) hours = 0;
+    return new Date(Number(year), Number(month) - 1, Number(day), hours, Number(minutes));
+  }
 }

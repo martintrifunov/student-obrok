@@ -131,7 +131,8 @@ export class RamstoreScraper extends BaseScraper {
       }
     }
 
-    if (previousUpdateString && pageUpdateString === previousUpdateString) {
+    const pageUpdateDate = this.parseUpdateDate(pageUpdateString);
+    if (previousUpdateString && pageUpdateDate && previousUpdateString.getTime() === pageUpdateDate.getTime()) {
       return { upToDate: true };
     }
 
@@ -218,7 +219,7 @@ export class RamstoreScraper extends BaseScraper {
       return {
         upToDate: false,
         products: allProducts,
-        newUpdateString: pageUpdateString || null,
+        newUpdateDate: pageUpdateDate,
       };
     }
 
@@ -329,7 +330,7 @@ export class RamstoreScraper extends BaseScraper {
     return {
       upToDate: false,
       products: Array.from(latestByTitle.values()),
-      newUpdateString: pageUpdateString || null,
+      newUpdateDate: pageUpdateDate,
     };
   }
 
