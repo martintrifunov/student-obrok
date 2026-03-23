@@ -1,37 +1,37 @@
-import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
+import MARKER_COLORS from "@/features/map/config/markerColors";
 
 export const getClusterGradient = (cluster, supercluster) => {
   if (!cluster || !supercluster) return null;
 
   try {
     const leaves = supercluster.getLeaves(cluster.id, Infinity);
-    const vendorCountMap = {};
+    const chainCountMap = {};
 
     leaves.forEach((leaf) => {
       const market = leaf.properties?.market;
       if (!market) return;
-      const vendorName = market.vendor?.name || market.name;
-      const normalizedName = vendorName.trim().toLowerCase();
-      vendorCountMap[normalizedName] =
-        (vendorCountMap[normalizedName] || 0) + 1;
+      const chainName = market.vendor?.name || market.name;
+      const normalizedName = chainName.trim().toLowerCase();
+      chainCountMap[normalizedName] =
+        (chainCountMap[normalizedName] || 0) + 1;
     });
 
-    const vendorNames = Object.keys(vendorCountMap).sort();
-    if (vendorNames.length === 0) return null;
+    const chainNames = Object.keys(chainCountMap).sort();
+    if (chainNames.length === 0) return null;
 
-    const vendorColors = vendorNames.map((vendorKey) => {
+    const chainColors = chainNames.map((chainKey) => {
       return (
-        Object.entries(VENDOR_MARKER_COLORS).find(([key]) =>
-          vendorKey.includes(key),
-        )?.[1] ?? VENDOR_MARKER_COLORS.vero
+        Object.entries(MARKER_COLORS).find(([key]) =>
+          chainKey.includes(key),
+        )?.[1] ?? MARKER_COLORS.vero
       );
     });
 
-    if (vendorColors.length === 1) {
-      return vendorColors[0];
+    if (chainColors.length === 1) {
+      return chainColors[0];
     }
 
-    const wrappedColors = [...vendorColors, vendorColors[0]];
+    const wrappedColors = [...chainColors, chainColors[0]];
     const gradientStops = wrappedColors
       .map((color, idx) => {
         const percentage = (idx / (wrappedColors.length - 1)) * 100;
@@ -45,12 +45,12 @@ export const getClusterGradient = (cluster, supercluster) => {
   }
 };
 
-export const getVendorMarkerColor = (vendorName = "") => {
-  const normalizedName = vendorName.trim().toLowerCase();
+export const getMarkerColor = (chainName = "") => {
+  const normalizedName = chainName.trim().toLowerCase();
 
   return (
-    Object.entries(VENDOR_MARKER_COLORS).find(([vendorKey]) =>
-      normalizedName.includes(vendorKey),
-    )?.[1] ?? VENDOR_MARKER_COLORS.vero
+    Object.entries(MARKER_COLORS).find(([chainKey]) =>
+      normalizedName.includes(chainKey),
+    )?.[1] ?? MARKER_COLORS.vero
   );
 };
