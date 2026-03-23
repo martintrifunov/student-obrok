@@ -31,9 +31,10 @@ export const getClusterGradient = (cluster, supercluster) => {
       return vendorColors[0];
     }
 
-    const gradientStops = vendorColors
+    const wrappedColors = [...vendorColors, vendorColors[0]];
+    const gradientStops = wrappedColors
       .map((color, idx) => {
-        const percentage = (idx / (vendorColors.length - 1)) * 100;
+        const percentage = (idx / (wrappedColors.length - 1)) * 100;
         return `${color} ${percentage}%`;
       })
       .join(", ");
