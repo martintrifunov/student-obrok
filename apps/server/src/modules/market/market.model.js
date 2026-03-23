@@ -9,7 +9,7 @@ const MarketSchema = new mongoose.Schema(
       ref: "Vendor",
       required: true,
     },
-    lastScrapedUpdate: { type: String, default: null },
+    lastScrapedUpdate: { type: Date, default: null },
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );

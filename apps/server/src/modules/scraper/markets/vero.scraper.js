@@ -73,7 +73,8 @@ export class VeroScraper extends BaseScraper {
           return match ? match[1].trim() : null;
         });
 
-        if (previousUpdateString && pageUpdateString === previousUpdateString) {
+        const pageUpdateDate = this.parseUpdateDate(pageUpdateString);
+        if (previousUpdateString && pageUpdateDate && previousUpdateString.getTime() === pageUpdateDate.getTime()) {
           return { upToDate: true };
         }
         isFirstPage = false;
@@ -159,7 +160,7 @@ export class VeroScraper extends BaseScraper {
     return {
       upToDate: false,
       products: allProducts,
-      newUpdateString: pageUpdateString,
+      newUpdateDate: this.parseUpdateDate(pageUpdateString),
     };
   }
 }

@@ -68,12 +68,13 @@ export class StokomakScraper extends BaseScraper {
       if (isFirstPage) {
         pageUpdateString = await page.evaluate(() => {
           const match = document.body.innerText.match(
-            /Датум и време на последно ажурирање[^\n]+/i,
+            /Датум и време на последно ажурирање[^:]*:\s*([^\n]+)/i,
           );
-          return match ? match[0].trim() : null;
+          return match ? match[1].trim() : null;
         });
 
-        if (previousUpdateString && pageUpdateString === previousUpdateString) {
+        const pageUpdateDate = this.parseUpdateDate(pageUpdateString);
+        if (previousUpdateString && pageUpdateDate && previousUpdateString.getTime() === pageUpdateDate.getTime()) {
           return { upToDate: true };
         }
         isFirstPage = false;
@@ -150,8 +151,7 @@ export class StokomakScraper extends BaseScraper {
     return {
       upToDate: false,
       products: allProducts,
-      newUpdateString:
-        pageUpdateString || new Date().toISOString().split("T")[0],
+      newUpdateDate: this.parseUpdateDate(pageUpdateString),
     };
   }
 }
