@@ -21,7 +21,7 @@ export class RamstoreScraper extends BaseScraper {
   }
 
   get placeholderImageFilename() {
-    return process.env.VENDOR_IMAGE_RAMSTORE || "ramstore_market.png";
+    return process.env.CHAIN_IMAGE_RAMSTORE || "ramstore_market.png";
   }
 
   get geocodeSuffix() {

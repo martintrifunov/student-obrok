@@ -9,7 +9,7 @@ export class VeroScraper extends BaseScraper {
   }
 
   get placeholderImageFilename() {
-    return process.env.VENDOR_IMAGE_VERO || "vero_market.png";
+    return process.env.CHAIN_IMAGE_VERO || "vero_market.png";
   }
 
   get geocodeSuffix() {

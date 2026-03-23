@@ -7,7 +7,7 @@ export const KNOWN_CHAIN_NAMES = Object.keys(MARKER_COLORS).map(
 );
 
 const parseDefaultVisibleChains = () => {
-  const raw = import.meta.env.VITE_DEFAULT_VISIBLE_VENDORS;
+  const raw = import.meta.env.VITE_DEFAULT_VISIBLE_CHAINS;
   if (!raw) return FALLBACK;
 
   const requested = raw

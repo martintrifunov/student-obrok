@@ -9,7 +9,7 @@ export class StokomakScraper extends BaseScraper {
   }
 
   get placeholderImageFilename() {
-    return process.env.VENDOR_IMAGE_STOKOMAK || "stokomak_market.png";
+    return process.env.CHAIN_IMAGE_STOKOMAK || "stokomak_market.png";
   }
 
   get geocodeSuffix() {
