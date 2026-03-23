@@ -4,7 +4,7 @@ import { paginationSchema } from "../../shared/schemas/paginationSchema.js";
 
 export const marketQuerySchema = paginationSchema.extend({
   name: z.string().optional(),
-  vendorId: zodObjectId.optional(),
+  chainId: zodObjectId.optional(),
 });
 
 export const createMarketSchema = z.object({
@@ -26,14 +26,14 @@ export const createMarketSchema = z.object({
       },
     )
     .length(2, "Location must contain exactly 2 coordinates."),
-  vendor: zodObjectId,
+  chain: zodObjectId,
 });
 
 export const updateMarketSchema = z.object({
   id: zodObjectId,
   name: z.string().min(1).optional(),
   location: z.array(z.number()).length(2).optional(),
-  vendor: zodObjectId.optional(),
+  chain: zodObjectId.optional(),
 });
 
 export const deleteMarketSchema = z.object({

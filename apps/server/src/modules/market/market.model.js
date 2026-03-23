@@ -4,9 +4,9 @@ const MarketSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     location: [{ type: Number, required: true }],
-    vendor: {
+    chain: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
+      ref: "Chain",
       required: true,
     },
     lastScrapedUpdate: { type: Date, default: null },
