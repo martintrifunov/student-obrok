@@ -12,10 +12,10 @@ import FolderIcon from "@mui/icons-material/Folder";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import ProductsList from "@/features/products/components/ProductsList";
-import VendorsList from "@/features/vendors/components/VendorsList";
+import ChainsList from "@/features/chains/components/ChainsList";
 import MarketsList from "@/features/markets/components/MarketsList";
 import ProductSearchBar from "@/features/products/components/ProductSearchBar";
-import VendorSearchBar from "@/features/vendors/components/VendorSearchBar";
+import ChainSearchBar from "@/features/chains/components/ChainSearchBar";
 import MarketSearchBar from "@/features/markets/components/MarketSearchBar";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
@@ -25,7 +25,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [productSearchTerm, setProductSearchTerm] = useState("");
-  const [vendorSearchTerm, setVendorSearchTerm] = useState("");
+  const [chainSearchTerm, setChainSearchTerm] = useState("");
   const [marketSearchTerm, setMarketSearchTerm] = useState("");
   const [generating, setIsGenerating] = useState(false);
   const [errorBag, setErrorBag] = useState("");
@@ -55,7 +55,7 @@ const Dashboard = () => {
   return (
     <Box>
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
-        Vendors Management
+        Chains Management
       </Typography>
       <Box
         sx={{
@@ -68,8 +68,8 @@ const Dashboard = () => {
         }}
       >
         <Box sx={{ width: "100%", maxWidth: { md: "400px" } }}>
-          <VendorSearchBar
-            handleSearchChange={(e) => setVendorSearchTerm(e.target.value)}
+          <ChainSearchBar
+            handleSearchChange={(e) => setChainSearchTerm(e.target.value)}
           />
         </Box>
         <Stack
@@ -90,14 +90,14 @@ const Dashboard = () => {
           <Button
             sx={{ flex: { xs: 1, md: "initial" } }}
             variant="contained"
-            onClick={() => navigate("/dashboard/vendor")}
+            onClick={() => navigate("/dashboard/chain")}
             startIcon={<AddIcon />}
           >
-            {isMobile ? "Vendor" : "Register Vendor"}
+            {isMobile ? "Chain" : "Register Chain"}
           </Button>
         </Stack>
       </Box>
-      <VendorsList searchTerm={vendorSearchTerm} />
+      <ChainsList searchTerm={chainSearchTerm} />
 
       <Typography variant="h5" sx={{ fontWeight: "bold", mt: 6, mb: 2 }}>
         Markets Management

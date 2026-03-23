@@ -22,7 +22,7 @@ import {
   useMarket,
   useSaveMarket,
 } from "@/features/markets/hooks/useMarketQueries";
-import { useVendorsDropdown } from "@/features/vendors/hooks/useVendorQueries";
+import { useChainsDropdown } from "@/features/chains/hooks/useChainQueries";
 
 const AddOrEditMarketForm = () => {
   const theme = useTheme();
@@ -38,7 +38,7 @@ const AddOrEditMarketForm = () => {
   const { data: fetchedMarket, isLoading: isFetchingMarket } = useMarket(
     params.marketId,
   );
-  const { data: vendors = [] } = useVendorsDropdown();
+  const { data: chains = [] } = useChainsDropdown();
 
   const saveMutation = useSaveMarket(isEditMode, params.marketId);
 
@@ -152,17 +152,17 @@ const AddOrEditMarketForm = () => {
             />
 
             <FormControl fullWidth error={!!errors.vendor}>
-              <InputLabel id="vendor-select-label">Vendor</InputLabel>
+              <InputLabel id="chain-select-label">Chain</InputLabel>
               <Select
-                labelId="vendor-select-label"
+                labelId="chain-select-label"
                 name="vendor"
                 value={selectedVendorId || ""}
-                label="Vendor"
+                label="Chain"
                 onChange={handleChange}
               >
-                {vendors.map((vendor) => (
-                  <MenuItem key={vendor._id} value={vendor._id}>
-                    {vendor.name}
+                {chains.map((chain) => (
+                  <MenuItem key={chain._id} value={chain._id}>
+                    {chain.name}
                   </MenuItem>
                 ))}
               </Select>

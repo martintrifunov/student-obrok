@@ -8,7 +8,7 @@ import AddOrEditProductForm from "@/features/products/pages/AddOrEditProductForm
 import Layout from "@/components/layout/Layout";
 import DashboardLayout from "@/features/dashboard/components/DashboardLayout";
 import PersistLogin from "@/features/auth/components/PersistLogin";
-import AddOrEditVendorForm from "@/features/vendors/pages/AddOrEditVendorForm";
+import AddOrEditChainForm from "@/features/chains/pages/AddOrEditChainForm";
 import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
 import MapPage from "@/features/map/pages/MapPage";
 
@@ -31,12 +31,12 @@ const App = () => {
                 element={<AddOrEditProductForm />}
               />
               <Route
-                path="/dashboard/vendor/:vendorId"
-                element={<AddOrEditVendorForm />}
+                path="/dashboard/chain/:chainId"
+                element={<AddOrEditChainForm />}
               />
               <Route
-                path="/dashboard/vendor"
-                element={<AddOrEditVendorForm />}
+                path="/dashboard/chain"
+                element={<AddOrEditChainForm />}
               />
               <Route
                 path="/dashboard/market/:marketId"
