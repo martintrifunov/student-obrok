@@ -108,17 +108,12 @@ export class RamstoreScraper extends BaseScraper {
 
     // Wait for the table first — the page needs JS to render both the table
     // and the update text, so by the time the table is ready the update string
-    // is usually present too.
-    try {
-      await page.waitForSelector("table.dataTable, table", {
-        timeout: PAGINATION_WAIT_TIMEOUT_MS,
-      });
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await page.waitForSelector("table.dataTable, table", {
-        timeout: PAGINATION_WAIT_TIMEOUT_MS,
-      });
-    }
+    // is usually present too. Use the full nav timeout here because heavy
+    // markets (e.g. СИТИ МОЛ) need a long time for JS to build the table
+    // after domcontentloaded.
+    await page.waitForSelector("table.dataTable, table", {
+      timeout: NAV_TIMEOUT_MS,
+    });
 
     let pageUpdateString = await this.#readUpdateString(page);
 
