@@ -146,19 +146,31 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
                   onClose={() => setSelectedMarket(null)}
                   closeOnClick={false}
                   offset={[0, -95 + verticalOffset * 1.5]}
-                  maxWidth="260px"
+                  maxWidth="290px"
                 >
                   <VendorPopup>
                     <Box
                       sx={{
                         p: 2,
                         pb: 1.5,
-                        pr: 5,
+                        px: 5,
                         width: "100%",
                         backgroundColor: "background.paper",
                       }}
                     >
-                      <Typography variant="h6" fontWeight="bold" noWrap>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          lineHeight: 1.3,
+                          textAlign: "center",
+                        }}
+                      >
                         {market.name}
                       </Typography>
                     </Box>
