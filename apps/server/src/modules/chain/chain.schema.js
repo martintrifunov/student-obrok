@@ -2,30 +2,30 @@ import { z } from "zod";
 import { zodObjectId } from "../../shared/schemas/zodObjectId.js";
 import { paginationSchema } from "../../shared/schemas/paginationSchema.js";
 
-export const vendorQuerySchema = paginationSchema.extend({
+export const chainQuerySchema = paginationSchema.extend({
   name: z.string().optional(),
 });
 
-export const createVendorSchema = z.object({
+export const createChainSchema = z.object({
   name: z
     .string({
-      required_error: "Vendor name is required.",
-      invalid_type_error: "Vendor name is required.",
+      required_error: "Chain name is required.",
+      invalid_type_error: "Chain name is required.",
     })
-    .min(1, "Vendor name cannot be empty."),
+    .min(1, "Chain name cannot be empty."),
   image: zodObjectId,
 });
 
-export const updateVendorSchema = z.object({
+export const updateChainSchema = z.object({
   id: zodObjectId,
   name: z.string().min(1).optional(),
   image: zodObjectId.optional(),
 });
 
-export const deleteVendorSchema = z.object({
+export const deleteChainSchema = z.object({
   id: zodObjectId,
 });
 
-export const vendorParamsSchema = z.object({
+export const chainParamsSchema = z.object({
   id: zodObjectId,
 });

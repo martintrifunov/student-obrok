@@ -2,24 +2,24 @@ import { Parser } from "@json2csv/plainjs";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
-export class VendorService {
+export class ChainService {
   constructor(
-    vendorRepository,
+    chainRepository,
     imageRepository,
     marketRepository,
     marketProductRepository,
   ) {
-    this.vendorRepository = vendorRepository;
+    this.chainRepository = chainRepository;
     this.imageRepository = imageRepository;
     this.marketRepository = marketRepository;
     this.marketProductRepository = marketProductRepository;
   }
 
-  async getAllVendors({ page, limit, name }) {
+  async getAllChains({ page, limit, name }) {
     const filter = {};
     if (name) filter.name = name;
 
-    const { docs, total } = await this.vendorRepository.findAll({
+    const { docs, total } = await this.chainRepository.findAll({
       page,
       limit,
       filter,
@@ -30,51 +30,51 @@ export class VendorService {
     };
   }
 
-  async getVendorById(id) {
-    const vendor = await this.vendorRepository.findById(id);
-    if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
-    return vendor;
+  async getChainById(id) {
+    const chain = await this.chainRepository.findById(id);
+    if (!chain) throw new NotFoundError(`No chain matches ID ${id}.`);
+    return chain;
   }
 
-  async createVendor({ name, image }) {
+  async createChain({ name, image }) {
     const imageExists = await this.imageRepository.findById(image);
     if (!imageExists) throw new NotFoundError("Selected image not found.");
-    return this.vendorRepository.create({ name, image });
+    return this.chainRepository.create({ name, image });
   }
 
-  async updateVendor(id, { name, image }) {
-    const vendor = await this.vendorRepository.findById(id);
-    if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
+  async updateChain(id, { name, image }) {
+    const chain = await this.chainRepository.findById(id);
+    if (!chain) throw new NotFoundError(`No chain matches ID ${id}.`);
 
-    if (name) vendor.name = name;
+    if (name) chain.name = name;
 
     if (image) {
       const imageExists = await this.imageRepository.findById(image);
       if (!imageExists) throw new NotFoundError("Selected image not found.");
-      vendor.image = image;
+      chain.image = image;
     }
 
-    return this.vendorRepository.save(vendor);
+    return this.chainRepository.save(chain);
   }
 
-  async deleteVendor(id) {
-    const vendor = await this.vendorRepository.findById(id);
-    if (!vendor) throw new NotFoundError(`No vendor matches ID ${id}.`);
+  async deleteChain(id) {
+    const chain = await this.chainRepository.findById(id);
+    if (!chain) throw new NotFoundError(`No chain matches ID ${id}.`);
 
-    const markets = await this.marketRepository.findByVendor(id);
+    const markets = await this.marketRepository.findByChain(id);
     for (const market of markets) {
       await this.marketProductRepository.deleteByMarket(market._id);
       await this.marketRepository.delete(market);
     }
 
-    await this.vendorRepository.delete(vendor);
+    await this.chainRepository.delete(chain);
   }
 
   async generateReport() {
     const marketsData = await this.marketRepository.findAllForReport();
 
     const rows = marketsData.map(
-      ({ name, location, vendor, marketProducts }) => {
+      ({ name, location, chain, marketProducts }) => {
         const productsData = marketProducts?.length
           ? marketProducts
               .map((mp) => `${mp.product.title}, ${mp.price} ден`)
@@ -82,10 +82,10 @@ export class VendorService {
           : "";
         return {
           market: name,
-          vendor: vendor?.name || "",
+          chain: chain?.name || "",
           location: location.join(", "),
-          image: vendor?.image
-            ? `${process.env.SERVER_ORIGIN}/uploads/${vendor.image.filename}`
+          image: chain?.image
+            ? `${process.env.SERVER_ORIGIN}/uploads/${chain.image.filename}`
             : "",
           products: productsData,
         };
@@ -93,7 +93,7 @@ export class VendorService {
     );
 
     const parser = new Parser({
-      fields: ["market", "vendor", "location", "image", "products"],
+      fields: ["market", "chain", "location", "image", "products"],
     });
 
     return parser.parse(rows);

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const VendorSchema = new mongoose.Schema(
+const ChainSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     image: {
@@ -12,10 +12,10 @@ const VendorSchema = new mongoose.Schema(
   { toJSON: { virtuals: true }, toObject: { virtuals: true } },
 );
 
-VendorSchema.virtual("markets", {
+ChainSchema.virtual("markets", {
   ref: "Market",
   localField: "_id",
-  foreignField: "vendor",
+  foreignField: "chain",
 });
 
-export const VendorModel = mongoose.model("Vendor", VendorSchema);
+export const ChainModel = mongoose.model("Chain", ChainSchema);
