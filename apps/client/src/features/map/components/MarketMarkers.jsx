@@ -10,13 +10,13 @@ import useMapPitch from "@/features/map/hooks/useMapPitch";
 import { BASE_URL } from "@/api/consts";
 import MapProductInfoModal from "@/features/map/components/MapProductInfoModal";
 import { useMarketsForMap } from "@/features/markets/hooks/useMarketQueries";
-import VENDOR_MARKER_COLORS from "@/features/map/config/vendorMarkerColors";
-import { MARKER_VIEWBOX, VENDOR_MARKER_PATH } from "@/features/map/config/markerPaths";
-import { getClusterGradient, getVendorMarkerColor } from "@/features/map/utils/markerUtils";
+import MARKER_COLORS from "@/features/map/config/markerColors";
+import { MARKER_VIEWBOX, MARKET_MARKER_PATH } from "@/features/map/config/markerPaths";
+import { getClusterGradient, getMarkerColor } from "@/features/map/utils/markerUtils";
 
-const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
+const CLUSTER_MARKER_COLOR = MARKER_COLORS.vero;
 
-const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendors }) => {
+const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains }) => {
   const theme = useTheme();
   const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
@@ -50,10 +50,10 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
 
   const filteredMarkets = useMemo(
     () =>
-      visibleVendors
-        ? markets.filter((m) => visibleVendors.has(m.vendor?.name))
+      visibleChains
+        ? markets.filter((m) => visibleChains.has(m.vendor?.name))
         : markets,
-    [markets, visibleVendors],
+    [markets, visibleChains],
   );
 
   const points = useMemo(
@@ -119,7 +119,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
           }
 
           const market = cluster.properties.market;
-          const vendorName = market.vendor?.name || market.name;
+          const chainName = market.vendor?.name || market.name;
           return (
             <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
               <Marker
@@ -128,14 +128,14 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
                 anchor="bottom"
                 onClick={() => setSelectedMarket(market)}
               >
-                <VendorMarkerIcon
+                <MarketMarkerIcon
                   viewBox={MARKER_VIEWBOX}
                   aria-label={`${market.name} marker`}
                   $verticalOffset={verticalOffset}
-                  $markerColor={getVendorMarkerColor(vendorName)}
+                  $markerColor={getMarkerColor(chainName)}
                 >
-                  <path d={VENDOR_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
-                </VendorMarkerIcon>
+                  <path d={MARKET_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
+                </MarketMarkerIcon>
               </Marker>
 
               {selectedMarket === market && (
@@ -148,7 +148,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
                   offset={[0, -95 + verticalOffset * 1.5]}
                   maxWidth="290px"
                 >
-                  <VendorPopup>
+                  <MarketPopup>
                     <Box
                       sx={{
                         p: 2,
@@ -230,7 +230,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
                         fullWidth
                         variant="contained"
                         color="primary"
-                        onClick={() => onVendorLocation([longitude, latitude])}
+                        onClick={() => onChainLocation([longitude, latitude])}
                         sx={{ textTransform: "none", borderRadius: 2, py: 1 }}
                       >
                         Добиј насоки
@@ -245,7 +245,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendo
                         </Box>
                       )}
                     </Box>
-                  </VendorPopup>
+                  </MarketPopup>
                 </Popup>
               )}
             </React.Fragment>
@@ -305,7 +305,7 @@ const ClusterMarker = styled("div", {
   };
 });
 
-const VendorMarkerIcon = styled("svg", {
+const MarketMarkerIcon = styled("svg", {
   shouldForwardProp: (prop) =>
     prop !== "$verticalOffset" && prop !== "$markerColor",
 })(({ $verticalOffset = 0, $markerColor }) => ({
@@ -338,7 +338,7 @@ const VendorMarkerIcon = styled("svg", {
   },
 }));
 
-const VendorPopup = styled(Box)(() => ({
+const MarketPopup = styled(Box)(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "flex-start",
@@ -346,4 +346,4 @@ const VendorPopup = styled(Box)(() => ({
   width: "100%",
 }));
 
-export default VendorMarkers;
+export default MarketMarkers;
