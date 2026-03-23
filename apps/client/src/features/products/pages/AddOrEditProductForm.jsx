@@ -80,21 +80,17 @@ const AddOrEditProductForm = () => {
 
   useEffect(() => {
     if (fetchedProduct) {
-      setProduct(fetchedProduct);
-
-      // Product ↔ Market is many-to-many via marketProducts.
       const mps = fetchedProduct.marketProducts || [];
-      const multi = mps.length > 1;
-      setHasMultipleMarkets(multi);
+      setHasMultipleMarkets(mps.length > 1);
 
-      if (!multi) {
-        const mp = mps[0];
-        if (mp?.market) {
-          setSelectedMarketId(mp.market._id || mp.market);
-        }
-        if (mp?.price !== undefined) {
-          setProduct((prev) => ({ ...prev, price: mp.price }));
-        }
+      const mp = mps[0];
+      setProduct({
+        ...fetchedProduct,
+        ...(mp?.price !== undefined && { price: mp.price }),
+      });
+
+      if (mp?.market) {
+        setSelectedMarketId(mp.market._id || mp.market);
       }
 
       if (fetchedProduct.image) {
