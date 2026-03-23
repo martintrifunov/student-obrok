@@ -3,6 +3,7 @@ import { Marker, Popup } from "react-map-gl/maplibre";
 import { Button, Typography, Box, styled, useTheme } from "@mui/material";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import ImageIcon from "@mui/icons-material/Image";
+import UpdateIcon from "@mui/icons-material/Update";
 import useSupercluster from "use-supercluster";
 import { useMap } from "react-map-gl/maplibre";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
@@ -15,7 +16,7 @@ import { getClusterGradient, getVendorMarkerColor } from "@/features/map/utils/m
 
 const CLUSTER_MARKER_COLOR = VENDOR_MARKER_COLORS.vero;
 
-const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
+const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton, visibleVendors }) => {
   const theme = useTheme();
   const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
@@ -47,9 +48,17 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
     };
   }, [map]);
 
+  const filteredMarkets = useMemo(
+    () =>
+      visibleVendors
+        ? markets.filter((m) => visibleVendors.has(m.vendor?.name))
+        : markets,
+    [markets, visibleVendors],
+  );
+
   const points = useMemo(
     () =>
-      markets.map((market, index) => ({
+      filteredMarkets.map((market, index) => ({
         type: "Feature",
         properties: {
           cluster: false,
@@ -61,7 +70,7 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
           coordinates: [market.location[1], market.location[0]],
         },
       })),
-    [markets],
+    [filteredMarkets],
   );
 
   const { clusters, supercluster } = useSupercluster({
@@ -137,19 +146,31 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                   onClose={() => setSelectedMarket(null)}
                   closeOnClick={false}
                   offset={[0, -95 + verticalOffset * 1.5]}
-                  maxWidth="260px"
+                  maxWidth="290px"
                 >
                   <VendorPopup>
                     <Box
                       sx={{
                         p: 2,
                         pb: 1.5,
-                        pr: 5,
+                        px: 5,
                         width: "100%",
                         backgroundColor: "background.paper",
                       }}
                     >
-                      <Typography variant="h6" fontWeight="bold" noWrap>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          lineHeight: 1.3,
+                          textAlign: "center",
+                        }}
+                      >
                         {market.name}
                       </Typography>
                     </Box>
@@ -215,6 +236,14 @@ const VendorMarkers = ({ onVendorLocation, isDisabledRoutingButton }) => {
                         Добиј насоки
                         <ArrowRightAltIcon sx={{ marginLeft: 0.5 }} />
                       </Button>
+                      {market.lastScrapedUpdate && (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
+                          <UpdateIcon sx={{ fontSize: 13, color: "text.disabled" }} />
+                          <Typography variant="caption" sx={{ color: "text.disabled", fontSize: "0.68rem" }}>
+                            {new Date(market.lastScrapedUpdate).toLocaleString("mk-MK", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   </VendorPopup>
                 </Popup>
