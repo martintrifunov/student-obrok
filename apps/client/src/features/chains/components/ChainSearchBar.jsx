@@ -2,11 +2,11 @@ import React from "react";
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-const VendorSearchBar = ({ handleSearchChange }) => {
+const ChainSearchBar = ({ handleSearchChange }) => {
   return (
     <TextField
       hiddenLabel
-      placeholder="Search vendors..."
+      placeholder="Search chains..."
       variant="outlined"
       onChange={handleSearchChange}
       fullWidth
@@ -32,4 +32,4 @@ const VendorSearchBar = ({ handleSearchChange }) => {
   );
 };
 
-export default VendorSearchBar;
+export default ChainSearchBar;

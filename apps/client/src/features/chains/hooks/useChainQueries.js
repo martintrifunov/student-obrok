@@ -1,16 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
-export const vendorKeys = {
-  all: ["vendors"],
-  list: (filters) => [...vendorKeys.all, "list", filters],
-  detail: (id) => [...vendorKeys.all, "detail", id],
+export const chainKeys = {
+  all: ["chains"],
+  list: (filters) => [...chainKeys.all, "list", filters],
+  detail: (id) => [...chainKeys.all, "detail", id],
 };
 
-export function useVendors({ searchTerm, page = 1, limit = 5 } = {}) {
+export function useChains({ searchTerm, page = 1, limit = 5 } = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: [...vendorKeys.all, "list", searchTerm, page, limit],
+    queryKey: [...chainKeys.all, "list", searchTerm, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (page) params.append("page", page);
@@ -23,10 +23,10 @@ export function useVendors({ searchTerm, page = 1, limit = 5 } = {}) {
   });
 }
 
-export function useVendor(id) {
+export function useChain(id) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: vendorKeys.detail(id),
+    queryKey: chainKeys.detail(id),
     queryFn: async () => {
       const res = await axiosPrivate.get(`/vendors/${id}`);
       return res.data;
@@ -35,7 +35,7 @@ export function useVendor(id) {
   });
 }
 
-export function useDeleteVendor() {
+export function useDeleteChain() {
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   return useMutation({
@@ -43,36 +43,36 @@ export function useDeleteVendor() {
       await axiosPrivate.delete("/vendors", { data: { id } });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: chainKeys.all });
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }
 
-export function useSaveVendor(isEditMode, vendorId) {
+export function useSaveChain(isEditMode, chainId) {
   const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (vendorData) => {
-      if (isEditMode) return axiosPrivate.put("/vendors", vendorData);
-      return axiosPrivate.post("/vendors", vendorData);
+    mutationFn: async (chainData) => {
+      if (isEditMode) return axiosPrivate.put("/vendors", chainData);
+      return axiosPrivate.post("/vendors", chainData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: vendorKeys.all });
+      queryClient.invalidateQueries({ queryKey: chainKeys.all });
       if (isEditMode) {
         queryClient.invalidateQueries({
-          queryKey: vendorKeys.detail(vendorId),
+          queryKey: chainKeys.detail(chainId),
         });
       }
     },
   });
 }
 
-export function useVendorsDropdown() {
+export function useChainsDropdown() {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: [...vendorKeys.all, "dropdown"],
+    queryKey: [...chainKeys.all, "dropdown"],
     queryFn: async () => {
       const res = await axiosPrivate.get("/vendors?limit=0");
       return res.data.data;
