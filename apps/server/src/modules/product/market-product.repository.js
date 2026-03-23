@@ -142,7 +142,7 @@ export class MarketProductRepository {
       .populate({
         path: "market",
         populate: {
-          path: "vendor",
+          path: "chain",
           populate: { path: "image", select: "title url mimeType" },
         },
       })

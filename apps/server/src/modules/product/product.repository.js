@@ -105,7 +105,7 @@ export class ProductRepository {
         populate: {
           path: "market",
           populate: {
-            path: "vendor",
+            path: "chain",
             populate: { path: "image", select: "title url mimeType" },
           },
         },
