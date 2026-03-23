@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import mongoose from "mongoose";
-import { VendorRepository } from "../modules/vendor/vendor.repository.js";
+import { ChainRepository } from "../modules/chain/chain.repository.js";
 import { ProductRepository } from "../modules/product/product.repository.js";
 import { MarketProductRepository } from "../modules/product/market-product.repository.js";
 import { MarketRepository } from "../modules/market/market.repository.js";
@@ -51,7 +51,7 @@ async function main() {
   console.log("[scrape] DB connected.\n");
 
   const scraperService = new ScraperService(
-    new VendorRepository(),
+    new ChainRepository(),
     new MarketRepository(),
     new ProductRepository(),
     new MarketProductRepository(),
