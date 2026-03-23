@@ -2,7 +2,7 @@
  * Abstract base class for all market scrapers.
  *
  * To add a new market, extend this class and implement:
- *   - get vendorName()
+ *   - get chainName()
  *   - get placeholderImageFilename()
  *   - get geocodeSuffix()        (optional override)
  *   - async fetchMarkets(page)
@@ -13,13 +13,13 @@
  */
 export class BaseScraper {
   /**
-   * The canonical vendor/chain name (e.g. "Vero", "Ramstore", "Stokomak").
-   * Used by ScraperService to auto-create the Vendor document.
+   * The canonical chain name (e.g. "Vero", "Ramstore", "Stokomak").
+   * Used by ScraperService to auto-create the Chain document.
    * @returns {string}
    */
-  get vendorName() {
+  get chainName() {
     throw new Error(
-      `${this.constructor.name} must implement vendorName`,
+      `${this.constructor.name} must implement chainName`,
     );
   }
 

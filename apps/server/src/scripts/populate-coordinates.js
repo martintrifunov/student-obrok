@@ -2,9 +2,9 @@
  * One-time script to populate market-coordinates.json using Google APIs.
  *
  * Usage:
- *   GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [--force] [vendor]
+ *   GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [--force] [chain]
  *
- * Strategy per vendor:
+ * Strategy per chain:
  *   - Vero / Ramstore: Geocoding API with transliterated street addresses → exact coords.
  *   - Stokomak: Places Text Search API grouped by city → distinct POI coords per branch.
  *
@@ -106,8 +106,8 @@ function transliterate(text) {
   return result;
 }
 
-// Vendors with real street addresses use Geocoding API.
-// Vendors with neighborhood-only addresses use Places Text Search API.
+// Chains with real street addresses use Geocoding API.
+// Chains with neighborhood-only addresses use Places Text Search API.
 const ALL_SCRAPERS = {
   vero: { scraper: new VeroScraper(), strategy: "geocode" },
   ramstore: { scraper: new RamstoreScraper(), strategy: "geocode" },
@@ -170,7 +170,7 @@ async function main() {
   if (!GOOGLE_API_KEY) {
     console.error(
       "[populate] GOOGLE_MAPS_API_KEY env var is required.\n" +
-        "  Usage: GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [vendor]",
+        "  Usage: GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [chain]",
     );
     process.exit(1);
   }
@@ -180,7 +180,7 @@ async function main() {
   const target = args.find((a) => a !== "--force")?.toLowerCase();
   if (target && !ALL_SCRAPERS[target]) {
     console.error(
-      `[populate] Unknown vendor "${target}". Available: ${Object.keys(ALL_SCRAPERS).join(", ")}`,
+      `[populate] Unknown chain "${target}". Available: ${Object.keys(ALL_SCRAPERS).join(", ")}`,
     );
     process.exit(1);
   }
@@ -201,9 +201,9 @@ async function main() {
   });
 
   try {
-    for (const [vendorKey, { scraper, strategy }] of entries) {
+    for (const [chainKey, { scraper, strategy }] of entries) {
       console.log(
-        `\n[populate] Fetching markets for ${vendorKey} (${strategy})...`,
+        `\n[populate] Fetching markets for ${chainKey} (${strategy})...`,
       );
       const page = await browser.newPage();
 
@@ -212,7 +212,7 @@ async function main() {
         markets = await scraper.fetchMarkets(page);
       } catch (err) {
         console.error(
-          `[populate] Failed to fetch markets for ${vendorKey}:`,
+          `[populate] Failed to fetch markets for ${chainKey}:`,
           err.message,
         );
         await page.close();
@@ -221,7 +221,7 @@ async function main() {
       await page.close();
 
       console.log(
-        `[populate] Found ${markets.length} markets for ${vendorKey}.`,
+        `[populate] Found ${markets.length} markets for ${chainKey}.`,
       );
 
       if (strategy === "places") {
@@ -246,7 +246,7 @@ async function main() {
             continue;
           }
 
-          const query = `${scraper.vendorName} supermarket, ${transliterate(city)}, North Macedonia`;
+          const query = `${scraper.chainName} supermarket, ${transliterate(city)}, North Macedonia`;
           console.log(
             `[populate] Places search for "${city}" (${group.length} markets) → "${query}"`,
           );
@@ -323,7 +323,7 @@ async function main() {
           const isStreetAddress = /[Уу]л[\.\s]|[Бб]ул[\.\s]/u.test(addr);
           const query = isStreetAddress
             ? `${transliterate(addr)}, North Macedonia`
-            : `${scraper.vendorName} ${transliterate(addr)}, North Macedonia`;
+            : `${scraper.chainName} ${transliterate(addr)}, North Macedonia`;
           console.log(`[populate] Geocoding "${key}" → "${query}"`);
 
           const result = await googleGeocode(query);

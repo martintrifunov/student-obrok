@@ -25,11 +25,11 @@ import useDebounce from "@/hooks/useDebounce";
 import ImagePreviewModal from "@/components/ui/ImagePreviewModal";
 import { BASE_URL } from "@/api/consts";
 import {
-  useVendors,
-  useDeleteVendor,
-} from "@/features/vendors/hooks/useVendorQueries";
+  useChains,
+  useDeleteChain,
+} from "@/features/chains/hooks/useChainQueries";
 
-const VendorsList = ({ searchTerm }) => {
+const ChainsList = ({ searchTerm }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,16 +49,16 @@ const VendorsList = ({ searchTerm }) => {
     isLoading,
     isError,
     error,
-  } = useVendors({
+  } = useChains({
     searchTerm: debouncedSearch,
     page: page + 1,
     limit: rowsPerPage,
   });
 
-  const vendors = responseData?.data || [];
-  const totalVendors = responseData?.pagination?.total || 0;
+  const chains = responseData?.data || [];
+  const totalChains = responseData?.pagination?.total || 0;
 
-  const deleteMutation = useDeleteVendor();
+  const deleteMutation = useDeleteChain();
 
   useEffect(() => {
     if (isError && error?.response?.status === 401) {
@@ -66,13 +66,13 @@ const VendorsList = ({ searchTerm }) => {
     }
   }, [isError, error, navigate, location]);
 
-  const handleRemoveVendor = async (vendorId) => {
+  const handleRemoveChain = async (chainId) => {
     if (
       window.confirm(
-        "Are you sure you want to remove this vendor?\nThis WILL REMOVE all of its price listings as well.",
+        "Are you sure you want to remove this chain?\nThis WILL REMOVE all of its price listings as well.",
       )
     ) {
-      deleteMutation.mutate(vendorId);
+      deleteMutation.mutate(chainId);
     }
   };
 
@@ -85,9 +85,9 @@ const VendorsList = ({ searchTerm }) => {
       {isSmallScreen ? (
         <Stack spacing={2} sx={{ width: "100%" }}>
           {!isLoading
-            ? vendors.map((vendor) => (
+            ? chains.map((chain) => (
                 <Card
-                  key={vendor._id}
+                  key={chain._id}
                   sx={{
                     borderRadius: 2,
                     border: `1px solid ${theme.palette.divider}`,
@@ -106,7 +106,7 @@ const VendorsList = ({ searchTerm }) => {
                           variant="h6"
                           sx={{ fontWeight: "bold", lineHeight: 1.2, mb: 0.5 }}
                         >
-                          {vendor.name}
+                          {chain.name}
                         </Typography>
                       </Box>
                       <Box display="flex" gap={0.5} ml={1}>
@@ -114,7 +114,7 @@ const VendorsList = ({ searchTerm }) => {
                           size="small"
                           color="inherit"
                           onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
+                            navigate(`/dashboard/chain/${chain._id}`)
                           }
                         >
                           <EditIcon fontSize="small" />
@@ -122,7 +122,7 @@ const VendorsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
-                          onClick={() => handleRemoveVendor(vendor._id)}
+                          onClick={() => handleRemoveChain(chain._id)}
                           disabled={deleteMutation.isPending}
                         >
                           <DeleteIcon fontSize="small" />
@@ -134,8 +134,8 @@ const VendorsList = ({ searchTerm }) => {
                       <Box sx={{ flex: 1 }}>
                         <ImagePreviewModal
                           variant="outlined"
-                          image={`${BASE_URL}${vendor?.image?.url}`}
-                          imageTitle={vendor?.image?.title}
+                          image={`${BASE_URL}${chain?.image?.url}`}
+                          imageTitle={chain?.image?.title}
                         />
                       </Box>
                     </Box>
@@ -155,7 +155,7 @@ const VendorsList = ({ searchTerm }) => {
                 ))}
         </Stack>
       ) : (
-        <VendorsTableContainer>
+        <ChainsTableContainer>
           <Table sx={{ minWidth: 600 }}>
             <TableHead
               sx={{
@@ -188,28 +188,28 @@ const VendorsList = ({ searchTerm }) => {
             </TableHead>
             <TableBody>
               {!isLoading
-                ? vendors.map((vendor, index) => (
-                    <TableRow key={vendor._id}>
+                ? chains.map((chain, index) => (
+                    <TableRow key={chain._id}>
                       <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
-                      <TableCell>{vendor.name}</TableCell>
+                      <TableCell>{chain.name}</TableCell>
                       <TableCell>
                         <ImagePreviewModal
-                          imageTitle={vendor?.image?.title}
-                          image={`${BASE_URL}${vendor?.image?.url}`}
+                          imageTitle={chain?.image?.title}
+                          image={`${BASE_URL}${chain?.image?.url}`}
                         />
                       </TableCell>
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
                           color="inherit"
                           onClick={() =>
-                            navigate(`/dashboard/vendor/${vendor._id}`)
+                            navigate(`/dashboard/chain/${chain._id}`)
                           }
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           color="inherit"
-                          onClick={() => handleRemoveVendor(vendor._id)}
+                          onClick={() => handleRemoveChain(chain._id)}
                           disabled={deleteMutation.isPending}
                         >
                           <DeleteIcon />
@@ -234,19 +234,19 @@ const VendorsList = ({ searchTerm }) => {
           </Table>
           <TablePagination
             component="div"
-            count={totalVendors}
+            count={totalChains}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[]}
           />
-        </VendorsTableContainer>
+        </ChainsTableContainer>
       )}
     </>
   );
 };
 
-const VendorsTableContainer = styled(TableContainer)(({ theme }) => ({
+const ChainsTableContainer = styled(TableContainer)(({ theme }) => ({
   width: "100%",
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.divider}`,
@@ -261,4 +261,4 @@ const Error = styled(Typography)(() => ({
   justifyContent: "center",
 }));
 
-export default VendorsList;
+export default ChainsList;

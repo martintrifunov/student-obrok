@@ -28,42 +28,42 @@ import { useNavigate, useParams } from "react-router-dom";
 import FileUploader from "@/components/ui/FileUploader";
 import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import { BASE_URL } from "@/api/consts";
-import { useVendor, useSaveVendor } from "@/features/vendors/hooks/useVendorQueries";
+import { useChain, useSaveChain } from "@/features/chains/hooks/useChainQueries";
 import {
   useImages,
   useUploadImage,
 } from "@/features/images/hooks/useImageQueries";
 
-const AddOrEditVendorForm = () => {
+const AddOrEditChainForm = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const params = useParams();
 
-  const isEditMode = !!params.vendorId;
+  const isEditMode = !!params.chainId;
 
-  const [vendor, setVendor] = useState({});
+  const [chain, setChain] = useState({});
   const [errors, setErrors] = useState({});
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
-  const { data: fetchedVendor, isLoading: isFetchingVendor } = useVendor(
-    params.vendorId,
+  const { data: fetchedChain, isLoading: isFetchingChain } = useChain(
+    params.chainId,
   );
   const { data: images = [], refetch: fetchImages } = useImages();
 
-  const saveMutation = useSaveVendor(isEditMode, params.vendorId);
+  const saveMutation = useSaveChain(isEditMode, params.chainId);
   const uploadImageMutation = useUploadImage();
 
   useEffect(() => {
-    if (fetchedVendor) {
-      setVendor(fetchedVendor);
-      if (fetchedVendor.image) {
-        setSelectedImageId(fetchedVendor.image._id);
-        setSelectedImageTitle(fetchedVendor.image.title);
+    if (fetchedChain) {
+      setChain(fetchedChain);
+      if (fetchedChain.image) {
+        setSelectedImageId(fetchedChain.image._id);
+        setSelectedImageTitle(fetchedChain.image.title);
       }
     }
-  }, [fetchedVendor]);
+  }, [fetchedChain]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -72,7 +72,7 @@ const AddOrEditVendorForm = () => {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
 
-    setVendor((prev) => ({ ...prev, [name]: value }));
+    setChain((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleOpenImageDialog = () => {
@@ -112,23 +112,23 @@ const AddOrEditVendorForm = () => {
     event.preventDefault();
     setErrors({});
 
-    const vendorData = {};
-    if (isEditMode) vendorData.id = params.vendorId;
+    const chainData = {};
+    if (isEditMode) chainData.id = params.chainId;
 
-    vendorData.name = vendor.name;
+    chainData.name = chain.name;
 
-    if (selectedImageId) vendorData.image = selectedImageId;
+    if (selectedImageId) chainData.image = selectedImageId;
 
-    saveMutation.mutate(vendorData, {
+    saveMutation.mutate(chainData, {
       onSuccess: () => navigate("/dashboard"),
       onError: (error) => {
-        setErrors(error.response?.data || { message: "Error saving vendor" });
+        setErrors(error.response?.data || { message: "Error saving chain" });
       },
     });
   };
 
   if (
-    isFetchingVendor ||
+    isFetchingChain ||
     saveMutation.isPending ||
     uploadImageMutation.isPending
   ) {
@@ -144,7 +144,7 @@ const AddOrEditVendorForm = () => {
         mb={3}
       >
         <Typography variant="h4" fontWeight="bold">
-          {isEditMode ? "Edit Vendor" : "Register Vendor"}
+          {isEditMode ? "Edit Chain" : "Register Chain"}
         </Typography>
       </Box>
 
@@ -168,10 +168,10 @@ const AddOrEditVendorForm = () => {
 
             <TextField
               name="name"
-              label="Vendor Name"
+              label="Chain Name"
               variant="outlined"
               fullWidth
-              value={vendor?.name || ""}
+              value={chain?.name || ""}
               onChange={handleChange}
               error={!!errors.name}
               helperText={errors.name}
@@ -311,4 +311,4 @@ const AddOrEditVendorForm = () => {
   );
 };
 
-export default AddOrEditVendorForm;
+export default AddOrEditChainForm;

@@ -9,7 +9,7 @@ import corsOptions from "./config/corsOptions.js";
 import { errorHandler } from "./shared/middleware/errorHandler.js";
 
 import { authRouter } from "./modules/auth/auth.routes.js";
-import { vendorRouter } from "./modules/vendor/vendor.routes.js";
+import { chainRouter } from "./modules/chain/chain.routes.js";
 import { productRouter } from "./modules/product/product.routes.js";
 import { imageRouter } from "./modules/image/image.routes.js";
 import { marketRouter } from "./modules/market/market.routes.js";
@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.resolve("src/uploads")));
 
 app.use("/api", authRouter);
-app.use("/api/vendors", vendorRouter);
+app.use("/api/chains", chainRouter);
 app.use("/api/products", productRouter);
 app.use("/api/images", imageRouter);
 app.use("/api/markets", marketRouter);

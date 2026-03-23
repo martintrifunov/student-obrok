@@ -24,6 +24,26 @@ MONGO_INITDB_ROOT_PASSWORD="super_secure_password"
 CLIENT_ORIGIN="https://obrok.net"
 SERVER_ORIGIN="https://obrok.net/api"
 PORT=5000
+
+# --- Web Scraper (optional, all have defaults) ---
+SCRAPER_CONCURRENT_TABS=4
+SCRAPER_NAV_TIMEOUT_MS=90000
+SCRAPER_PAGINATION_WAIT_TIMEOUT_MS=15000
+SCRAPER_UPDATE_TEXT_WAIT_TIMEOUT_MS=12000
+
+# --- Chain Placeholder Images (optional, all have defaults) ---
+CHAIN_IMAGE_RAMSTORE="ramstore_market.png"
+CHAIN_IMAGE_VERO="vero_market.png"
+CHAIN_IMAGE_STOKOMAK="stokomak_market.png"
+
+# --- Puppeteer (optional, auto-detected when not set) ---
+# PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium-browser"
+
+# --- Scripts Only (optional, not needed for the app itself) ---
+# Used by standalone scripts as an alternative to DATABASE_URI
+# MONGO_URI_LOCAL="mongodb://localhost:27017/obrok"
+# Required only by the populate-coordinates.js script
+# GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
 ```
 
 ## 2. Client Directory (`/apps/client/.env`)
@@ -33,7 +53,7 @@ Create a `.env` file inside the `apps/client` folder. These must start with `VIT
 # For local dev, use http://localhost:5000. For prod, use your domain.
 VITE_API_URL="https://obrok.net"
 VITE_OSRM_URL="https://obrok.net/route/v1"
-VITE_DEFAULT_VISIBLE_VENDORS="Vero,Ramstore"
+VITE_DEFAULT_VISIBLE_CHAINS="Vero,Ramstore"
 
 # Automatically injected by GitHub Actions during production deployment
 VITE_RELEASE_VERSION="v2026.03.13.1"

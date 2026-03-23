@@ -16,7 +16,7 @@ async function wipe() {
   await mongoose.connect(uri);
 
   console.log("Wiping collections...");
-  await mongoose.connection.db.collection("vendors").deleteMany({});
+  await mongoose.connection.db.collection("chains").deleteMany({});
   await mongoose.connection.db.collection("markets").deleteMany({});
   await mongoose.connection.db.collection("marketproducts").deleteMany({});
 

@@ -59,6 +59,7 @@ const AddOrEditProductForm = () => {
   const [selectedImageId, setSelectedImageId] = useState("");
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [hasMultipleMarkets, setHasMultipleMarkets] = useState(false);
 
   const { data: markets = [] } = useMarketsDropdown();
   const {
@@ -79,10 +80,19 @@ const AddOrEditProductForm = () => {
 
   useEffect(() => {
     if (fetchedProduct) {
-      setProduct(fetchedProduct);
-      if (fetchedProduct.market) {
-        setSelectedMarketId(fetchedProduct.market._id || fetchedProduct.market);
+      const mps = fetchedProduct.marketProducts || [];
+      setHasMultipleMarkets(mps.length > 1);
+
+      const mp = mps[0];
+      setProduct({
+        ...fetchedProduct,
+        ...(mp?.price !== undefined && { price: mp.price }),
+      });
+
+      if (mp?.market) {
+        setSelectedMarketId(mp.market._id || mp.market);
       }
+
       if (fetchedProduct.image) {
         setSelectedImageId(fetchedProduct.image._id);
         setSelectedImageTitle(fetchedProduct.image.title);
@@ -226,7 +236,12 @@ const AddOrEditProductForm = () => {
                 value={product?.price || ""}
                 onChange={handleChange}
                 error={!!errors.price}
-                helperText={errors.price}
+                helperText={
+                  hasMultipleMarkets
+                    ? "Sold at multiple markets — edit prices individually"
+                    : errors.price
+                }
+                disabled={hasMultipleMarkets}
                 sx={{ flex: 1 }}
               />
 
@@ -242,7 +257,7 @@ const AddOrEditProductForm = () => {
                 >
                   {markets.map((market) => (
                     <MenuItem key={market._id} value={market._id}>
-                      {market.name}{market.vendor?.name ? ` (${market.vendor.name})` : ""}
+                      {market.name}{market.chain?.name ? ` (${market.chain.name})` : ""}
                     </MenuItem>
                   ))}
                 </Select>

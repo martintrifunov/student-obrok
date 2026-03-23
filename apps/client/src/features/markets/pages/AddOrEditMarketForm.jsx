@@ -22,7 +22,7 @@ import {
   useMarket,
   useSaveMarket,
 } from "@/features/markets/hooks/useMarketQueries";
-import { useVendorsDropdown } from "@/features/vendors/hooks/useVendorQueries";
+import { useChainsDropdown } from "@/features/chains/hooks/useChainQueries";
 
 const AddOrEditMarketForm = () => {
   const theme = useTheme();
@@ -33,21 +33,21 @@ const AddOrEditMarketForm = () => {
 
   const [market, setMarket] = useState({});
   const [errors, setErrors] = useState({});
-  const [selectedVendorId, setSelectedVendorId] = useState("");
+  const [selectedChainId, setSelectedChainId] = useState("");
 
   const { data: fetchedMarket, isLoading: isFetchingMarket } = useMarket(
     params.marketId,
   );
-  const { data: vendors = [] } = useVendorsDropdown();
+  const { data: chains = [] } = useChainsDropdown();
 
   const saveMutation = useSaveMarket(isEditMode, params.marketId);
 
   useEffect(() => {
     if (fetchedMarket) {
       setMarket(fetchedMarket);
-      if (fetchedMarket.vendor) {
-        setSelectedVendorId(
-          fetchedMarket.vendor._id || fetchedMarket.vendor,
+      if (fetchedMarket.chain) {
+        setSelectedChainId(
+          fetchedMarket.chain._id || fetchedMarket.chain,
         );
       }
     }
@@ -60,8 +60,8 @@ const AddOrEditMarketForm = () => {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
 
-    if (name === "vendor") {
-      setSelectedVendorId(value);
+    if (name === "chain") {
+      setSelectedChainId(value);
     } else if (name === "longitude") {
       setMarket((prev) => ({
         ...prev,
@@ -95,7 +95,7 @@ const AddOrEditMarketForm = () => {
       marketData.location = [null, null];
     }
 
-    if (selectedVendorId) marketData.vendor = selectedVendorId;
+    if (selectedChainId) marketData.chain = selectedChainId;
 
     saveMutation.mutate(marketData, {
       onSuccess: () => navigate("/dashboard"),
@@ -151,23 +151,23 @@ const AddOrEditMarketForm = () => {
               helperText={errors.name}
             />
 
-            <FormControl fullWidth error={!!errors.vendor}>
-              <InputLabel id="vendor-select-label">Vendor</InputLabel>
+            <FormControl fullWidth error={!!errors.chain}>
+              <InputLabel id="chain-select-label">Chain</InputLabel>
               <Select
-                labelId="vendor-select-label"
-                name="vendor"
-                value={selectedVendorId || ""}
-                label="Vendor"
+                labelId="chain-select-label"
+                name="chain"
+                value={selectedChainId || ""}
+                label="Chain"
                 onChange={handleChange}
               >
-                {vendors.map((vendor) => (
-                  <MenuItem key={vendor._id} value={vendor._id}>
-                    {vendor.name}
+                {chains.map((chain) => (
+                  <MenuItem key={chain._id} value={chain._id}>
+                    {chain.name}
                   </MenuItem>
                 ))}
               </Select>
-              {errors.vendor && (
-                <FormHelperText>{errors.vendor}</FormHelperText>
+              {errors.chain && (
+                <FormHelperText>{errors.chain}</FormHelperText>
               )}
             </FormControl>
 

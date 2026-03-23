@@ -2,16 +2,16 @@ import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
 export class MarketService {
-  constructor(marketRepository, vendorRepository, marketProductRepository) {
+  constructor(marketRepository, chainRepository, marketProductRepository) {
     this.marketRepository = marketRepository;
-    this.vendorRepository = vendorRepository;
+    this.chainRepository = chainRepository;
     this.marketProductRepository = marketProductRepository;
   }
 
-  async getAllMarkets({ page, limit, name, vendorId }) {
+  async getAllMarkets({ page, limit, name, chainId }) {
     const filter = {};
     if (name) filter.name = name;
-    if (vendorId) filter.vendor = vendorId;
+    if (chainId) filter.chain = chainId;
 
     const { docs, total } = await this.marketRepository.findAll({
       page,
@@ -30,23 +30,23 @@ export class MarketService {
     return market;
   }
 
-  async createMarket({ name, location, vendor }) {
-    const vendorExists = await this.vendorRepository.findById(vendor);
-    if (!vendorExists) throw new NotFoundError("Vendor not found.");
-    return this.marketRepository.create({ name, location, vendor });
+  async createMarket({ name, location, chain }) {
+    const chainExists = await this.chainRepository.findById(chain);
+    if (!chainExists) throw new NotFoundError("Chain not found.");
+    return this.marketRepository.create({ name, location, chain });
   }
 
-  async updateMarket(id, { name, location, vendor }) {
+  async updateMarket(id, { name, location, chain }) {
     const market = await this.marketRepository.findById(id);
     if (!market) throw new NotFoundError(`No market matches ID ${id}.`);
 
     if (name) market.name = name;
     if (location) market.location = location;
 
-    if (vendor) {
-      const vendorExists = await this.vendorRepository.findById(vendor);
-      if (!vendorExists) throw new NotFoundError("Vendor not found.");
-      market.vendor = vendor;
+    if (chain) {
+      const chainExists = await this.chainRepository.findById(chain);
+      if (!chainExists) throw new NotFoundError("Chain not found.");
+      market.chain = chain;
     }
 
     return this.marketRepository.save(market);

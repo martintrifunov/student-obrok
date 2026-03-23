@@ -3,8 +3,8 @@ import { MarketModel } from "./market.model.js";
 export class MarketRepository {
   #populate() {
     return {
-      vendor: {
-        path: "vendor",
+      chain: {
+        path: "chain",
         populate: { path: "image", select: "title url mimeType" },
       },
     };
@@ -15,46 +15,46 @@ export class MarketRepository {
     if (filter.name) {
       query.name = { $regex: filter.name, $options: "i" };
     }
-    if (filter.vendor) {
-      query.vendor = filter.vendor;
+    if (filter.chain) {
+      query.chain = filter.chain;
     }
     return query;
   }
 
   async findAll({ page, limit, filter = {} }) {
-    const { vendor } = this.#populate();
+    const { chain } = this.#populate();
     const query = this.#buildQuery(filter);
 
     if (limit === 0) {
-      const docs = await MarketModel.find(query).populate(vendor).exec();
+      const docs = await MarketModel.find(query).populate(chain).exec();
       return { docs, total: null };
     }
 
     const skip = (page - 1) * limit;
     const [docs, total] = await Promise.all([
-      MarketModel.find(query).populate(vendor).skip(skip).limit(limit).exec(),
+      MarketModel.find(query).populate(chain).skip(skip).limit(limit).exec(),
       MarketModel.countDocuments(query).exec(),
     ]);
     return { docs, total };
   }
 
   async findById(id) {
-    const { vendor } = this.#populate();
-    return MarketModel.findById(id).populate(vendor).exec();
+    const { chain } = this.#populate();
+    return MarketModel.findById(id).populate(chain).exec();
   }
 
   async findByName(name) {
     return MarketModel.findOne({ name }).exec();
   }
 
-  async findByVendor(vendorId) {
-    return MarketModel.find({ vendor: vendorId }).exec();
+  async findByChain(chainId) {
+    return MarketModel.find({ chain: chainId }).exec();
   }
 
   async findAllForReport() {
     return MarketModel.find()
       .populate({
-        path: "vendor",
+        path: "chain",
         populate: { path: "image", select: "title filename" },
       })
       .populate({

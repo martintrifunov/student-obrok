@@ -16,12 +16,12 @@ const UPDATE_TEXT_WAIT_TIMEOUT_MS = Number.parseInt(
 );
 
 export class RamstoreScraper extends BaseScraper {
-  get vendorName() {
+  get chainName() {
     return "Ramstore";
   }
 
   get placeholderImageFilename() {
-    return process.env.VENDOR_IMAGE_RAMSTORE || "ramstore_market.png";
+    return process.env.CHAIN_IMAGE_RAMSTORE || "ramstore_market.png";
   }
 
   get geocodeSuffix() {

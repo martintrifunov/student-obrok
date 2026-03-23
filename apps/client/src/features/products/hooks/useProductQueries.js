@@ -30,7 +30,7 @@ export function useSaveProduct(isEditMode, productId) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["chains"] });
       queryClient.invalidateQueries({ queryKey: ["markets"] });
       if (isEditMode) {
         queryClient.invalidateQueries({
@@ -67,7 +67,7 @@ export function useDeleteProduct() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: productKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["chains"] });
       queryClient.invalidateQueries({ queryKey: ["markets"] });
     },
   });
