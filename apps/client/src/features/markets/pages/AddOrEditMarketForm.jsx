@@ -33,7 +33,7 @@ const AddOrEditMarketForm = () => {
 
   const [market, setMarket] = useState({});
   const [errors, setErrors] = useState({});
-  const [selectedVendorId, setSelectedVendorId] = useState("");
+  const [selectedChainId, setSelectedChainId] = useState("");
 
   const { data: fetchedMarket, isLoading: isFetchingMarket } = useMarket(
     params.marketId,
@@ -45,9 +45,9 @@ const AddOrEditMarketForm = () => {
   useEffect(() => {
     if (fetchedMarket) {
       setMarket(fetchedMarket);
-      if (fetchedMarket.vendor) {
-        setSelectedVendorId(
-          fetchedMarket.vendor._id || fetchedMarket.vendor,
+      if (fetchedMarket.chain) {
+        setSelectedChainId(
+          fetchedMarket.chain._id || fetchedMarket.chain,
         );
       }
     }
@@ -60,8 +60,8 @@ const AddOrEditMarketForm = () => {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
 
-    if (name === "vendor") {
-      setSelectedVendorId(value);
+    if (name === "chain") {
+      setSelectedChainId(value);
     } else if (name === "longitude") {
       setMarket((prev) => ({
         ...prev,
@@ -95,7 +95,7 @@ const AddOrEditMarketForm = () => {
       marketData.location = [null, null];
     }
 
-    if (selectedVendorId) marketData.vendor = selectedVendorId;
+    if (selectedChainId) marketData.chain = selectedChainId;
 
     saveMutation.mutate(marketData, {
       onSuccess: () => navigate("/dashboard"),
@@ -151,12 +151,12 @@ const AddOrEditMarketForm = () => {
               helperText={errors.name}
             />
 
-            <FormControl fullWidth error={!!errors.vendor}>
+            <FormControl fullWidth error={!!errors.chain}>
               <InputLabel id="chain-select-label">Chain</InputLabel>
               <Select
                 labelId="chain-select-label"
-                name="vendor"
-                value={selectedVendorId || ""}
+                name="chain"
+                value={selectedChainId || ""}
                 label="Chain"
                 onChange={handleChange}
               >
@@ -166,8 +166,8 @@ const AddOrEditMarketForm = () => {
                   </MenuItem>
                 ))}
               </Select>
-              {errors.vendor && (
-                <FormHelperText>{errors.vendor}</FormHelperText>
+              {errors.chain && (
+                <FormHelperText>{errors.chain}</FormHelperText>
               )}
             </FormControl>
 

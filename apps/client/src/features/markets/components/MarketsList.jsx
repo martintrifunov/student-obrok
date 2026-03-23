@@ -112,8 +112,8 @@ const MarketsList = ({ searchTerm }) => {
                           {market.name}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          <strong>Vendor:</strong>{" "}
-                          {market.vendor?.name || "N/A"}
+                          <strong>Chain:</strong>{" "}
+                          {market.chain?.name || "N/A"}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           <strong>Location:</strong>{" "}
@@ -193,7 +193,7 @@ const MarketsList = ({ searchTerm }) => {
                   Name
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
-                  Vendor
+                  Chain
                 </TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: "bold" }}>
                   Location
@@ -218,7 +218,7 @@ const MarketsList = ({ searchTerm }) => {
                     <TableRow key={market._id}>
                       <TableCell>{index + 1 + page * rowsPerPage}</TableCell>
                       <TableCell>{market.name}</TableCell>
-                      <TableCell>{market.vendor?.name || "N/A"}</TableCell>
+                      <TableCell>{market.chain?.name || "N/A"}</TableCell>
                       <TableCell>{market.location.join(", ")}</TableCell>
                       <TableCell>
                         <Button

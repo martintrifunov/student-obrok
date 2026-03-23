@@ -21,7 +21,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import { BASE_URL } from "@/api/consts";
 import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
-  useVendorProducts,
+  useChainProducts,
   useCategories,
 } from "@/features/products/hooks/useProductQueries";
 
@@ -31,7 +31,7 @@ const stripHtmlAndDecode = (html) => {
   return doc.body.textContent || "";
 };
 
-const SharedChainProductsModal = ({ open, onClose, vendorId, title }) => {
+const SharedChainProductsModal = ({ open, onClose, chainId, title }) => {
   const theme = useTheme();
 
   const [page, setPage] = useState(1);
@@ -59,12 +59,12 @@ const SharedChainProductsModal = ({ open, onClose, vendorId, title }) => {
     }
   }, [open]);
 
-  const { data: categoryOptions = [] } = useCategories(vendorId);
+  const { data: categoryOptions = [] } = useCategories(chainId);
 
-  const { data, isLoading } = useVendorProducts(
-    vendorId,
+  const { data, isLoading } = useChainProducts(
+    chainId,
     { page, limit: 10, title: debouncedTitle, category: debouncedCategory },
-    { enabled: open && !!vendorId },
+    { enabled: open && !!chainId },
   );
 
   const products = data?.data || [];

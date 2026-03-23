@@ -10,7 +10,7 @@ export const getClusterGradient = (cluster, supercluster) => {
     leaves.forEach((leaf) => {
       const market = leaf.properties?.market;
       if (!market) return;
-      const chainName = market.vendor?.name || market.name;
+      const chainName = market.chain?.name || market.name;
       const normalizedName = chainName.trim().toLowerCase();
       chainCountMap[normalizedName] =
         (chainCountMap[normalizedName] || 0) + 1;

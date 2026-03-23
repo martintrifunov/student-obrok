@@ -17,7 +17,7 @@ export function useChains({ searchTerm, page = 1, limit = 5 } = {}) {
       if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("name", searchTerm);
 
-      const response = await axiosPrivate.get(`/vendors?${params}`);
+      const response = await axiosPrivate.get(`/chains?${params}`);
       return response.data;
     },
   });
@@ -28,7 +28,7 @@ export function useChain(id) {
   return useQuery({
     queryKey: chainKeys.detail(id),
     queryFn: async () => {
-      const res = await axiosPrivate.get(`/vendors/${id}`);
+      const res = await axiosPrivate.get(`/chains/${id}`);
       return res.data;
     },
     enabled: !!id,
@@ -40,7 +40,7 @@ export function useDeleteChain() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id) => {
-      await axiosPrivate.delete("/vendors", { data: { id } });
+      await axiosPrivate.delete("/chains", { data: { id } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
@@ -55,8 +55,8 @@ export function useSaveChain(isEditMode, chainId) {
 
   return useMutation({
     mutationFn: async (chainData) => {
-      if (isEditMode) return axiosPrivate.put("/vendors", chainData);
-      return axiosPrivate.post("/vendors", chainData);
+      if (isEditMode) return axiosPrivate.put("/chains", chainData);
+      return axiosPrivate.post("/chains", chainData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
@@ -74,7 +74,7 @@ export function useChainsDropdown() {
   return useQuery({
     queryKey: [...chainKeys.all, "dropdown"],
     queryFn: async () => {
-      const res = await axiosPrivate.get("/vendors?limit=0");
+      const res = await axiosPrivate.get("/chains?limit=0");
       return res.data.data;
     },
   });

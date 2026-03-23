@@ -45,7 +45,7 @@ export function useDeleteMarket() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: marketKeys.all });
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["chains"] });
     },
   });
 }
@@ -61,7 +61,7 @@ export function useSaveMarket(isEditMode, marketId) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: marketKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.invalidateQueries({ queryKey: ["chains"] });
       if (isEditMode) {
         queryClient.invalidateQueries({
           queryKey: marketKeys.detail(marketId),

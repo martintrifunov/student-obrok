@@ -51,7 +51,7 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
   const filteredMarkets = useMemo(
     () =>
       visibleChains
-        ? markets.filter((m) => visibleChains.has(m.vendor?.name))
+        ? markets.filter((m) => visibleChains.has(m.chain?.name))
         : markets,
     [markets, visibleChains],
   );
@@ -119,7 +119,7 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
           }
 
           const market = cluster.properties.market;
-          const chainName = market.vendor?.name || market.name;
+          const chainName = market.chain?.name || market.name;
           return (
             <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
               <Marker
@@ -189,10 +189,10 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
                         borderBottom: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      {market.vendor?.image ? (
+                      {market.chain?.image ? (
                         <Box
                           component="img"
-                          src={`${BASE_URL}${market.vendor.image.url}`}
+                          src={`${BASE_URL}${market.chain.image.url}`}
                           alt={market.name}
                           sx={{
                             maxWidth: "100%",

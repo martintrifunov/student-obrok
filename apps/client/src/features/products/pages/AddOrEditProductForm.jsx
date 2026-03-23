@@ -242,7 +242,7 @@ const AddOrEditProductForm = () => {
                 >
                   {markets.map((market) => (
                     <MenuItem key={market._id} value={market._id}>
-                      {market.name}{market.vendor?.name ? ` (${market.vendor.name})` : ""}
+                      {market.name}{market.chain?.name ? ` (${market.chain.name})` : ""}
                     </MenuItem>
                   ))}
                 </Select>
