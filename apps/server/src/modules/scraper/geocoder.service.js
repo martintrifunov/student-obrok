@@ -10,6 +10,37 @@ const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 
 const COORDS_PATH = resolve(__dirname, "../../data/market-coordinates.json");
 
+// City-center fallback coordinates [lat, lon] used only when all geocoding queries fail.
+const CITY_FALLBACK_COORDS = {
+  Скопје: [41.9981, 21.4254],
+  Битола: [41.0317, 21.3347],
+  Тетово: [42.0097, 20.9716],
+  Куманово: [42.1322, 21.7144],
+  Гевгелија: [41.1417, 22.5025],
+  Велес: [41.7156, 21.7753],
+  Штип: [41.7458, 22.1958],
+  Струга: [41.1778, 20.6786],
+  Охрид: [41.1172, 20.8016],
+  Прилеп: [41.3451, 21.5550],
+  Кавадарци: [41.4334, 22.0089],
+  Кичево: [41.5127, 20.9586],
+  Гостивар: [41.8000, 20.9167],
+  Струмица: [41.4378, 22.6427],
+  Кочани: [41.9164, 22.4128],
+  Неготино: [41.4833, 22.0833],
+  Виница: [41.8828, 22.5092],
+  Берово: [41.7031, 22.8578],
+  "Свети Николе": [41.8696, 21.9527],
+  "Демир Хисар": [41.2217, 21.2031],
+  Радовиш: [41.6383, 22.4678],
+  Пробиштип: [41.9957, 22.1794],
+  Делчево: [41.9664, 22.7746],
+  "Крива Паланка": [42.2015, 22.3308],
+  Дебар: [41.5244, 20.5242],
+  Ресен: [41.0893, 21.0109],
+  Валандово: [41.3174, 22.5600],
+};
+
 const CYR_TO_LAT = {
   А: "A",
   Б: "B",
@@ -139,7 +170,15 @@ export class GeocoderService {
       await this.#sleep(1100);
     }
 
-    // --- No jitter — return null so the caller can handle failure explicitly ---
+    const cityFallback = this.#fallbackFromCity(city, key);
+    if (cityFallback) {
+      console.warn(
+        `[GeocoderService] ⚠️ Using city-center fallback for "${key}" (${city}).`,
+      );
+      return cityFallback;
+    }
+
+    // --- No usable match ---
     console.warn(
       `[GeocoderService] ❌ All queries failed for "${key}". ` +
         "Add coordinates manually to market-coordinates.json.",
@@ -149,36 +188,46 @@ export class GeocoderService {
 
   #getCity(address) {
     if (!address) return null;
-    const cities = [
-      "Скопје",
-      "Битола",
-      "Тетово",
-      "Куманово",
-      "Гевгелија",
-      "Велес",
-      "Штип",
-      "Струга",
-      "Охрид",
-      "Прилеп",
-      "Кавадарци",
-      "Кичево",
-      "Гостивар",
-      "Струмица",
-      "Кочани",
-      "Неготино",
-      "Виница",
-      "Берово",
-      "Свети Николе",
-      "Демир Хисар",
-      "Радовиш",
-      "Пробиштип",
-      "Делчево",
-      "Крива Паланка",
-      "Дебар",
-      "Ресен",
-      "Валандово",
+    const cityAliases = [
+      ["Скопје", "Skopje"],
+      ["Битола", "Bitola"],
+      ["Тетово", "Tetovo"],
+      ["Куманово", "Kumanovo"],
+      ["Гевгелија", "Gevgelija"],
+      ["Велес", "Veles"],
+      ["Штип", "Stip", "Shtip"],
+      ["Струга", "Struga"],
+      ["Охрид", "Ohrid"],
+      ["Прилеп", "Prilep"],
+      ["Кавадарци", "Kavadarci"],
+      ["Кичево", "Kicevo", "Kichevo"],
+      ["Гостивар", "Gostivar"],
+      ["Струмица", "Strumica"],
+      ["Кочани", "Kocani", "Kochani"],
+      ["Неготино", "Negotino"],
+      ["Виница", "Vinica"],
+      ["Берово", "Berovo"],
+      ["Свети Николе", "Sveti Nikole"],
+      ["Демир Хисар", "Demir Hisar"],
+      ["Радовиш", "Radovis"],
+      ["Пробиштип", "Probistip", "Probishtip"],
+      ["Делчево", "Delcevo", "Delchevo"],
+      ["Крива Паланка", "Kriva Palanka"],
+      ["Дебар", "Debar"],
+      ["Ресен", "Resen"],
+      ["Валандово", "Valandovo"],
     ];
-    return cities.find((c) => address.includes(c)) || null;
+
+    const normalized = address.toLowerCase();
+    for (const [canonical, ...aliases] of cityAliases) {
+      if (
+        aliases.some((alias) => normalized.includes(alias.toLowerCase())) ||
+        normalized.includes(canonical.toLowerCase())
+      ) {
+        return canonical;
+      }
+    }
+    return null;
   }
 
   async #search(query) {
@@ -200,6 +249,32 @@ export class GeocoderService {
     } catch {
       return null;
     }
+  }
+
+  #fallbackFromCity(city, key) {
+    const center = city ? CITY_FALLBACK_COORDS[city] : null;
+    if (!center) return null;
+
+    // Deterministic offset so multiple markets in one city don't stack exactly.
+    const hash = this.#hashString(key);
+    const angle = ((hash % 360) * Math.PI) / 180;
+    const radiusMeters = 80 + (hash % 170); // 80m..249m from city center
+    const metersPerDegreeLat = 111_320;
+    const metersPerDegreeLon =
+      111_320 * Math.cos((center[0] * Math.PI) / 180) || 111_320;
+
+    const dLat = (radiusMeters * Math.cos(angle)) / metersPerDegreeLat;
+    const dLon = (radiusMeters * Math.sin(angle)) / metersPerDegreeLon;
+
+    return [center[0] + dLat, center[1] + dLon];
+  }
+
+  #hashString(value) {
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+      hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+    }
+    return hash;
   }
 
   #sleep(ms) {
