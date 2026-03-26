@@ -22,8 +22,9 @@ import {
 
 async function main() {
   const target = process.argv[2]?.toLowerCase();
+  const selectedScraper = target ? createScraper(target) : null;
 
-  if (target && !createScraper(target)) {
+  if (target && !selectedScraper) {
     console.error(
       `[scrape] Unknown market "${target}". ` +
         `Available: ${SCRAPER_KEYS.join(", ")}`,
@@ -31,7 +32,7 @@ async function main() {
     process.exit(1);
   }
 
-  const scrapers = target ? [createScraper(target)] : createAllScrapers();
+  const scrapers = selectedScraper ? [selectedScraper] : createAllScrapers();
 
   const uri = process.env.MONGO_URI_LOCAL ?? process.env.DATABASE_URI;
 
