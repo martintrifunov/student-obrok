@@ -24,6 +24,7 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
 import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
 import { StokomakScraper } from "../modules/scraper/markets/stokomak.scraper.js";
+import { KamScraper } from "../modules/scraper/markets/kam.scraper.js";
 import { normalizeMarketName } from "../modules/scraper/normalize-market-name.js";
 
 const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -112,6 +113,7 @@ const ALL_SCRAPERS = {
   vero: { scraper: new VeroScraper(), strategy: "geocode" },
   ramstore: { scraper: new RamstoreScraper(), strategy: "geocode" },
   stokomak: { scraper: new StokomakScraper(), strategy: "places" },
+  kam: { scraper: new KamScraper(), strategy: "geocode" },
 };
 
 function loadCoords() {

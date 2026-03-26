@@ -17,11 +17,13 @@ import { ScraperService } from "../modules/scraper/scraper.service.js";
 import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
 import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
 import { StokomakScraper } from "../modules/scraper/markets/stokomak.scraper.js";
+import { KamScraper } from "../modules/scraper/markets/kam.scraper.js";
 
 const ALL_SCRAPERS = {
   vero: new VeroScraper(),
   ramstore: new RamstoreScraper(),
   stokomak: new StokomakScraper(),
+  kam: new KamScraper(),
 };
 
 async function main() {
