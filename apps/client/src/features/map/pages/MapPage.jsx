@@ -37,6 +37,7 @@ import MARKER_COLORS from "@/features/map/config/markerColors";
 import {
   DEFAULT_VISIBLE_CHAINS,
   KNOWN_CHAIN_NAMES,
+  toCanonicalChainName,
 } from "@/features/map/config/defaultVisibleChains";
 import "@/assets/map.css";
 
@@ -60,9 +61,9 @@ const getInitialVisibleChains = () => {
 
     if (parsed.length === 0) return new Set();
 
-    const valid = parsed.filter(
-      (name) => typeof name === "string" && KNOWN_CHAIN_NAMES.includes(name),
-    );
+    const valid = parsed
+      .map((name) => toCanonicalChainName(name))
+      .filter(Boolean);
 
     return valid.length > 0 ? new Set(valid) : new Set(DEFAULT_VISIBLE_CHAINS);
   } catch {
