@@ -23,6 +23,7 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import {
   createScraper,
+  getScraperPopulateStrategy,
   SCRAPER_KEYS,
 } from "../modules/scraper/scraper.registry.js";
 import { normalizeMarketName } from "../modules/scraper/normalize-market-name.js";
@@ -107,18 +108,12 @@ function transliterate(text) {
   return result;
 }
 
-// Chains with real street addresses use Geocoding API.
-// Chains with neighborhood-only addresses use Places Text Search API.
-const STRATEGY_BY_SCRAPER_KEY = {
-  stokomak: "places",
-};
-
 const ALL_SCRAPERS = Object.fromEntries(
   SCRAPER_KEYS.map((key) => [
     key,
     {
       scraper: createScraper(key),
-      strategy: STRATEGY_BY_SCRAPER_KEY[key] ?? "geocode",
+      strategy: getScraperPopulateStrategy(key) ?? "geocode",
     },
   ]),
 );
