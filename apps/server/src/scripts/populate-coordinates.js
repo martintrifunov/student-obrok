@@ -21,10 +21,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../../../../.env") });
 
-import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
-import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
-import { StokomakScraper } from "../modules/scraper/markets/stokomak.scraper.js";
-import { KamScraper } from "../modules/scraper/markets/kam.scraper.js";
+import {
+  createScraper,
+  SCRAPER_KEYS,
+} from "../modules/scraper/scraper.registry.js";
 import { normalizeMarketName } from "../modules/scraper/normalize-market-name.js";
 
 const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
@@ -109,12 +109,19 @@ function transliterate(text) {
 
 // Chains with real street addresses use Geocoding API.
 // Chains with neighborhood-only addresses use Places Text Search API.
-const ALL_SCRAPERS = {
-  vero: { scraper: new VeroScraper(), strategy: "geocode" },
-  ramstore: { scraper: new RamstoreScraper(), strategy: "geocode" },
-  stokomak: { scraper: new StokomakScraper(), strategy: "places" },
-  kam: { scraper: new KamScraper(), strategy: "geocode" },
+const STRATEGY_BY_SCRAPER_KEY = {
+  stokomak: "places",
 };
+
+const ALL_SCRAPERS = Object.fromEntries(
+  SCRAPER_KEYS.map((key) => [
+    key,
+    {
+      scraper: createScraper(key),
+      strategy: STRATEGY_BY_SCRAPER_KEY[key] ?? "geocode",
+    },
+  ]),
+);
 
 function loadCoords() {
   try {
