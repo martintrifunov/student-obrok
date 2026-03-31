@@ -1,4 +1,5 @@
 import { BaseScraper } from "./base.scraper.js";
+import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://pricelist.vero.com.mk/";
 const MAX_PRICE = 840;
@@ -8,8 +9,8 @@ export class VeroScraper extends BaseScraper {
     return "Vero";
   }
 
-  get placeholderImageFilename() {
-    return process.env.CHAIN_IMAGE_VERO || "vero_market.png";
+  get chainImageKey() {
+    return "vero";
   }
 
   get geocodeSuffix() {
@@ -46,14 +47,7 @@ export class VeroScraper extends BaseScraper {
         .filter((e) => e.name.length > 0);
     }, INDEX_URL);
 
-    const seen = new Map();
-    for (const entry of entries) {
-      if (!seen.has(entry.name)) {
-        seen.set(entry.name, entry);
-      }
-    }
-
-    return Array.from(seen.values());
+    return BaseScraper.deduplicateByName(entries);
   }
 
   async fetchProducts(page, storeUrl, previousUpdateString) {
@@ -80,62 +74,7 @@ export class VeroScraper extends BaseScraper {
         isFirstPage = false;
       }
 
-      const pageProducts = await page.evaluate((maxPrice) => {
-        const tables = Array.from(document.querySelectorAll("table"));
-        const productTable = tables.find((t) => {
-          const ths = t.querySelectorAll("th");
-          return Array.from(ths).some((th) => th.textContent.includes("Назив"));
-        });
-
-        if (!productTable) return [];
-
-        const headerRow = productTable.querySelector("tr");
-        const headers = Array.from(headerRow.querySelectorAll("th")).map((th) =>
-          th.textContent.replace(/\n/g, " ").trim(),
-        );
-
-        const indexOf = (keyword) =>
-          headers.findIndex((h) => h.includes(keyword));
-
-        const colTitle = indexOf("Назив");
-        const colPrice = indexOf("Продажна цена");
-        const colCategory = indexOf("Опис на стока");
-        const colAvailable = indexOf("Достапност");
-
-        if (colTitle === -1 || colPrice === -1 || colAvailable === -1) {
-          return [];
-        }
-
-        const allRows = Array.from(productTable.querySelectorAll("tr"));
-        const dataRows = allRows.slice(1);
-
-        return dataRows.reduce((acc, row) => {
-          const cells = Array.from(row.querySelectorAll("td"));
-          if (!cells.length) return acc;
-
-          const available = cells[colAvailable]?.textContent.trim();
-          if (available === "Не") return acc;
-
-          const rawPrice = cells[colPrice]?.textContent
-            .trim()
-            .replace(",", ".")
-            .replace(/[^\d.]/g, "");
-
-          const price = parseFloat(rawPrice);
-          if (isNaN(price) || price > maxPrice) return acc;
-
-          const title = cells[colTitle]?.textContent.trim();
-          const category =
-            colCategory !== -1
-              ? cells[colCategory]?.textContent.trim()
-              : undefined;
-
-          if (!title) return acc;
-
-          acc.push({ title, price, category });
-          return acc;
-        }, []);
-      }, MAX_PRICE);
+      const pageProducts = await page.evaluate(extractProductsFromTable, MAX_PRICE);
 
       allProducts.push(...pageProducts);
 
