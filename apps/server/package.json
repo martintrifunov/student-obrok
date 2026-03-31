@@ -20,6 +20,10 @@
     "scrape:debug:vero": "node src/scripts/debug-vero.js",
     "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js",
     "coords:populate": "node src/scripts/populate-coordinates.js",
+    "coords:populate:vero": "node src/scripts/populate-coordinates.js vero",
+    "coords:populate:ramstore": "node src/scripts/populate-coordinates.js ramstore",
+    "coords:populate:stokomak": "node src/scripts/populate-coordinates.js stokomak",
+    "coords:populate:kam": "node src/scripts/populate-coordinates.js kam",
     "coords:seed": "node src/scripts/seed-coordinates.js"
   },
   "dependencies": {

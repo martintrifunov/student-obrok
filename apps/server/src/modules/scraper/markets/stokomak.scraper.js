@@ -1,4 +1,5 @@
 import { BaseScraper } from "./base.scraper.js";
+import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://stokomak.proverkanaceni.mk/";
 const MAX_PRICE = 840;
@@ -8,8 +9,8 @@ export class StokomakScraper extends BaseScraper {
     return "Stokomak";
   }
 
-  get placeholderImageFilename() {
-    return process.env.CHAIN_IMAGE_STOKOMAK || "stokomak_market.png";
+  get chainImageKey() {
+    return "stokomak";
   }
 
   get geocodeSuffix() {
@@ -48,12 +49,7 @@ export class StokomakScraper extends BaseScraper {
         .filter(Boolean);
     }, INDEX_URL);
 
-    const seen = new Map();
-    for (const entry of entries) {
-      if (!seen.has(entry.name)) seen.set(entry.name, entry);
-    }
-
-    return Array.from(seen.values());
+    return BaseScraper.deduplicateByName(entries);
   }
 
   async fetchProducts(page, storeUrl, previousUpdateString) {
@@ -80,59 +76,7 @@ export class StokomakScraper extends BaseScraper {
         isFirstPage = false;
       }
 
-      const pageProducts = await page.evaluate((maxPrice) => {
-        const table = document.querySelector("table");
-        if (!table) return [];
-
-        const headerRow = table.querySelector("thead tr, tr:first-child");
-        if (!headerRow) return [];
-
-        const headers = Array.from(headerRow.querySelectorAll("th, td")).map(
-          (th) => th.textContent.toLowerCase().replace(/\n/g, " ").trim(),
-        );
-
-        const indexOf = (keywords) =>
-          headers.findIndex((h) => keywords.some((k) => h.includes(k)));
-
-        const colTitle = indexOf(["назив"]);
-        const colPrice = indexOf(["продажна цена", "цена"]);
-        const colCategory = indexOf(["опис на стока", "категорија"]);
-        const colAvailable = indexOf(["достапност"]);
-
-        if (colTitle === -1 || colPrice === -1) return [];
-
-        const allRows = Array.from(
-          table.querySelectorAll("tbody tr, tr"),
-        ).slice(1);
-
-        return allRows.reduce((acc, row) => {
-          const cells = Array.from(row.querySelectorAll("td"));
-          if (cells.length < 2) return acc;
-
-          if (
-            colAvailable !== -1 &&
-            cells[colAvailable]?.textContent.trim().toUpperCase() === "НЕ"
-          )
-            return acc;
-
-          const rawPrice = cells[colPrice]?.textContent
-            .replace(",", ".")
-            .replace(/[^\d.]/g, "");
-          const price = parseFloat(rawPrice);
-          if (isNaN(price) || price > maxPrice) return acc;
-
-          const title = cells[colTitle]?.textContent.trim();
-          if (!title) return acc;
-
-          const category =
-            colCategory !== -1
-              ? cells[colCategory]?.textContent.trim()
-              : "Општо";
-
-          acc.push({ title, price, category });
-          return acc;
-        }, []);
-      }, MAX_PRICE);
+      const pageProducts = await page.evaluate(extractProductsFromTable, MAX_PRICE);
 
       allProducts.push(...pageProducts);
 

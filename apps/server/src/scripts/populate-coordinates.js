@@ -1,103 +1,52 @@
 /**
- * One-time script to populate market-coordinates.json using Google APIs.
+ * Populate market-coordinates.json using the free Nominatim geocoding service.
  *
  * Usage:
- *   GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [--force] [chain]
+ *   node src/scripts/populate-coordinates.js [--force] [chain]
  *
- * Strategy per chain:
- *   - Vero / Ramstore: Geocoding API with transliterated street addresses → exact coords.
- *   - Stokomak: Places Text Search API grouped by city → distinct POI coords per branch.
+ * No API key required — uses OpenStreetMap Nominatim (1 req/s rate limit).
+ * Will NOT overwrite existing entries unless --force is passed.
+ * Post-processing spreads duplicate coordinates via small jitter (~30 m).
  *
- * Use --force to re-geocode all entries (overwrites existing coordinates).
- * Post-processing spreads any remaining duplicate coordinates via small jitter (~30m).
+ * Examples:
+ *   node src/scripts/populate-coordinates.js          # all chains
+ *   node src/scripts/populate-coordinates.js vero     # only Vero
+ *   node src/scripts/populate-coordinates.js --force  # re-geocode everything
  */
-import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-config({ path: path.resolve(__dirname, "../../../../.env") });
-
 import {
   createScraper,
-  getScraperPopulateStrategy,
   SCRAPER_KEYS,
 } from "../modules/scraper/scraper.registry.js";
 import { normalizeMarketName } from "../modules/scraper/normalize-market-name.js";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const COORDS_PATH = path.resolve(__dirname, "../data/market-coordinates.json");
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 
 // Macedonian Cyrillic → Latin transliteration (multi-char digraphs first)
 const CYR_TO_LAT = [
-  ["Љ", "Lj"],
-  ["Њ", "Nj"],
-  ["Џ", "Dzh"],
-  ["Ѓ", "Gj"],
-  ["Ќ", "Kj"],
-  ["Ѕ", "Dz"],
-  ["Ж", "Zh"],
-  ["Ч", "Ch"],
-  ["Ш", "Sh"],
-  ["љ", "lj"],
-  ["њ", "nj"],
-  ["џ", "dzh"],
-  ["ѓ", "gj"],
-  ["ќ", "kj"],
-  ["ѕ", "dz"],
-  ["ж", "zh"],
-  ["ч", "ch"],
-  ["ш", "sh"],
-  ["А", "A"],
-  ["Б", "B"],
-  ["В", "V"],
-  ["Г", "G"],
-  ["Д", "D"],
-  ["Е", "E"],
-  ["З", "Z"],
-  ["И", "I"],
-  ["Ј", "J"],
-  ["К", "K"],
-  ["Л", "L"],
-  ["М", "M"],
-  ["Н", "N"],
-  ["О", "O"],
-  ["П", "P"],
-  ["Р", "R"],
-  ["С", "S"],
-  ["Т", "T"],
-  ["У", "U"],
-  ["Ф", "F"],
-  ["Х", "H"],
-  ["Ц", "C"],
-  ["а", "a"],
-  ["б", "b"],
-  ["в", "v"],
-  ["г", "g"],
-  ["д", "d"],
-  ["е", "e"],
-  ["з", "z"],
-  ["и", "i"],
-  ["ј", "j"],
-  ["к", "k"],
-  ["л", "l"],
-  ["м", "m"],
-  ["н", "n"],
-  ["о", "o"],
-  ["п", "p"],
-  ["р", "r"],
-  ["с", "s"],
-  ["т", "t"],
-  ["у", "u"],
-  ["ф", "f"],
-  ["х", "h"],
-  ["ц", "c"],
+  ["Љ", "Lj"], ["Њ", "Nj"], ["Џ", "Dzh"], ["Ѓ", "Gj"], ["Ќ", "Kj"],
+  ["Ѕ", "Dz"], ["Ж", "Zh"], ["Ч", "Ch"], ["Ш", "Sh"],
+  ["љ", "lj"], ["њ", "nj"], ["џ", "dzh"], ["ѓ", "gj"], ["ќ", "kj"],
+  ["ѕ", "dz"], ["ж", "zh"], ["ч", "ch"], ["ш", "sh"],
+  ["А", "A"], ["Б", "B"], ["В", "V"], ["Г", "G"], ["Д", "D"], ["Е", "E"],
+  ["З", "Z"], ["И", "I"], ["Ј", "J"], ["К", "K"], ["Л", "L"], ["М", "M"],
+  ["Н", "N"], ["О", "O"], ["П", "P"], ["Р", "R"], ["С", "S"], ["Т", "T"],
+  ["У", "U"], ["Ф", "F"], ["Х", "H"], ["Ц", "C"],
+  ["а", "a"], ["б", "b"], ["в", "v"], ["г", "g"], ["д", "d"], ["е", "e"],
+  ["з", "z"], ["и", "i"], ["ј", "j"], ["к", "k"], ["л", "l"], ["м", "m"],
+  ["н", "n"], ["о", "o"], ["п", "p"], ["р", "r"], ["с", "s"], ["т", "t"],
+  ["у", "u"], ["ф", "f"], ["х", "h"], ["ц", "c"],
 ];
 
-function transliterate(text) {
+const transliterate = (text) => {
   let result = text;
   result = result.replace(/Бул\./g, "Bulevar").replace(/бул\./g, "bulevar");
   result = result.replace(/Ул\./g, "Ulica").replace(/ул\./g, "ulica");
@@ -106,258 +55,106 @@ function transliterate(text) {
     result = result.replaceAll(cyr, lat);
   }
   return result;
-}
+};
 
-const ALL_SCRAPERS = Object.fromEntries(
-  SCRAPER_KEYS.map((key) => [
-    key,
-    {
-      scraper: createScraper(key),
-      strategy: getScraperPopulateStrategy(key) ?? "geocode",
-    },
-  ]),
-);
+const CITY_FALLBACK = {
+  "Скопје": [41.9981, 21.4254], "Битола": [41.0317, 21.3347],
+  "Тетово": [42.0097, 20.9716], "Куманово": [42.1322, 21.7144],
+  "Велес": [41.7156, 21.7753], "Штип": [41.7458, 22.1958],
+  "Охрид": [41.1172, 20.8016], "Прилеп": [41.3451, 21.5550],
+  "Кичево": [41.5127, 20.9586], "Гостивар": [41.8000, 20.9167],
+  "Струмица": [41.4378, 22.6427], "Гевгелија": [41.1417, 22.5025],
+  "Кавадарци": [41.4334, 22.0089], "Струга": [41.1778, 20.6786],
+  "Кочани": [41.9164, 22.4128], "Неготино": [41.4833, 22.0833],
+  "Радовиш": [41.6383, 22.4678], "Ресен": [41.0893, 21.0109],
+  "Виница": [41.8828, 22.5092], "Берово": [41.7031, 22.8578],
+  "Свети Николе": [41.8696, 21.9527], "Демир Хисар": [41.2217, 21.2031],
+  "Пробиштип": [41.9957, 22.1794], "Делчево": [41.9664, 22.7746],
+  "Крива Паланка": [42.2015, 22.3308], "Дебар": [41.5244, 20.5242],
+  "Валандово": [41.3174, 22.5600],
+};
 
-function loadCoords() {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const loadCoords = () => {
   try {
     return JSON.parse(fs.readFileSync(COORDS_PATH, "utf-8"));
   } catch {
     return {};
   }
-}
+};
 
-function saveCoords(coords) {
-  fs.writeFileSync(
-    COORDS_PATH,
-    JSON.stringify(coords, null, 2) + "\n",
-    "utf-8",
-  );
-}
+const saveCoords = (coords) => {
+  fs.writeFileSync(COORDS_PATH, JSON.stringify(coords, null, 2) + "\n", "utf-8");
+};
 
-async function googleGeocode(query) {
-  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
-  url.searchParams.set("address", query);
-  url.searchParams.set("region", "mk");
-  url.searchParams.set("key", GOOGLE_API_KEY);
+const nominatimSearch = async (query) => {
+  const url = new URL(NOMINATIM_URL);
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("countrycodes", "mk");
 
-  const res = await fetch(url.toString());
+  const res = await fetch(url.toString(), {
+    headers: { "User-Agent": "student-obrok-coords/1.0" },
+  });
+
+  if (!res.ok) return null;
   const data = await res.json();
+  if (!data.length) return null;
+  return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+};
 
-  if (data.status === "OK" && data.results.length > 0) {
-    const { lat, lng } = data.results[0].geometry.location;
-    return [lat, lng];
+const extractCity = (address) => {
+  if (!address) return null;
+  for (const city of Object.keys(CITY_FALLBACK)) {
+    if (address.includes(city)) return city;
   }
   return null;
-}
+};
 
-async function placesTextSearch(query, maxResults = 20) {
-  const url = "https://places.googleapis.com/v1/places:searchText";
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": GOOGLE_API_KEY,
-      "X-Goog-FieldMask":
-        "places.displayName,places.location,places.formattedAddress",
-    },
-    body: JSON.stringify({ textQuery: query, maxResultCount: maxResults }),
-  });
-  const data = await res.json();
-  return (data.places || []).map((p) => ({
-    coords: [p.location.latitude, p.location.longitude],
-    name: p.displayName?.text || "",
-    address: p.formattedAddress || "",
-  }));
-}
+const buildQueries = (market, chainName) => {
+  const addr = market.address || market.name;
+  const city = extractCity(addr);
+  const cleanAddr = addr
+    .replace(/(Бул\.|Ул\.|ул\.|бул\.|бр\.|бр)/gi, "")
+    .split("–")[0]
+    .trim();
 
-async function main() {
-  if (!GOOGLE_API_KEY) {
-    console.error(
-      "[populate] GOOGLE_MAPS_API_KEY env var is required.\n" +
-        "  Usage: GOOGLE_MAPS_API_KEY=<key> node src/scripts/populate-coordinates.js [chain]",
-    );
-    process.exit(1);
+  return [
+    `${transliterate(cleanAddr)}, North Macedonia`,
+    `${chainName} ${transliterate(city || cleanAddr)}, North Macedonia`,
+    city ? `${transliterate(cleanAddr)}, ${transliterate(city)}` : null,
+  ].filter(Boolean);
+};
+
+const geocodeMarket = async (market, chainName) => {
+  const queries = buildQueries(market, chainName);
+
+  for (const q of queries) {
+    const result = await nominatimSearch(q);
+    if (result) return { coords: result, query: q };
+    await sleep(1100);
   }
 
-  const args = process.argv.slice(2);
-  const force = args.includes("--force");
-  const target = args.find((a) => a !== "--force")?.toLowerCase();
-  if (target && !ALL_SCRAPERS[target]) {
-    console.error(
-      `[populate] Unknown chain "${target}". Available: ${Object.keys(ALL_SCRAPERS).join(", ")}`,
-    );
-    process.exit(1);
+  // City-center fallback
+  const city = extractCity(market.address);
+  if (city && CITY_FALLBACK[city]) {
+    return { coords: CITY_FALLBACK[city], fallback: true, query: city };
   }
 
-  const entries = target
-    ? [[target, ALL_SCRAPERS[target]]]
-    : Object.entries(ALL_SCRAPERS);
+  return null;
+};
 
-  const coords = loadCoords();
-  const successes = [];
-  const failures = [];
-  const skipped = [];
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-
-  try {
-    for (const [chainKey, { scraper, strategy }] of entries) {
-      console.log(
-        `\n[populate] Fetching markets for ${chainKey} (${strategy})...`,
-      );
-      const page = await browser.newPage();
-
-      let markets;
-      try {
-        markets = await scraper.fetchMarkets(page);
-      } catch (err) {
-        console.error(
-          `[populate] Failed to fetch markets for ${chainKey}:`,
-          err.message,
-        );
-        await page.close();
-        continue;
-      }
-      await page.close();
-
-      console.log(
-        `[populate] Found ${markets.length} markets for ${chainKey}.`,
-      );
-
-      if (strategy === "places") {
-        // ---- Places API strategy: group by city, fetch all POIs, assign unique coords ----
-        // Group markets by base name (strip trailing numbers) to identify cities
-        const byCity = {};
-        for (const m of markets) {
-          const key = normalizeMarketName(m.name);
-          const base = key
-            .replace(/^[^\s]+\s/, "")
-            .replace(/\s*\d+$/, "")
-            .trim();
-          (byCity[base] ??= []).push({ key, market: m });
-        }
-
-        for (const [city, group] of Object.entries(byCity)) {
-          const needCount = force
-            ? group.length
-            : group.filter((g) => !coords[g.key]).length;
-          if (needCount === 0) {
-            group.forEach((g) => skipped.push(g.key));
-            continue;
-          }
-
-          const query = `${scraper.chainName} supermarket, ${transliterate(city)}, North Macedonia`;
-          console.log(
-            `[populate] Places search for "${city}" (${group.length} markets) → "${query}"`,
-          );
-
-          const places = await placesTextSearch(query);
-          console.log(`  Found ${places.length} POIs on Google Places.`);
-
-          // Collect already-used coords to avoid reassigning them
-          const usedCoords = new Set();
-          if (!force) {
-            for (const g of group) {
-              if (coords[g.key])
-                usedCoords.add(
-                  coords[g.key][0].toFixed(7) +
-                    "," +
-                    coords[g.key][1].toFixed(7),
-                );
-            }
-          }
-
-          // Filter places to only unused coordinates
-          const availablePlaces = places.filter(
-            (p) =>
-              !usedCoords.has(
-                p.coords[0].toFixed(7) + "," + p.coords[1].toFixed(7),
-              ),
-          );
-
-          let placeIdx = 0;
-          for (const { key, market } of group) {
-            if (coords[key] && !force) {
-              skipped.push(key);
-              continue;
-            }
-
-            if (placeIdx < availablePlaces.length) {
-              coords[key] = availablePlaces[placeIdx].coords;
-              console.log(
-                `  ✅ ${key} → ${availablePlaces[placeIdx].name} [${coords[key]}]`,
-              );
-              placeIdx++;
-            } else {
-              // More markets than POIs — use the first POI as a fallback (jitter will spread later)
-              const fallback = places[0]?.coords ?? null;
-              if (fallback) {
-                coords[key] = fallback;
-                console.log(
-                  `  ⚠️  ${key} → fallback (will jitter) [${coords[key]}]`,
-                );
-              } else {
-                failures.push({ key, query });
-                console.log(`  ❌ ${key}: No Places results at all`);
-                continue;
-              }
-            }
-
-            saveCoords(coords);
-            successes.push(key);
-          }
-
-          await new Promise((r) => setTimeout(r, 300));
-        }
-      } else {
-        // ---- Geocoding API strategy: transliterated street addresses ----
-        for (const m of markets) {
-          const key = normalizeMarketName(m.name);
-
-          if (coords[key] && !force) {
-            skipped.push(key);
-            continue;
-          }
-
-          const addr = m.address || m.name;
-          const isStreetAddress = /[Уу]л[\.\s]|[Бб]ул[\.\s]/u.test(addr);
-          const query = isStreetAddress
-            ? `${transliterate(addr)}, North Macedonia`
-            : `${scraper.chainName} ${transliterate(addr)}, North Macedonia`;
-          console.log(`[populate] Geocoding "${key}" → "${query}"`);
-
-          const result = await googleGeocode(query);
-
-          if (result) {
-            coords[key] = result;
-            saveCoords(coords);
-            successes.push(key);
-            console.log(`  ✅ ${key}: [${result[0]}, ${result[1]}]`);
-          } else {
-            failures.push({ key, query });
-            console.log(`  ❌ ${key}: No result`);
-          }
-
-          await new Promise((r) => setTimeout(r, 200));
-        }
-      }
-    }
-  } finally {
-    await browser.close();
-  }
-
-  // Post-process: spread markets sharing identical coordinates in a small circle
-  // ~30m radius so markers don't stack but stay in the same neighborhood.
-  const JITTER_RADIUS = 0.0003; // ~30m in degrees
+const jitterDuplicates = (coords) => {
+  const JITTER_RADIUS = 0.0003; // ~30 m
   const byCoord = {};
+
   for (const [key, val] of Object.entries(coords)) {
     const ck = val[0].toFixed(7) + "," + val[1].toFixed(7);
     (byCoord[ck] ??= []).push(key);
   }
+
   let jittered = 0;
   for (const group of Object.values(byCoord)) {
     if (group.length < 2) continue;
@@ -371,32 +168,104 @@ async function main() {
       jittered++;
     }
   }
+
+  return jittered;
+};
+
+const main = async () => {
+  const args = process.argv.slice(2);
+  const force = args.includes("--force");
+  const target = args.find((a) => a !== "--force")?.toLowerCase();
+
+  if (target && !SCRAPER_KEYS.includes(target)) {
+    console.error(
+      `[populate] Unknown chain "${target}". Available: ${SCRAPER_KEYS.join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  const chainKeys = target ? [target] : SCRAPER_KEYS;
+  const coords = loadCoords();
+  const successes = [];
+  const failures = [];
+  const skipped = [];
+
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  try {
+    for (const chainKey of chainKeys) {
+      const scraper = createScraper(chainKey);
+      console.log(`\n[populate] Fetching markets for ${chainKey}...`);
+
+      const page = await browser.newPage();
+      let markets;
+      try {
+        markets = await scraper.fetchMarkets(page);
+      } catch (err) {
+        console.error(`[populate] Failed to fetch markets for ${chainKey}:`, err.message);
+        await page.close();
+        continue;
+      }
+      await page.close();
+
+      console.log(`[populate] Found ${markets.length} markets for ${chainKey}.`);
+
+      for (const market of markets) {
+        const key = normalizeMarketName(market.name);
+
+        if (coords[key] && !force) {
+          skipped.push(key);
+          continue;
+        }
+
+        const result = await geocodeMarket(market, scraper.chainName);
+
+        if (result) {
+          coords[key] = result.coords;
+          saveCoords(coords);
+          successes.push(key);
+          const tag = result.fallback ? "⚠️  city-center fallback" : "✅";
+          console.log(`  ${tag} ${key}: [${result.coords}] via "${result.query}"`);
+        } else {
+          failures.push(key);
+          console.log(`  ❌ ${key}: No result`);
+        }
+
+        await sleep(1100);
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+
+  // Spread markets sharing identical coordinates in a small circle
+  const jittered = jitterDuplicates(coords);
   if (jittered > 0) {
     saveCoords(coords);
-    console.log(
-      `\n[populate] Jittered ${jittered} markets sharing duplicate coordinates.`,
-    );
+    console.log(`\n[populate] Jittered ${jittered} markets sharing duplicate coordinates.`);
   }
 
   // Summary
   console.log("\n" + "=".repeat(60));
   console.log("[populate] DONE");
   console.log(`  ✅ Geocoded: ${successes.length}`);
-  console.log(
-    `  ⏭  Skipped (already in JSON): ${skipped.length}${force ? " (--force: 0 skipped)" : ""}`,
-  );
+  console.log(`  ⏭  Skipped (already in JSON): ${skipped.length}`);
   console.log(`  ❌ Failed: ${failures.length}`);
 
   if (failures.length > 0) {
     console.log("\nFailed markets (add manually to market-coordinates.json):");
-    for (const f of failures) {
-      console.log(`  "${f.key}": [LAT, LON],  // query was: "${f.query}"`);
+    for (const key of failures) {
+      console.log(`  "${key}": [LAT, LON],`);
     }
   }
 
   console.log(`\nCoordinates file: ${COORDS_PATH}`);
   console.log(`Total entries: ${Object.keys(coords).length}`);
-}
+};
 
 main().catch((err) => {
   console.error("[populate] Fatal error:", err);

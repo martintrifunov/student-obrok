@@ -1,4 +1,5 @@
 import { BaseScraper } from "./base.scraper.js";
+import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://ramstore.com.mk/marketi/";
 const MAX_PRICE = 840;
@@ -20,8 +21,8 @@ export class RamstoreScraper extends BaseScraper {
     return "Ramstore";
   }
 
-  get placeholderImageFilename() {
-    return process.env.CHAIN_IMAGE_RAMSTORE || "ramstore_market.png";
+  get chainImageKey() {
+    return "ramstore";
   }
 
   get geocodeSuffix() {
@@ -80,12 +81,7 @@ export class RamstoreScraper extends BaseScraper {
         .filter((e) => e && e.name !== "UNKNOWN");
     });
 
-    const seen = new Map();
-    for (const entry of entries) {
-      if (!seen.has(entry.name)) seen.set(entry.name, entry);
-    }
-
-    return Array.from(seen.values());
+    return BaseScraper.deduplicateByName(entries);
   }
 
   async fetchProducts(page, storeUrl, previousUpdateString) {
@@ -237,66 +233,22 @@ export class RamstoreScraper extends BaseScraper {
     let pageCount = 1;
 
     while (hasNextPage) {
-      const pageData = await page.evaluate((maxPrice) => {
-        const productTable = document.querySelector("table.dataTable, table");
-        if (!productTable) return { products: [], hasNextBtn: false, info: "" };
+      const products = await page.evaluate(
+        extractProductsFromTable,
+        MAX_PRICE,
+        { tableSelector: "table.dataTable, table" },
+      );
 
-        const headerRow = productTable.querySelector(
-          "thead tr, tr:first-child",
-        );
-        const headers = Array.from(headerRow.querySelectorAll("th, td")).map(
-          (th) => th.textContent.toLowerCase().replace(/\n/g, " ").trim(),
-        );
-
-        const indexOf = (keywords) =>
-          headers.findIndex((h) => keywords.some((k) => h.includes(k)));
-        const colTitle = indexOf(["назив"]);
-        const colPrice = indexOf(["продажна цена"]);
-        const colCategory = indexOf(["опис на производ", "опис на стока"]);
-        const colAvailable = indexOf(["достапност"]);
-
-        if (colTitle === -1 || colPrice === -1)
-          return { products: [], hasNextBtn: false, info: "" };
-
-        const dataRows = Array.from(productTable.querySelectorAll("tbody tr"));
-        const products = dataRows.reduce((acc, row) => {
-          const cells = Array.from(row.querySelectorAll("td"));
-          if (cells.length < 2) return acc;
-
-          if (
-            colAvailable !== -1 &&
-            cells[colAvailable]?.textContent.trim().toUpperCase() === "НЕ"
-          )
-            return acc;
-
-          const rawPrice = cells[colPrice]?.textContent
-            .replace(",", ".")
-            .replace(/[^\d.]/g, "");
-          const price = parseFloat(rawPrice);
-          if (isNaN(price) || price > maxPrice) return acc;
-
-          const title = cells[colTitle]?.textContent.trim();
-          if (!title) return acc;
-
-          const category =
-            colCategory !== -1
-              ? cells[colCategory]?.textContent.trim()
-              : "Општо";
-
-          acc.push({ title, price, category });
-          return acc;
-        }, []);
-
+      const paginationState = await page.evaluate(() => {
         const nextBtn = document.querySelector(".paginate_button.next");
-        const hasNextBtn = nextBtn && !nextBtn.classList.contains("disabled");
-        const info =
-          document.querySelector(".dataTables_info")?.innerText || "";
+        return {
+          hasNextBtn: nextBtn && !nextBtn.classList.contains("disabled"),
+          info: document.querySelector(".dataTables_info")?.innerText || "",
+        };
+      });
 
-        return { products, hasNextBtn, info };
-      }, MAX_PRICE);
-
-      allProducts.push(...pageData.products);
-      hasNextPage = pageData.hasNextBtn;
+      allProducts.push(...products);
+      hasNextPage = paginationState.hasNextBtn;
 
       if (hasNextPage) {
         await page.evaluate((oldInfo, maxWaitMs) => {
@@ -312,7 +264,7 @@ export class RamstoreScraper extends BaseScraper {
               }
             }, 50);
           });
-        }, pageData.info, PAGINATION_WAIT_TIMEOUT_MS);
+        }, paginationState.info, PAGINATION_WAIT_TIMEOUT_MS);
 
         pageCount++;
         if (pageCount % 10 === 0)

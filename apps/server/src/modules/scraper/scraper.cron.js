@@ -7,7 +7,7 @@ import { createAllScrapers } from "./scraper.registry.js";
  *
  * @param {import('./scraper.service.js').ScraperService} scraperService
  */
-export function startScraperCron(scraperService) {
+export const startScraperCron = (scraperService) => {
   cron.schedule("0 3 * * 1,4", async () => {
     console.log("[ScraperCron] Starting scheduled scrape run...");
 

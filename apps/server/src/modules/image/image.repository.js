@@ -22,6 +22,10 @@ export class ImageRepository {
     return ImageModel.findOne({ filename }).exec();
   }
 
+  async findByTitle(title) {
+    return ImageModel.findOne({ title }).exec();
+  }
+
   async create(data) {
     return ImageModel.create(data);
   }
