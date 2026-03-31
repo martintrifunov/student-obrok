@@ -31,13 +31,6 @@ SCRAPER_NAV_TIMEOUT_MS=90000
 SCRAPER_PAGINATION_WAIT_TIMEOUT_MS=15000
 SCRAPER_UPDATE_TEXT_WAIT_TIMEOUT_MS=12000
 
-# --- Chain Placeholder Images (optional, all have defaults) ---
-CHAIN_IMAGE_RAMSTORE="ramstore_market.png"
-CHAIN_IMAGE_VERO="vero_market.png"
-CHAIN_IMAGE_STOKOMAK="stokomak_market.png"
-CHAIN_IMAGE_TINEX="tinex_market.png"
-CHAIN_IMAGE_KAM="kam_market.png"
-
 # --- Puppeteer (optional, auto-detected when not set) ---
 # PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium-browser"
 

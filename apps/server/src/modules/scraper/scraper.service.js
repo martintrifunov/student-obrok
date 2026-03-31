@@ -33,11 +33,15 @@ export class ScraperService {
       `[ScraperService] Settings: concurrency=${CONCURRENT_TABS}, navTimeout=${NAV_TIMEOUT_MS}ms`,
     );
 
-    const placeholderImage = await this.imageRepository.findByFilename(
-      scraper.placeholderImageFilename,
+    const chainImageTitle = `chain-${scraper.chainImageKey}`;
+    const placeholderImage = await this.imageRepository.findByTitle(
+      chainImageTitle,
     );
     if (!placeholderImage) {
-      throw new Error(`Placeholder image not found in DB.`);
+      throw new Error(
+        `Chain image "${chainImageTitle}" not found in DB. ` +
+        `Place a ${scraper.chainImageKey}.png in src/data/chain-images/ and restart the server.`,
+      );
     }
 
     const chainDoc = await this.#ensureChainExists(
