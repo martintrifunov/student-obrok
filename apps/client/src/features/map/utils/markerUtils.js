@@ -22,7 +22,7 @@ export const getClusterGradient = (cluster, supercluster) => {
     const chainColors = chainNames.map((chainKey) => {
       return (
         Object.entries(MARKER_COLORS).find(([key]) =>
-          chainKey.includes(key),
+          chainKey.includes(key.toLowerCase()),
         )?.[1] ?? MARKER_COLORS.vero
       );
     });
@@ -50,7 +50,7 @@ export const getMarkerColor = (chainName = "") => {
 
   return (
     Object.entries(MARKER_COLORS).find(([chainKey]) =>
-      normalizedName.includes(chainKey),
+      normalizedName.includes(chainKey.toLowerCase()),
     )?.[1] ?? MARKER_COLORS.vero
   );
 };

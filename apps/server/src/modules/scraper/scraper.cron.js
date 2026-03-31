@@ -1,10 +1,5 @@
 import cron from "node-cron";
-import { VeroScraper } from "./markets/vero.scraper.js";
-
-/**
- * All registered market scrapers.
- */
-const SCRAPERS = [new VeroScraper()];
+import { createAllScrapers } from "./scraper.registry.js";
 
 /**
  * Initialises the scraper cron job.
@@ -16,7 +11,9 @@ export function startScraperCron(scraperService) {
   cron.schedule("0 3 * * 1,4", async () => {
     console.log("[ScraperCron] Starting scheduled scrape run...");
 
-    for (const scraper of SCRAPERS) {
+    const scrapers = createAllScrapers();
+
+    for (const scraper of scrapers) {
       try {
         await scraperService.runForMarket(scraper);
       } catch (err) {

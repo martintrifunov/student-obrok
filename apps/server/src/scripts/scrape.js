@@ -14,30 +14,25 @@ import { MarketRepository } from "../modules/market/market.repository.js";
 import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
-import { VeroScraper } from "../modules/scraper/markets/vero.scraper.js";
-import { RamstoreScraper } from "../modules/scraper/markets/ramstore.scraper.js";
-import { StokomakScraper } from "../modules/scraper/markets/stokomak.scraper.js";
-
-const ALL_SCRAPERS = {
-  vero: new VeroScraper(),
-  ramstore: new RamstoreScraper(),
-  stokomak: new StokomakScraper(),
-};
+import {
+  createAllScrapers,
+  createScraper,
+  SCRAPER_KEYS,
+} from "../modules/scraper/scraper.registry.js";
 
 async function main() {
   const target = process.argv[2]?.toLowerCase();
+  const selectedScraper = target ? createScraper(target) : null;
 
-  if (target && !ALL_SCRAPERS[target]) {
+  if (target && !selectedScraper) {
     console.error(
       `[scrape] Unknown market "${target}". ` +
-        `Available: ${Object.keys(ALL_SCRAPERS).join(", ")}`,
+        `Available: ${SCRAPER_KEYS.join(", ")}`,
     );
     process.exit(1);
   }
 
-  const scrapers = target
-    ? [ALL_SCRAPERS[target]]
-    : Object.values(ALL_SCRAPERS);
+  const scrapers = selectedScraper ? [selectedScraper] : createAllScrapers();
 
   const uri = process.env.MONGO_URI_LOCAL ?? process.env.DATABASE_URI;
 

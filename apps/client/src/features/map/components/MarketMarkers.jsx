@@ -28,6 +28,15 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
 
   const { data: markets = [], isLoading } = useMarketsForMap();
 
+  const normalizedVisibleChains = useMemo(() => {
+    if (!visibleChains) return null;
+    return new Set(
+      Array.from(visibleChains)
+        .filter((name) => typeof name === "string")
+        .map((name) => name.trim().toLowerCase()),
+    );
+  }, [visibleChains]);
+
   useEffect(() => {
     if (!map) return;
     const updateBoundsAndZoom = () => {
@@ -50,10 +59,14 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
 
   const filteredMarkets = useMemo(
     () =>
-      visibleChains
-        ? markets.filter((m) => visibleChains.has(m.chain?.name))
+      normalizedVisibleChains
+        ? markets.filter((m) => {
+            const chainName = m.chain?.name;
+            if (typeof chainName !== "string") return false;
+            return normalizedVisibleChains.has(chainName.trim().toLowerCase());
+          })
         : markets,
-    [markets, visibleChains],
+    [markets, normalizedVisibleChains],
   );
 
   const points = useMemo(

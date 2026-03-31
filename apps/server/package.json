@@ -16,6 +16,7 @@
     "scrape:vero": "node src/scripts/scrape.js vero",
     "scrape:ramstore": "node src/scripts/scrape.js ramstore",
     "scrape:stokomak": "node src/scripts/scrape.js stokomak",
+    "scrape:kam": "node src/scripts/scrape.js kam",
     "scrape:debug:vero": "node src/scripts/debug-vero.js",
     "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js",
     "coords:populate": "node src/scripts/populate-coordinates.js",

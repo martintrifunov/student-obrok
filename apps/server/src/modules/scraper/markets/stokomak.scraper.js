@@ -1,7 +1,7 @@
 import { BaseScraper } from "./base.scraper.js";
 
 const INDEX_URL = "https://stokomak.proverkanaceni.mk/";
-const MAX_PRICE = 3000;
+const MAX_PRICE = 840;
 
 export class StokomakScraper extends BaseScraper {
   get chainName() {
