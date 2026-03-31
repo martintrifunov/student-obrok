@@ -54,12 +54,11 @@ export const seedChainImages = async () => {
     fs.copyFileSync(sourcePath, destPath);
 
     const stats = fs.statSync(destPath);
-    const serverOrigin = process.env.SERVER_ORIGIN || "http://localhost:5000";
 
     await ImageModel.create({
       title,
       filename: uniqueName,
-      url: `${serverOrigin}/uploads/${uniqueName}`,
+      url: `/uploads/${uniqueName}`,
       mimeType: MIME_TYPES[ext] || "image/png",
       size: stats.size,
     });
