@@ -3,10 +3,9 @@
  * Uppercases, collapses whitespace, trims, and normalizes
  * common brand-name variations (e.g. РАМСТОРЕ → РАМСТОР).
  */
-export function normalizeMarketName(name) {
-  return name
+export const normalizeMarketName = (name) =>
+  name
     .toUpperCase()
     .replace(/РАМСТОРЕ/g, "РАМСТОР")
     .replace(/\s+/g, " ")
     .trim();
-}

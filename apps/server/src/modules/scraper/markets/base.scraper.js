@@ -24,13 +24,14 @@ export class BaseScraper {
   }
 
   /**
-   * The filename of the pre-uploaded placeholder image for this market.
-   * e.g. "vero_market.png"
+   * Key used to look up the auto-seeded chain image by title.
+   * Maps to Image.title = `chain-${chainImageKey}` in the database.
+   * e.g. "vero", "ramstore"
    * @returns {string}
    */
-  get placeholderImageFilename() {
+  get chainImageKey() {
     throw new Error(
-      `${this.constructor.name} must implement placeholderImageFilename`,
+      `${this.constructor.name} must implement chainImageKey`,
     );
   }
 
@@ -75,5 +76,18 @@ export class BaseScraper {
     if (ampm?.toUpperCase() === 'PM' && hours < 12) hours += 12;
     if (ampm?.toUpperCase() === 'AM' && hours === 12) hours = 0;
     return new Date(Number(year), Number(month) - 1, Number(day), hours, Number(minutes));
+  }
+
+  /**
+   * Deduplicate an array of market entries by name, keeping the first occurrence.
+   * @param {Array<{name: string}>} entries
+   * @returns {Array<{name: string}>}
+   */
+  static deduplicateByName(entries) {
+    const seen = new Map();
+    for (const entry of entries) {
+      if (!seen.has(entry.name)) seen.set(entry.name, entry);
+    }
+    return Array.from(seen.values());
   }
 }
