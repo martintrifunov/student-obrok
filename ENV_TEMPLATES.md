@@ -22,7 +22,7 @@ MONGO_INITDB_ROOT_PASSWORD="super_secure_password"
 
 # --- Express API Config ---
 CLIENT_ORIGIN="https://obrok.net"
-SERVER_ORIGIN="https://obrok.net/api"
+SERVER_ORIGIN="https://obrok.net"
 PORT=5000
 
 # --- Web Scraper (optional, all have defaults) ---
@@ -37,6 +37,9 @@ SCRAPER_UPDATE_TEXT_WAIT_TIMEOUT_MS=12000
 # --- Scripts Only (optional, not needed for the app itself) ---
 Used by standalone scripts as an alternative to DATABASE_URI MONGO_URI_LOCAL="mongodb://localhost:27017/obrok"
 GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
+
+# --- AI / Embeddings (optional, enables AI search) ---
+GEMINI_API_KEY="your_gemini_api_key"
 ```
 
 ## 2. Client Directory (`/apps/client/.env`)
