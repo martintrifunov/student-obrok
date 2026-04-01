@@ -20,6 +20,7 @@ export class ScraperService {
     geocoderService,
     embeddingService,
     productEmbeddingRepository,
+    featureFlagService,
   ) {
     this.chainRepository = chainRepository;
     this.marketRepository = marketRepository;
@@ -29,6 +30,7 @@ export class ScraperService {
     this.geocoderService = geocoderService;
     this.embeddingService = embeddingService;
     this.productEmbeddingRepository = productEmbeddingRepository;
+    this.featureFlagService = featureFlagService;
   }
 
   async runForMarket(scraper) {
@@ -232,6 +234,11 @@ export class ScraperService {
 
   async #generateEmbeddingsForProducts(productsData, productIdMap) {
     if (!this.embeddingService?.isAvailable() || !this.productEmbeddingRepository) return;
+
+    if (this.featureFlagService) {
+      const aiSearchEnabled = await this.featureFlagService.isEnabled("ai-search");
+      if (!aiSearchEnabled) return;
+    }
 
     const entries = productsData
       .filter(({ title }) => productIdMap.has(title))
