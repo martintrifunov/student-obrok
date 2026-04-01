@@ -21,6 +21,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { BASE_URL } from "@/api/consts";
 import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
@@ -36,7 +37,15 @@ const stripHtmlAndDecode = (html) => {
   return doc.body.textContent || "";
 };
 
-const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
+const SharedMarketProductsModal = ({
+  open,
+  onClose,
+  marketId,
+  title,
+  initialSearch,
+  initialAiMode,
+  initialShoppingList,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const aiSearchEnabled = useFeatureFlag("ai-search");
@@ -64,8 +73,16 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
       setCategoryInput("");
       setPage(1);
       setAiMode(false);
+    } else {
+      if (initialSearch) {
+        setTitleInput(initialSearch);
+        setDebouncedTitle(initialSearch);
+      }
+      if (initialAiMode) {
+        setAiMode(true);
+      }
     }
-  }, [open]);
+  }, [open, initialSearch, initialAiMode]);
 
   const { data: categoryOptions = [] } = useCategories(marketId);
 
@@ -136,6 +153,48 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
             theme.palette.mode === "dark" ? "background.default" : "grey.50",
         }}
       >
+        {initialShoppingList?.length > 0 && (
+          <Box
+            sx={{
+              p: 2,
+              backgroundColor: "background.paper",
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+              <ShoppingCartIcon color="primary" fontSize="small" />
+              <Typography variant="subtitle2" fontWeight="bold">
+                Листа за купување
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {initialShoppingList.map((item) => (
+                <Box
+                  key={item.name || item.title}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    px: 1,
+                    py: 0.5,
+                    borderRadius: 1,
+                    backgroundColor:
+                      theme.palette.mode === "dark"
+                        ? "rgba(255,255,255,0.04)"
+                        : "rgba(0,0,0,0.02)",
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    {item.title || item.name}
+                  </Typography>
+                  <Typography variant="body2" fontWeight="bold">
+                    {item.price} ден.
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
         <Box
           sx={{
             p: 2,
