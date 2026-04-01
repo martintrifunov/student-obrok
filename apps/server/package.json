@@ -24,9 +24,11 @@
     "coords:populate:ramstore": "node src/scripts/populate-coordinates.js ramstore",
     "coords:populate:stokomak": "node src/scripts/populate-coordinates.js stokomak",
     "coords:populate:kam": "node src/scripts/populate-coordinates.js kam",
-    "coords:seed": "node src/scripts/seed-coordinates.js"
+    "coords:seed": "node src/scripts/seed-coordinates.js",
+    "embeddings:generate": "node src/scripts/generate-embeddings.js"
   },
   "dependencies": {
+    "@google/genai": "^1.47.0",
     "@json2csv/plainjs": "^7.0.6",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
