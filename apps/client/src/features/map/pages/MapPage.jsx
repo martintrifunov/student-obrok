@@ -544,22 +544,37 @@ const MapPage = () => {
           onClick={() => setAiSearchOpen(true)}
           sx={{
             position: "absolute",
-            bottom: "30px",
-            right: "20px",
+            bottom: "100px",
+            left: "20px",
             zIndex: 1000,
             width: 56,
             height: 56,
-            backgroundColor: theme.palette.primary.main,
-            color: isDark ? "#000" : "#fff",
+            backgroundColor: aiSearchOpen
+              ? theme.palette.primary.main
+              : isDark
+                ? "#1e293b"
+                : "#ffffff",
+            color: aiSearchOpen
+              ? theme.palette.mode === "dark"
+                ? "#000"
+                : "#fff"
+              : isDark
+                ? "#f8fafc"
+                : theme.palette.text.primary,
+            border: `1px solid ${aiSearchOpen ? "transparent" : isDark ? "#334155" : theme.palette.divider}`,
             boxShadow: theme.shadows[6],
             "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
+              backgroundColor: aiSearchOpen
+                ? theme.palette.primary.dark
+                : isDark
+                  ? "#334155"
+                  : theme.palette.grey[100],
               transform: "scale(1.05)",
             },
             transition: "all 0.2s ease",
             [theme.breakpoints.down("sm")]: {
-              bottom: "20px",
-              right: "12px",
+              bottom: "84px",
+              left: "12px",
               width: 48,
               height: 48,
             },
