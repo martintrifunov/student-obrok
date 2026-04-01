@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
-import { buildBilingualRegex } from "../../shared/utils/bilingualRegex.js";
+import {
+  buildBilingualRegex,
+  buildBilingualTokenRegexes,
+} from "../../shared/utils/bilingualRegex.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 import { ProductModel } from "../product/product.model.js";
 import { MarketProductModel } from "../product/market-product.model.js";
@@ -17,6 +20,18 @@ const cosineSimilarity = (a, b) => {
   }
   const denom = Math.sqrt(normA) * Math.sqrt(normB);
   return denom === 0 ? 0 : dot / denom;
+};
+
+const buildFieldMatchClauses = (patterns, fields, mode = "and") => {
+  if (!patterns.length) return {};
+
+  const clauses = patterns.map((pattern) => ({
+    $or: fields.map((field) => ({
+      [field]: { $regex: pattern, $options: "i" },
+    })),
+  }));
+
+  return mode === "or" ? { $or: clauses } : { $and: clauses };
 };
 
 export class SearchService {
@@ -75,14 +90,11 @@ export class SearchService {
         .exec();
       candidateProductIds = marketProducts.map((mp) => mp.product);
     } else {
-      // Global search — pre-filter via keyword to avoid loading all embeddings.
-      const regexPattern = buildBilingualRegex(query);
-      if (!regexPattern) return [];
+      // Global search — pre-filter by query tokens to avoid loading all embeddings.
+      const tokenPatterns = buildBilingualTokenRegexes(query);
+      if (!tokenPatterns.length) return [];
       const keywordMatches = await ProductModel.find({
-        $or: [
-          { title: { $regex: regexPattern, $options: "i" } },
-          { category: { $regex: regexPattern, $options: "i" } },
-        ],
+        ...buildFieldMatchClauses(tokenPatterns, ["title", "category"], "or"),
       })
         .select("_id")
         .limit(2000)
@@ -107,8 +119,8 @@ export class SearchService {
   }
 
   async #keywordSearch(query, marketId) {
-    const regexPattern = buildBilingualRegex(query);
-    if (!regexPattern) return [];
+    const tokenPatterns = buildBilingualTokenRegexes(query);
+    if (!tokenPatterns.length) return [];
 
     if (marketId) {
       const pipeline = [
@@ -123,12 +135,11 @@ export class SearchService {
         },
         { $unwind: "$product" },
         {
-          $match: {
-            $or: [
-              { "product.title": { $regex: regexPattern, $options: "i" } },
-              { "product.category": { $regex: regexPattern, $options: "i" } },
-            ],
-          },
+          $match: buildFieldMatchClauses(
+            tokenPatterns,
+            ["product.title", "product.category"],
+            "and",
+          ),
         },
         { $limit: 100 },
         { $project: { "product._id": 1 } },
@@ -142,10 +153,7 @@ export class SearchService {
     }
 
     const products = await ProductModel.find({
-      $or: [
-        { title: { $regex: regexPattern, $options: "i" } },
-        { category: { $regex: regexPattern, $options: "i" } },
-      ],
+      ...buildFieldMatchClauses(tokenPatterns, ["title", "category"], "and"),
     })
       .select("_id")
       .limit(100)

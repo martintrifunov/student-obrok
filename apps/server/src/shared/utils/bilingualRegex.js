@@ -38,11 +38,26 @@ const latToCyrMap = {
 
 const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-export const buildBilingualRegex = (text) => {
-  if (!text) return null;
+const transliterateLatinToCyrillic = (text) => {
   let cyrStr = text.toLowerCase();
   for (const [lat, cyr] of Object.entries(latToCyrMap)) {
     cyrStr = cyrStr.split(lat).join(cyr);
   }
+  return cyrStr;
+};
+
+export const buildBilingualRegex = (text) => {
+  if (!text) return null;
+  const cyrStr = transliterateLatinToCyrillic(text);
   return `${escapeRegExp(text)}|${escapeRegExp(cyrStr)}`;
+};
+
+export const buildBilingualTokenRegexes = (text) => {
+  if (!text) return [];
+  return text
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .map((token) => buildBilingualRegex(token))
+    .filter(Boolean);
 };

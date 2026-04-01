@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { buildBilingualRegex } from "./bilingualRegex.js";
+import {
+  buildBilingualRegex,
+  buildBilingualTokenRegexes,
+} from "./bilingualRegex.js";
 
 describe("buildBilingualRegex", () => {
   it("returns null for empty input", () => {
@@ -29,5 +32,15 @@ describe("buildBilingualRegex", () => {
   it("handles Cyrillic input as-is", () => {
     const result = buildBilingualRegex("леб");
     expect(result).toContain("леб");
+  });
+
+  it("splits multi-word input into token regexes", () => {
+    const result = buildBilingualTokenRegexes("monster jagoda");
+    expect(result).toEqual(["monster|монстер", "jagoda|јагода"]);
+  });
+
+  it("ignores repeated whitespace when building token regexes", () => {
+    const result = buildBilingualTokenRegexes("  monster   jagoda  ");
+    expect(result).toHaveLength(2);
   });
 });
