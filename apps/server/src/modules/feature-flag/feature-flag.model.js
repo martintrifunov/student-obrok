@@ -9,4 +9,4 @@ const FeatureFlagSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export const FeatureFlagModel = mongoose.model("FeatureFlag", FeatureFlagSchema);
+export const FeatureFlagModel = mongoose.model("FeatureFlag", FeatureFlagSchema, "feature_flags");

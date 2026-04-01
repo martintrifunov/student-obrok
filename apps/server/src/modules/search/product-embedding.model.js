@@ -17,4 +17,5 @@ const ProductEmbeddingSchema = new mongoose.Schema(
 export const ProductEmbeddingModel = mongoose.model(
   "ProductEmbedding",
   ProductEmbeddingSchema,
+  "product_embeddings",
 );
