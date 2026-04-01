@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "@/components/layout/NotFound";
 import Login from "@/features/auth/pages/Login";
@@ -11,8 +11,11 @@ import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditChainForm from "@/features/chains/pages/AddOrEditChainForm";
 import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
 import MapPage from "@/features/map/pages/MapPage";
+import { useFeatureFlagStore } from "@/store/featureFlagStore";
 
 const App = () => {
+  const fetchFlags = useFeatureFlagStore((state) => state.fetchFlags);
+  useEffect(() => { fetchFlags(); }, [fetchFlags]);
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
