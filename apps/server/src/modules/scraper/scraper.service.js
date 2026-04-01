@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import crypto from "crypto";
 
 const CONCURRENT_TABS = Number.parseInt(
   process.env.SCRAPER_CONCURRENT_TABS ?? "4",
@@ -17,6 +18,8 @@ export class ScraperService {
     marketProductRepository,
     imageRepository,
     geocoderService,
+    embeddingService,
+    productEmbeddingRepository,
   ) {
     this.chainRepository = chainRepository;
     this.marketRepository = marketRepository;
@@ -24,6 +27,8 @@ export class ScraperService {
     this.marketProductRepository = marketProductRepository;
     this.imageRepository = imageRepository;
     this.geocoderService = geocoderService;
+    this.embeddingService = embeddingService;
+    this.productEmbeddingRepository = productEmbeddingRepository;
   }
 
   async runForMarket(scraper) {
@@ -188,6 +193,11 @@ export class ScraperService {
 
       await this.marketProductRepository.bulkUpsert(marketProducts);
 
+      // Queue embedding generation (non-blocking, best-effort)
+      this.#generateEmbeddingsForProducts(productsData, productIdMap).catch(
+        (err) => console.warn(`[ScraperService] Embedding error: ${err.message}`),
+      );
+
       if (result.newUpdateDate) {
         marketDoc.lastScrapedUpdate = result.newUpdateDate;
         await this.marketRepository.save(marketDoc);
@@ -218,5 +228,45 @@ export class ScraperService {
         throw err;
       }
     }
+  }
+
+  async #generateEmbeddingsForProducts(productsData, productIdMap) {
+    if (!this.embeddingService?.isAvailable() || !this.productEmbeddingRepository) return;
+
+    const entries = productsData
+      .filter(({ title }) => productIdMap.has(title))
+      .map(({ title, category }) => {
+        const text = category ? `${title} ${category}` : title;
+        return {
+          productId: productIdMap.get(title),
+          text,
+          hash: crypto.createHash("md5").update(text).digest("hex"),
+        };
+      });
+
+    if (!entries.length) return;
+
+    // Check which already have up-to-date embeddings
+    const productIds = entries.map((e) => e.productId);
+    const existing = await this.productEmbeddingRepository.findByProducts(productIds);
+    const existingMap = new Map(existing.map((e) => [e.product.toString(), e.textHash]));
+
+    const needsUpdate = entries.filter(
+      (e) => existingMap.get(e.productId.toString()) !== e.hash,
+    );
+
+    if (!needsUpdate.length) return;
+
+    const texts = needsUpdate.map((e) => e.text);
+    const embeddings = await this.embeddingService.generateBatchEmbeddings(texts);
+
+    const bulkEntries = needsUpdate.map((e, idx) => ({
+      productId: e.productId,
+      embedding: embeddings[idx],
+      textHash: e.hash,
+    }));
+
+    await this.productEmbeddingRepository.bulkUpsert(bulkEntries);
+    console.log(`[ScraperService] Generated ${bulkEntries.length} embeddings`);
   }
 }

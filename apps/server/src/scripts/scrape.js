@@ -14,6 +14,8 @@ import { MarketRepository } from "../modules/market/market.repository.js";
 import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
+import { EmbeddingService } from "../modules/search/embedding.service.js";
+import { ProductEmbeddingRepository } from "../modules/search/product-embedding.repository.js";
 import {
   createAllScrapers,
   createScraper,
@@ -52,6 +54,8 @@ async function main() {
     new MarketProductRepository(),
     new ImageRepository(),
     new GeocoderService(),
+    new EmbeddingService(),
+    new ProductEmbeddingRepository(),
   );
 
   // Start total timer
