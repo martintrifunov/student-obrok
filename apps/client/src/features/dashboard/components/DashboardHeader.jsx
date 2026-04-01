@@ -14,6 +14,7 @@ import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
+import TuneIcon from "@mui/icons-material/Tune";
 import { useThemeStore } from "@/store/themeStore";
 
 const DashboardHeader = () => {
@@ -71,6 +72,14 @@ const DashboardHeader = () => {
               alignItems: "center",
             }}
           >
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate("/dashboard/features")}
+              startIcon={<TuneIcon />}
+            >
+              Features
+            </Button>
             <Button
               variant="contained"
               color="primary"

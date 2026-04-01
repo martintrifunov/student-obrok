@@ -7,6 +7,7 @@ import { updateFeatureFlagSchema } from "./feature-flag.schema.js";
 const router = Router();
 
 router.get("/", featureFlagController.getAll);
+router.get("/admin", verifyJWT, featureFlagController.getList);
 router.put("/", verifyJWT, validateRequest(updateFeatureFlagSchema), featureFlagController.update);
 
 export { router as featureFlagRouter };

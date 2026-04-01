@@ -8,6 +8,11 @@ export class FeatureFlagController {
     res.status(200).json(flags);
   };
 
+  getList = async (req, res) => {
+    const flags = await this.featureFlagService.getAllDetailed();
+    res.status(200).json(flags);
+  };
+
   update = async (req, res) => {
     const { key, enabled, description } = req.body;
     const flag = await this.featureFlagService.setFlag(key, enabled, description);

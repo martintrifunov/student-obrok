@@ -13,4 +13,12 @@ export const useFeatureFlagStore = create((set, get) => ({
       set({ loaded: true });
     }
   },
+  refetchFlags: async () => {
+    try {
+      const res = await axiosPublic.get("/flags");
+      set({ flags: res.data, loaded: true });
+    } catch {
+      /* keep existing state */
+    }
+  },
 }));
