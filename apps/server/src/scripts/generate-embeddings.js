@@ -1,6 +1,12 @@
-import "dotenv/config";
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
 import crypto from "crypto";
 import mongoose from "mongoose";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+config({ path: path.resolve(__dirname, "../../../../.env") });
 import { ProductModel } from "../modules/product/product.model.js";
 import { ProductEmbeddingModel } from "../modules/search/product-embedding.model.js";
 import { EmbeddingService } from "../modules/search/embedding.service.js";
