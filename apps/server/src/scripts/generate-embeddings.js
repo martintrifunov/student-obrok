@@ -22,7 +22,10 @@ const buildEmbeddingText = (product) => {
 };
 
 const main = async () => {
-  const force = process.argv.includes("--force");
+  const force =
+    process.argv.includes("--force") ||
+    process.env.npm_config_force === "true" ||
+    process.env.npm_config_force === "1";
   const dbUri = process.env.MONGO_URI_LOCAL || process.env.DATABASE_URI;
 
   if (!dbUri) {
@@ -38,6 +41,7 @@ const main = async () => {
 
   await mongoose.connect(dbUri);
   console.log("[Embeddings] Connected to MongoDB");
+  console.log(`[Embeddings] Force mode: ${force ? "ON" : "OFF"}`);
 
   const products = await ProductModel.find().lean().exec();
   console.log(`[Embeddings] Found ${products.length} products`);

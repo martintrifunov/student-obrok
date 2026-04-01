@@ -64,27 +64,38 @@ export class SearchService {
       "RETRIEVAL_QUERY",
     );
 
-    let candidateProductIds = null;
+    let candidateProductIds;
     if (marketId) {
+      // Scoped to one market — load only that market's products.
       const marketProducts = await MarketProductModel.find({
         market: new mongoose.Types.ObjectId(marketId),
       })
         .select("product")
         .lean()
         .exec();
-      candidateProductIds = new Set(
-        marketProducts.map((mp) => mp.product.toString()),
-      );
+      candidateProductIds = marketProducts.map((mp) => mp.product);
+    } else {
+      // Global search — pre-filter via keyword to avoid loading all embeddings.
+      const regexPattern = buildBilingualRegex(query);
+      if (!regexPattern) return [];
+      const keywordMatches = await ProductModel.find({
+        $or: [
+          { title: { $regex: regexPattern, $options: "i" } },
+          { category: { $regex: regexPattern, $options: "i" } },
+        ],
+      })
+        .select("_id")
+        .limit(2000)
+        .lean()
+        .exec();
+      candidateProductIds = keywordMatches.map((p) => p._id);
     }
 
-    let embeddings;
-    if (candidateProductIds) {
-      embeddings = await this.productEmbeddingRepository.findByProducts(
-        Array.from(candidateProductIds).map((id) => new mongoose.Types.ObjectId(id)),
-      );
-    } else {
-      embeddings = await this.productEmbeddingRepository.findAll();
-    }
+    if (candidateProductIds.length === 0) return [];
+
+    const embeddings = await this.productEmbeddingRepository.findByProducts(
+      candidateProductIds,
+    );
 
     const scored = embeddings.map((e) => ({
       productId: e.product.toString(),

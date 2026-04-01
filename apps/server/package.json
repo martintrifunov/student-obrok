@@ -25,7 +25,8 @@
     "coords:populate:stokomak": "node src/scripts/populate-coordinates.js stokomak",
     "coords:populate:kam": "node src/scripts/populate-coordinates.js kam",
     "coords:seed": "node src/scripts/seed-coordinates.js",
-    "embeddings:generate": "node src/scripts/generate-embeddings.js"
+    "embeddings:generate": "node src/scripts/generate-embeddings.js",
+    "embeddings:generate:force": "node src/scripts/generate-embeddings.js --force"
   },
   "dependencies": {
     "@google/genai": "^1.47.0",
