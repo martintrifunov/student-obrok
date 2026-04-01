@@ -73,20 +73,20 @@ const DashboardHeader = () => {
             }}
           >
             <Button
-              variant="outlined"
-              color="inherit"
-              onClick={() => navigate("/dashboard/features")}
-              startIcon={<TuneIcon />}
-            >
-              Features
-            </Button>
-            <Button
               variant="contained"
               color="primary"
               onClick={() => navigate("/")}
               startIcon={<MapIcon />}
             >
               Map
+            </Button>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() => navigate("/dashboard/features")}
+              startIcon={<TuneIcon />}
+            >
+              Features
             </Button>
             <Button
               variant="outlined"
