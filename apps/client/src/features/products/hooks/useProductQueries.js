@@ -132,3 +132,24 @@ export function useAISearch({ q, marketId, page = 1, limit = 10 }, options = {})
     enabled: !!q && (options.enabled ?? true),
   });
 }
+
+export const smartSearchKeys = {
+  all: ["smart-search"],
+  query: (params) => [...smartSearchKeys.all, params],
+};
+
+export function useSmartSearch({ q, lat, lon }, options = {}) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: smartSearchKeys.query({ q, lat, lon }),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append("q", q);
+      if (lat != null) params.append("lat", lat);
+      if (lon != null) params.append("lon", lon);
+      const response = await axiosPrivate.get(`/smart-search?${params.toString()}`);
+      return response.data;
+    },
+    enabled: !!q && (options.enabled ?? true),
+  });
+}
