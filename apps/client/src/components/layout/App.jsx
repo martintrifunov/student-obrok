@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import NotFound from "@/components/layout/NotFound";
 import Login from "@/features/auth/pages/Login";
@@ -11,8 +11,12 @@ import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditChainForm from "@/features/chains/pages/AddOrEditChainForm";
 import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
 import MapPage from "@/features/map/pages/MapPage";
+import FeatureFlagsPage from "@/features/feature-flags/pages/FeatureFlagsPage";
+import { useFeatureFlagStore } from "@/store/featureFlagStore";
 
 const App = () => {
+  const fetchFlags = useFeatureFlagStore((state) => state.fetchFlags);
+  useEffect(() => { fetchFlags(); }, [fetchFlags]);
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
@@ -22,6 +26,10 @@ const App = () => {
           <Route element={<RequireAuth />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route
+                path="/dashboard/features"
+                element={<FeatureFlagsPage />}
+              />
               <Route
                 path="/dashboard/product/:productId"
                 element={<AddOrEditProductForm />}

@@ -15,16 +15,20 @@ import {
   Chip,
   Autocomplete,
   useMediaQuery,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { BASE_URL } from "@/api/consts";
 import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
   useMarketProducts,
   useCategories,
+  useAISearch,
 } from "@/features/products/hooks/useProductQueries";
+import useFeatureFlag from "@/hooks/useFeatureFlag";
 
 const stripHtmlAndDecode = (html) => {
   if (!html) return "";
@@ -35,10 +39,12 @@ const stripHtmlAndDecode = (html) => {
 const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const aiSearchEnabled = useFeatureFlag("ai-search");
 
   const [page, setPage] = useState(1);
   const [titleInput, setTitleInput] = useState("");
   const [categoryInput, setCategoryInput] = useState("");
+  const [aiMode, setAiMode] = useState(false);
 
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const [debouncedCategory, setDebouncedCategory] = useState("");
@@ -57,18 +63,34 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
       setTitleInput("");
       setCategoryInput("");
       setPage(1);
+      setAiMode(false);
     }
   }, [open]);
 
   const { data: categoryOptions = [] } = useCategories(marketId);
 
-  const { data, isLoading } = useMarketProducts(
+  const { data: regularData, isLoading: regularLoading } = useMarketProducts(
     marketId,
     { page, limit: 10, title: debouncedTitle, category: debouncedCategory },
-    { enabled: open && !!marketId },
+    { enabled: open && !!marketId && !aiMode },
   );
 
-  const products = data?.data || [];
+  const { data: aiData, isLoading: aiLoading } = useAISearch(
+    { q: debouncedTitle, marketId, page, limit: 10 },
+    { enabled: open && !!marketId && aiMode && !!debouncedTitle },
+  );
+
+  const isAiActive = aiMode && aiSearchEnabled;
+  const data = isAiActive ? aiData : regularData;
+  const isLoading = isAiActive ? aiLoading : regularLoading;
+
+  const products = isAiActive
+    ? (data?.data || []).map((item) => ({
+        ...item,
+        product: item.product,
+        price: item.marketProducts?.[0]?.price,
+      }))
+    : data?.data || [];
   const pagination = data?.pagination;
 
   return (
@@ -122,39 +144,75 @@ const SharedMarketProductsModal = ({ open, onClose, marketId, title }) => {
             display: "flex",
             gap: 2,
             flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
           }}
         >
           <TextField
             size="small"
             fullWidth
-            placeholder="Пребарувај по име..."
+            placeholder={isAiActive ? "AI пребарување..." : "Пребарувај по име..."}
             value={titleInput}
             onChange={(e) => setTitleInput(e.target.value)}
             InputProps={{
-              startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+              startAdornment: isAiActive ? (
+                <AutoAwesomeIcon color="primary" sx={{ mr: 1 }} />
+              ) : (
+                <SearchIcon color="action" sx={{ mr: 1 }} />
+              ),
             }}
           />
-          <Autocomplete
-            options={categoryOptions}
-            fullWidth
-            size="small"
-            value={categoryInput || null}
-            onChange={(event, newValue) => {
-              setCategoryInput(newValue || "");
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Филтрирај во категорија..."
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <FilterListIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
-                  ),
+          {!isAiActive && (
+            <Autocomplete
+              options={categoryOptions}
+              fullWidth
+              size="small"
+              value={categoryInput || null}
+              onChange={(event, newValue) => {
+                setCategoryInput(newValue || "");
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Филтрирај во категорија..."
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <FilterListIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
+                    ),
+                  }}
+                />
+              )}
+            />
+          )}
+          {aiSearchEnabled && (
+            <Tooltip title={aiMode ? "Исклучи AI пребарување" : "AI пребарување"}>
+              <IconButton
+                onClick={() => {
+                  setAiMode(!aiMode);
+                  setPage(1);
                 }}
-              />
-            )}
-          />
+                sx={{
+                  flexShrink: 0,
+                  color: aiMode ? "primary.main" : "text.secondary",
+                  backgroundColor: aiMode
+                    ? theme.palette.mode === "dark"
+                      ? "rgba(144, 202, 249, 0.16)"
+                      : "rgba(25, 118, 210, 0.08)"
+                    : "transparent",
+                  border: `1px solid ${aiMode ? theme.palette.primary.main : theme.palette.divider}`,
+                  "&:hover": {
+                    backgroundColor: aiMode
+                      ? theme.palette.mode === "dark"
+                        ? "rgba(144, 202, 249, 0.24)"
+                        : "rgba(25, 118, 210, 0.16)"
+                      : theme.palette.action.hover,
+                  },
+                }}
+              >
+                <AutoAwesomeIcon />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
 
         <Box sx={{ flexGrow: 1, overflowY: "auto", p: 2 }}>

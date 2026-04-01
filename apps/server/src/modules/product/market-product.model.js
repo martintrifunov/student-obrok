@@ -19,4 +19,5 @@ MarketProductSchema.index({ market: 1, product: 1 }, { unique: true });
 export const MarketProductModel = mongoose.model(
   "MarketProduct",
   MarketProductSchema,
+  "market_products",
 );

@@ -14,6 +14,10 @@ import { MarketRepository } from "../modules/market/market.repository.js";
 import { ImageRepository } from "../modules/image/image.repository.js";
 import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
+import { EmbeddingService } from "../modules/search/embedding.service.js";
+import { ProductEmbeddingRepository } from "../modules/search/product-embedding.repository.js";
+import { FeatureFlagRepository } from "../modules/feature-flag/feature-flag.repository.js";
+import { FeatureFlagService } from "../modules/feature-flag/feature-flag.service.js";
 import {
   createAllScrapers,
   createScraper,
@@ -45,6 +49,8 @@ async function main() {
   await mongoose.connect(uri);
   console.log("[scrape] DB connected.\n");
 
+  const featureFlagService = new FeatureFlagService(new FeatureFlagRepository());
+
   const scraperService = new ScraperService(
     new ChainRepository(),
     new MarketRepository(),
@@ -52,6 +58,9 @@ async function main() {
     new MarketProductRepository(),
     new ImageRepository(),
     new GeocoderService(),
+    new EmbeddingService(),
+    new ProductEmbeddingRepository(),
+    featureFlagService,
   );
 
   // Start total timer

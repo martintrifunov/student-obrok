@@ -1,0 +1,235 @@
+import mongoose from "mongoose";
+import {
+  buildBilingualRegex,
+  buildBilingualTokenRegexes,
+} from "../../shared/utils/bilingualRegex.js";
+import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
+import { ProductModel } from "../product/product.model.js";
+import { MarketProductModel } from "../product/market-product.model.js";
+
+const RRF_K = 60;
+
+const cosineSimilarity = (a, b) => {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  const denom = Math.sqrt(normA) * Math.sqrt(normB);
+  return denom === 0 ? 0 : dot / denom;
+};
+
+const buildFieldMatchClauses = (patterns, fields, mode = "and") => {
+  if (!patterns.length) return {};
+
+  const clauses = patterns.map((pattern) => ({
+    $or: fields.map((field) => ({
+      [field]: { $regex: pattern, $options: "i" },
+    })),
+  }));
+
+  return mode === "or" ? { $or: clauses } : { $and: clauses };
+};
+
+export class SearchService {
+  constructor(
+    embeddingService,
+    productEmbeddingRepository,
+    featureFlagService,
+  ) {
+    this.embeddingService = embeddingService;
+    this.productEmbeddingRepository = productEmbeddingRepository;
+    this.featureFlagService = featureFlagService;
+  }
+
+  async search({ q, marketId, page = 1, limit = 10 }) {
+    const isEnabled = await this.featureFlagService.isEnabled("ai-search");
+    if (!isEnabled) {
+      return { data: [], pagination: buildPaginationMeta({ total: 0, page, limit }) };
+    }
+
+    const [vectorResults, keywordResults] = await Promise.all([
+      this.#vectorSearch(q, marketId),
+      this.#keywordSearch(q, marketId),
+    ]);
+
+    const merged = this.#rrfMerge(vectorResults, keywordResults);
+
+    const total = merged.length;
+    const skip = (page - 1) * limit;
+    const paginated = merged.slice(skip, skip + limit);
+
+    // Hydrate with full product data + market info
+    const hydrated = await this.#hydrateResults(paginated, marketId);
+
+    return {
+      data: hydrated,
+      pagination: buildPaginationMeta({ total, page, limit }),
+    };
+  }
+
+  async #vectorSearch(query, marketId) {
+    if (!this.embeddingService.isAvailable()) return [];
+
+    const queryEmbedding = await this.embeddingService.generateEmbedding(
+      query,
+      "RETRIEVAL_QUERY",
+    );
+
+    let candidateProductIds;
+    if (marketId) {
+      // Scoped to one market — load only that market's products.
+      const marketProducts = await MarketProductModel.find({
+        market: new mongoose.Types.ObjectId(marketId),
+      })
+        .select("product")
+        .lean()
+        .exec();
+      candidateProductIds = marketProducts.map((mp) => mp.product);
+    } else {
+      // Global search — pre-filter by query tokens to avoid loading all embeddings.
+      const tokenPatterns = buildBilingualTokenRegexes(query);
+      if (!tokenPatterns.length) return [];
+      const keywordMatches = await ProductModel.find({
+        ...buildFieldMatchClauses(tokenPatterns, ["title", "category"], "or"),
+      })
+        .select("_id")
+        .limit(2000)
+        .lean()
+        .exec();
+      candidateProductIds = keywordMatches.map((p) => p._id);
+    }
+
+    if (candidateProductIds.length === 0) return [];
+
+    const embeddings = await this.productEmbeddingRepository.findByProducts(
+      candidateProductIds,
+    );
+
+    const scored = embeddings.map((e) => ({
+      productId: e.product.toString(),
+      score: cosineSimilarity(queryEmbedding, e.embedding),
+    }));
+
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 100);
+  }
+
+  async #keywordSearch(query, marketId) {
+    const tokenPatterns = buildBilingualTokenRegexes(query);
+    if (!tokenPatterns.length) return [];
+
+    if (marketId) {
+      const pipeline = [
+        { $match: { market: new mongoose.Types.ObjectId(marketId) } },
+        {
+          $lookup: {
+            from: "products",
+            localField: "product",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        { $unwind: "$product" },
+        {
+          $match: buildFieldMatchClauses(
+            tokenPatterns,
+            ["product.title", "product.category"],
+            "and",
+          ),
+        },
+        { $limit: 100 },
+        { $project: { "product._id": 1 } },
+      ];
+
+      const results = await MarketProductModel.aggregate(pipeline);
+      return results.map((r, i) => ({
+        productId: r.product._id.toString(),
+        score: 1 / (i + 1),
+      }));
+    }
+
+    const products = await ProductModel.find({
+      ...buildFieldMatchClauses(tokenPatterns, ["title", "category"], "and"),
+    })
+      .select("_id")
+      .limit(100)
+      .lean()
+      .exec();
+
+    return products.map((p, i) => ({
+      productId: p._id.toString(),
+      score: 1 / (i + 1),
+    }));
+  }
+
+  #rrfMerge(vectorResults, keywordResults) {
+    const scores = new Map();
+
+    vectorResults.forEach(({ productId }, rank) => {
+      const prev = scores.get(productId) || 0;
+      scores.set(productId, prev + 1 / (RRF_K + rank + 1));
+    });
+
+    keywordResults.forEach(({ productId }, rank) => {
+      const prev = scores.get(productId) || 0;
+      scores.set(productId, prev + 1 / (RRF_K + rank + 1));
+    });
+
+    return Array.from(scores.entries())
+      .map(([productId, score]) => ({ productId, score }))
+      .sort((a, b) => b.score - a.score);
+  }
+
+  async #hydrateResults(results, marketId) {
+    if (!results.length) return [];
+
+    const productIds = results.map((r) => new mongoose.Types.ObjectId(r.productId));
+
+    const products = await ProductModel.find({ _id: { $in: productIds } })
+      .populate({ path: "image", select: "title url mimeType" })
+      .lean()
+      .exec();
+
+    const productMap = new Map(products.map((p) => [p._id.toString(), p]));
+
+    // Get market product info (price, market name, chain)
+    const mpQuery = { product: { $in: productIds } };
+    if (marketId) mpQuery.market = new mongoose.Types.ObjectId(marketId);
+
+    const marketProducts = await MarketProductModel.find(mpQuery)
+      .populate({
+        path: "market",
+        populate: {
+          path: "chain",
+          populate: { path: "image", select: "title url mimeType" },
+        },
+      })
+      .lean()
+      .exec();
+
+    // Group market products by product ID
+    const mpByProduct = new Map();
+    for (const mp of marketProducts) {
+      const pid = mp.product.toString();
+      if (!mpByProduct.has(pid)) mpByProduct.set(pid, []);
+      mpByProduct.get(pid).push(mp);
+    }
+
+    return results.map(({ productId, score }) => {
+      const product = productMap.get(productId);
+      const mps = mpByProduct.get(productId) || [];
+      return {
+        product,
+        score,
+        marketProducts: mps.map((mp) => ({
+          price: mp.price,
+          market: mp.market,
+        })),
+      };
+    });
+  }
+}
