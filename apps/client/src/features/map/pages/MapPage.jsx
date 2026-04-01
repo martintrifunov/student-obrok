@@ -36,6 +36,8 @@ import useLogout from "@/features/auth/hooks/useLogout";
 import { useThemeStore } from "@/store/themeStore";
 import useFeatureFlag from "@/hooks/useFeatureFlag";
 import GlobalAISearchDialog from "@/features/map/components/GlobalAISearchDialog";
+import RouteConfirmDialog from "@/features/map/components/RouteConfirmDialog";
+import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
 import MARKER_COLORS from "@/features/map/config/markerColors";
 import {
   DEFAULT_VISIBLE_CHAINS,
@@ -96,6 +98,9 @@ const MapPage = () => {
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const aiSearchEnabled = useFeatureFlag("ai-search");
+
+  const [routeConfirm, setRouteConfirm] = useState(null);
+  const [productModalTarget, setProductModalTarget] = useState(null);
 
   const mapRef = useRef(null);
 
@@ -163,15 +168,41 @@ const MapPage = () => {
     setIsLoading(val);
   }, []);
 
-  const handleNavigateToMarket = useCallback(
-    ({ longitude, latitude }) => {
-      const map = mapRef.current?.getMap();
-      if (map) {
-        map.flyTo({ center: [longitude, latitude], zoom: 17, duration: 1500 });
-      }
+  const handleRequestRoute = useCallback(
+    ({ market, distance, products, searchTerm }) => {
+      setRouteConfirm({ market, distance, products, searchTerm });
     },
     [],
   );
+
+  const handleRouteConfirm = useCallback(() => {
+    if (!routeConfirm?.market?.location) return;
+    const [mLat, mLon] = routeConfirm.market.location;
+    if (userLocation) {
+      setRouteStart([userLocation[0], userLocation[1]]);
+      setRouteEnd([mLon, mLat]);
+      setIsDisabledRoutingButton(true);
+    }
+
+    const map = mapRef.current?.getMap();
+    if (map) {
+      map.flyTo({ center: [mLon, mLat], zoom: 17, duration: 1500 });
+    }
+
+    setProductModalTarget({
+      marketId: routeConfirm.market._id,
+      marketName: routeConfirm.market.name || "Маркет",
+      searchTerm: routeConfirm.searchTerm || "",
+      shoppingList: routeConfirm.products || [],
+      initialAiMode: false,
+    });
+    setRouteConfirm(null);
+    setAiSearchOpen(false);
+  }, [routeConfirm, userLocation]);
+
+  const handleAiSearchClose = useCallback(() => {
+    setAiSearchOpen(false);
+  }, []);
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -585,8 +616,26 @@ const MapPage = () => {
       )}
       <GlobalAISearchDialog
         open={aiSearchOpen}
-        onClose={() => setAiSearchOpen(false)}
-        onNavigateToMarket={handleNavigateToMarket}
+        onClose={handleAiSearchClose}
+        onDismiss={handleAiSearchClose}
+        onRequestRoute={handleRequestRoute}
+        userLocation={userLocation}
+      />
+      <SharedMarketProductsModal
+        open={!!productModalTarget}
+        onClose={() => setProductModalTarget(null)}
+        marketId={productModalTarget?.marketId}
+        title={`${productModalTarget?.marketName || "Маркет"} Продукти`}
+        initialSearch={productModalTarget?.searchTerm}
+        initialAiMode={productModalTarget?.initialAiMode}
+        initialShoppingList={productModalTarget?.shoppingList}
+      />
+      <RouteConfirmDialog
+        open={!!routeConfirm}
+        onClose={() => setRouteConfirm(null)}
+        onConfirm={handleRouteConfirm}
+        marketName={routeConfirm?.market?.name || ""}
+        distance={routeConfirm?.distance}
       />
     </Box>
   );

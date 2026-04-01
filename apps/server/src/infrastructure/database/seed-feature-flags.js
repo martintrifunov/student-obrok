@@ -2,6 +2,7 @@ import { FeatureFlagModel } from "../../modules/feature-flag/feature-flag.model.
 
 const DEFAULT_FLAGS = [
   { key: "ai-search", enabled: false, description: "Enable AI-powered hybrid search (vector + keyword)" },
+  { key: "smart-search", enabled: false, description: "Enable AI smart search with recipe decomposition and market routing" },
 ];
 
 export const seedFeatureFlags = async () => {

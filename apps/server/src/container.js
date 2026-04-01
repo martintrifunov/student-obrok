@@ -22,6 +22,9 @@ import { FeatureFlagService } from "./modules/feature-flag/feature-flag.service.
 import { FeatureFlagController } from "./modules/feature-flag/feature-flag.controller.js";
 import { SearchService } from "./modules/search/search.service.js";
 import { SearchController } from "./modules/search/search.controller.js";
+import { IntentParserService } from "./modules/search/intent-parser.service.js";
+import { SmartSearchService } from "./modules/search/smart-search.service.js";
+import { SmartSearchController } from "./modules/search/smart-search.controller.js";
 
 import { AuthController } from "./modules/auth/auth.controller.js";
 import { ImageController } from "./modules/image/image.controller.js";
@@ -67,9 +70,18 @@ const featureFlagService = new FeatureFlagService(featureFlagRepository);
 const embeddingService = new EmbeddingService();
 const productEmbeddingRepository = new ProductEmbeddingRepository();
 
+const intentParserService = new IntentParserService();
+
 const searchService = new SearchService(
   embeddingService,
   productEmbeddingRepository,
+  featureFlagService,
+  intentParserService,
+);
+
+const smartSearchService = new SmartSearchService(
+  intentParserService,
+  searchService,
   featureFlagService,
 );
 
@@ -92,4 +104,5 @@ export const productController = new ProductController(productService);
 export const marketController = new MarketController(marketService);
 export const featureFlagController = new FeatureFlagController(featureFlagService);
 export const searchController = new SearchController(searchService);
+export const smartSearchController = new SmartSearchController(smartSearchService);
 export { featureFlagService, embeddingService, productEmbeddingRepository, marketProductRepository };
