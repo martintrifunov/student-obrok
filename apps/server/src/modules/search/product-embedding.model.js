@@ -14,8 +14,6 @@ const ProductEmbeddingSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-ProductEmbeddingSchema.index({ product: 1 });
-
 export const ProductEmbeddingModel = mongoose.model(
   "ProductEmbedding",
   ProductEmbeddingSchema,
