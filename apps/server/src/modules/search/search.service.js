@@ -39,21 +39,30 @@ export class SearchService {
     embeddingService,
     productEmbeddingRepository,
     featureFlagService,
+    intentParserService,
   ) {
     this.embeddingService = embeddingService;
     this.productEmbeddingRepository = productEmbeddingRepository;
     this.featureFlagService = featureFlagService;
+    this.intentParserService = intentParserService;
   }
 
   async search({ q, marketId, page = 1, limit = 10 }) {
     const isEnabled = await this.featureFlagService.isEnabled("ai-search");
     if (!isEnabled) {
-      return { data: [], pagination: buildPaginationMeta({ total: 0, page, limit }) };
+      return { data: [], pagination: buildPaginationMeta({ total: 0, page, limit }), priceSort: null };
     }
 
+    // Parse intent to extract clean search terms and price sorting preference
+    const intent = this.intentParserService?.isAvailable()
+      ? await this.intentParserService.parseIntent(q)
+      : { searchTerms: q, priceSort: null, intent: "search", products: [] };
+
+    const searchQuery = intent.searchTerms || q;
+
     const [vectorResults, keywordResults] = await Promise.all([
-      this.#vectorSearch(q, marketId),
-      this.#keywordSearch(q, marketId),
+      this.#vectorSearch(searchQuery, marketId),
+      this.#keywordSearch(searchQuery, marketId),
     ]);
 
     const merged = this.#rrfMerge(vectorResults, keywordResults);
@@ -63,11 +72,12 @@ export class SearchService {
     const paginated = merged.slice(skip, skip + limit);
 
     // Hydrate with full product data + market info
-    const hydrated = await this.#hydrateResults(paginated, marketId);
+    const hydrated = await this.#hydrateResults(paginated, marketId, intent.priceSort);
 
     return {
       data: hydrated,
       pagination: buildPaginationMeta({ total, page, limit }),
+      priceSort: intent.priceSort,
     };
   }
 
@@ -184,7 +194,7 @@ export class SearchService {
       .sort((a, b) => b.score - a.score);
   }
 
-  async #hydrateResults(results, marketId) {
+  async #hydrateResults(results, marketId, priceSort = null) {
     if (!results.length) return [];
 
     const productIds = results.map((r) => new mongoose.Types.ObjectId(r.productId));
@@ -219,17 +229,32 @@ export class SearchService {
       mpByProduct.get(pid).push(mp);
     }
 
-    return results.map(({ productId, score }) => {
+    let hydrated = results.map(({ productId, score }) => {
       const product = productMap.get(productId);
-      const mps = mpByProduct.get(productId) || [];
-      return {
-        product,
-        score,
-        marketProducts: mps.map((mp) => ({
-          price: mp.price,
-          market: mp.market,
-        })),
-      };
+      let mps = (mpByProduct.get(productId) || []).map((mp) => ({
+        price: mp.price,
+        market: mp.market,
+      }));
+
+      // Sort market offerings by price when user expressed a price preference
+      if (priceSort) {
+        const dir = priceSort === "asc" ? 1 : -1;
+        mps.sort((a, b) => (a.price - b.price) * dir);
+      }
+
+      return { product, score, marketProducts: mps };
     });
+
+    // Re-sort products by their best available price when price intent detected
+    if (priceSort) {
+      const dir = priceSort === "asc" ? 1 : -1;
+      hydrated.sort((a, b) => {
+        const priceA = a.marketProducts.length ? a.marketProducts[0].price : Infinity;
+        const priceB = b.marketProducts.length ? b.marketProducts[0].price : Infinity;
+        return (priceA - priceB) * dir;
+      });
+    }
+
+    return hydrated;
   }
 }
