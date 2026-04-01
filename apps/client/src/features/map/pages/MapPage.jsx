@@ -24,6 +24,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import TuneIcon from "@mui/icons-material/Tune";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { useNavigate } from "react-router-dom";
 import GlobalLoadingProgress from "@/components/ui/GlobalLoadingProgress";
 import LocateUser from "@/features/map/components/LocateUser";
@@ -33,6 +34,8 @@ import RoutingEngine from "@/features/map/components/RoutingEngine";
 import useAuth from "@/features/auth/hooks/useAuth";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { useThemeStore } from "@/store/themeStore";
+import useFeatureFlag from "@/hooks/useFeatureFlag";
+import GlobalAISearchDialog from "@/features/map/components/GlobalAISearchDialog";
 import MARKER_COLORS from "@/features/map/config/markerColors";
 import {
   DEFAULT_VISIBLE_CHAINS,
@@ -91,6 +94,8 @@ const MapPage = () => {
     getInitialVisibleChains,
   );
   const [filterAnchor, setFilterAnchor] = useState(null);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
+  const aiSearchEnabled = useFeatureFlag("ai-search");
 
   const mapRef = useRef(null);
 
@@ -157,6 +162,16 @@ const MapPage = () => {
   const handleSetIsLoading = useCallback((val) => {
     setIsLoading(val);
   }, []);
+
+  const handleNavigateToMarket = useCallback(
+    ({ longitude, latitude }) => {
+      const map = mapRef.current?.getMap();
+      if (map) {
+        map.flyTo({ center: [longitude, latitude], zoom: 17, duration: 1500 });
+      }
+    },
+    [],
+  );
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -524,6 +539,40 @@ const MapPage = () => {
           </Popover>
         </Box>
       )}
+      {aiSearchEnabled && !isLoading && (
+        <IconButton
+          onClick={() => setAiSearchOpen(true)}
+          sx={{
+            position: "absolute",
+            bottom: "30px",
+            right: "20px",
+            zIndex: 1000,
+            width: 56,
+            height: 56,
+            backgroundColor: theme.palette.primary.main,
+            color: isDark ? "#000" : "#fff",
+            boxShadow: theme.shadows[6],
+            "&:hover": {
+              backgroundColor: theme.palette.primary.dark,
+              transform: "scale(1.05)",
+            },
+            transition: "all 0.2s ease",
+            [theme.breakpoints.down("sm")]: {
+              bottom: "20px",
+              right: "12px",
+              width: 48,
+              height: 48,
+            },
+          }}
+        >
+          <AutoAwesomeIcon />
+        </IconButton>
+      )}
+      <GlobalAISearchDialog
+        open={aiSearchOpen}
+        onClose={() => setAiSearchOpen(false)}
+        onNavigateToMarket={handleNavigateToMarket}
+      />
     </Box>
   );
 };
