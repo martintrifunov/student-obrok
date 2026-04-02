@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -13,20 +13,11 @@ import {
 import GavelIcon from "@mui/icons-material/Gavel";
 import SecurityIcon from "@mui/icons-material/Security";
 
-const TermsAndPrivacyModal = () => {
+const TermsAndPrivacyModal = ({ open, onAccept }) => {
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const hasAccepted = localStorage.getItem("obrok_terms_accepted");
-    if (!hasAccepted) {
-      setOpen(true);
-    }
-  }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("obrok_terms_accepted", "true");
-    setOpen(false);
+    if (onAccept) onAccept();
   };
 
   return (
