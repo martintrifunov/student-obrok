@@ -17,7 +17,6 @@ import MapIcon from "@mui/icons-material/Map";
 import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
-import TuneIcon from "@mui/icons-material/Tune";
 import { useThemeStore } from "@/store/themeStore";
 
 const DashboardHeader = () => {
@@ -93,17 +92,6 @@ const DashboardHeader = () => {
                 sx={{ minWidth: { xs: 40, md: "auto" }, px: { xs: 1.25, md: 2 } }}
               >
                 {isMobile ? <MapIcon fontSize="small" /> : "Map"}
-              </Button>
-            </Tooltip>
-            <Tooltip title="Features">
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={() => navigate("/dashboard/features")}
-                startIcon={!isMobile ? <TuneIcon /> : null}
-                sx={{ minWidth: { xs: 40, md: "auto" }, px: { xs: 1.25, md: 2 } }}
-              >
-                {isMobile ? <TuneIcon fontSize="small" /> : "Features"}
               </Button>
             </Tooltip>
             <Tooltip title="Logout">
