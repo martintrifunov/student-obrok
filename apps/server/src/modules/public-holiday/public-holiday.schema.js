@@ -24,3 +24,7 @@ export const updatePublicHolidaySchema = z.object({
 export const deletePublicHolidaySchema = z.object({
   id: zodObjectId,
 });
+
+export const publicHolidayParamsSchema = z.object({
+  id: zodObjectId,
+});

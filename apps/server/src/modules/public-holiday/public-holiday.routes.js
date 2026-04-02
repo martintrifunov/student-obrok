@@ -7,6 +7,7 @@ import {
   createPublicHolidaySchema,
   updatePublicHolidaySchema,
   deletePublicHolidaySchema,
+  publicHolidayParamsSchema,
 } from "./public-holiday.schema.js";
 
 const router = Router();
@@ -16,7 +17,11 @@ router.get(
   validateRequest(publicHolidayQuerySchema, "query"),
   publicHolidayController.getAll,
 );
-router.get("/:id", publicHolidayController.getById);
+router.get(
+  "/:id",
+  validateRequest(publicHolidayParamsSchema, "params"),
+  publicHolidayController.getById,
+);
 router.post(
   "/",
   verifyJWT,

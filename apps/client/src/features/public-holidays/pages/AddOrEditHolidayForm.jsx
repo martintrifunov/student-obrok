@@ -27,9 +27,12 @@ const AddOrEditHolidayForm = () => {
   const [holiday, setHoliday] = useState({ name: "", date: "" });
   const [errors, setErrors] = useState({});
 
-  const { data: fetchedHoliday, isLoading: isFetchingHoliday } = useHoliday(
-    params.holidayId,
-  );
+  const {
+    data: fetchedHoliday,
+    isLoading: isFetchingHoliday,
+    isError: isFetchHolidayError,
+    error: fetchHolidayError,
+  } = useHoliday(params.holidayId);
 
   const saveMutation = useSaveHoliday(isEditMode, params.holidayId);
 
@@ -37,9 +40,7 @@ const AddOrEditHolidayForm = () => {
     if (fetchedHoliday) {
       setHoliday({
         name: fetchedHoliday.name || "",
-        date: fetchedHoliday.date
-          ? new Date(fetchedHoliday.date).toISOString().split("T")[0]
-          : "",
+        date: fetchedHoliday.date ? fetchedHoliday.date.slice(0, 10) : "",
       });
     }
   }, [fetchedHoliday]);
@@ -76,6 +77,20 @@ const AddOrEditHolidayForm = () => {
 
   if (isFetchingHoliday || saveMutation.isPending) {
     return <GlobalLoadingProgress />;
+  }
+
+  if (isEditMode && isFetchHolidayError) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {fetchHolidayError?.response?.data?.message ||
+            "Failed to load holiday."}
+        </Alert>
+        <Button variant="outlined" onClick={() => navigate("/dashboard")}>
+          Back to Dashboard
+        </Button>
+      </Container>
+    );
   }
 
   return (
