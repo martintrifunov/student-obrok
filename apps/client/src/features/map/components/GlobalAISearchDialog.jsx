@@ -43,6 +43,8 @@ const formatDistance = (meters) => {
   return `${(meters / 1000).toFixed(1)} km`;
 };
 
+const CRIMSON = "#DC143C";
+
 const GlobalAISearchDialog = ({
   open,
   onClose,
@@ -432,36 +434,37 @@ const GlobalAISearchDialog = ({
               />
             </Box>
 
-            {smartData?.data?.weeklyBudget != null && (
-              <Box
-                sx={{
-                  px: 2,
-                  py: 1,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  backgroundColor: theme.palette.action.hover,
-                  borderBottom: `1px solid ${theme.palette.divider}`,
-                }}
-              >
-                <Typography variant="body2" fontWeight="bold">
-                  Буџет за оброк: {smartData.data.weeklyBudget} ден.
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      size="small"
-                      checked={budgetOnly}
-                      onChange={(e) => setBudgetOnly(e.target.checked)}
-                    />
-                  }
-                  label={
-                    <Typography variant="caption">Само во буџет</Typography>
-                  }
-                  sx={{ mr: 0 }}
-                />
-              </Box>
-            )}
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: theme.palette.action.hover,
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography variant="body2" fontWeight="bold">
+                Буџет за оброк:{" "}
+                {smartData?.data?.weeklyBudget != null
+                  ? `${smartData.data.weeklyBudget} ден.`
+                  : "—"}
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={budgetOnly}
+                    onChange={(e) => setBudgetOnly(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="caption">Само во буџет</Typography>
+                }
+                sx={{ mr: 0 }}
+              />
+            </Box>
 
             <Box sx={{ flexGrow: 1, overflowY: "auto", p: 2 }}>
               {!smartDebouncedQuery ? (
@@ -627,8 +630,11 @@ const GlobalAISearchDialog = ({
                                 <Chip
                                   label={`Доплата: ${entry.overBudgetAmount} ден.`}
                                   size="small"
-                                  color="error"
-                                  sx={{ borderRadius: 1 }}
+                                  sx={{
+                                    borderRadius: 1,
+                                    backgroundColor: CRIMSON,
+                                    color: "#fff",
+                                  }}
                                 />
                               )}
                             </Box>
@@ -647,21 +653,18 @@ const GlobalAISearchDialog = ({
                                     display: "flex",
                                     justifyContent: "space-between",
                                     alignItems: "center",
-                                    ...(prod.overflow && {
-                                      color: theme.palette.error.main,
-                                    }),
                                   }}
                                 >
                                   <Typography
                                     variant="body2"
-                                    color={prod.overflow ? "error" : "text.secondary"}
+                                    sx={{ color: prod.overflow ? CRIMSON : "text.secondary" }}
                                   >
                                     {prod.title}
                                   </Typography>
                                   <Typography
                                     variant="body2"
                                     fontWeight="bold"
-                                    color={prod.overflow ? "error" : "inherit"}
+                                    sx={{ color: prod.overflow ? CRIMSON : "inherit" }}
                                   >
                                     {prod.price} ден.
                                   </Typography>

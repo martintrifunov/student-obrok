@@ -16,6 +16,7 @@ router.get(
   validateRequest(publicHolidayQuerySchema, "query"),
   publicHolidayController.getAll,
 );
+router.get("/:id", publicHolidayController.getById);
 router.post(
   "/",
   verifyJWT,
