@@ -16,6 +16,7 @@ import { marketRouter } from "./modules/market/market.routes.js";
 import { featureFlagRouter } from "./modules/feature-flag/feature-flag.routes.js";
 import { searchRouter } from "./modules/search/search.routes.js";
 import { smartSearchRouter } from "./modules/search/smart-search.routes.js";
+import { publicHolidayRouter } from "./modules/public-holiday/public-holiday.routes.js";
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use("/api/markets", marketRouter);
 app.use("/api/flags", featureFlagRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/smart-search", smartSearchRouter);
+app.use("/api/public-holidays", publicHolidayRouter);
 
 app.use(errorHandler);
 
