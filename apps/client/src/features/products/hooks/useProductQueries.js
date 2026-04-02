@@ -138,15 +138,16 @@ export const smartSearchKeys = {
   query: (params) => [...smartSearchKeys.all, params],
 };
 
-export function useSmartSearch({ q, lat, lon }, options = {}) {
+export function useSmartSearch({ q, lat, lon, budgetOnly }, options = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: smartSearchKeys.query({ q, lat, lon }),
+    queryKey: smartSearchKeys.query({ q, lat, lon, budgetOnly }),
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append("q", q);
       if (lat != null) params.append("lat", lat);
       if (lon != null) params.append("lon", lon);
+      if (budgetOnly) params.append("budgetOnly", "true");
       const response = await axiosPrivate.get(`/smart-search?${params.toString()}`);
       return response.data;
     },

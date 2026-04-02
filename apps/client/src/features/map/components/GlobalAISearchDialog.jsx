@@ -17,6 +17,8 @@ import {
   Tabs,
   Tab,
   Divider,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -58,6 +60,7 @@ const GlobalAISearchDialog = ({
   const [page, setPage] = useState(1);
   const [smartInput, setSmartInput] = useState("");
   const [smartDebouncedQuery, setSmartDebouncedQuery] = useState("");
+  const [budgetOnly, setBudgetOnly] = useState(false);
 
   const isSmartTabActive = smartSearchEnabled && tab === 0;
   const isRegularTabActive = smartSearchEnabled ? tab === 1 : tab === 0;
@@ -122,6 +125,7 @@ const GlobalAISearchDialog = ({
       q: smartDebouncedQuery,
       lat: userLocation?.[1],
       lon: userLocation?.[0],
+      budgetOnly,
     },
     { enabled: open && isSmartTabActive && !!smartDebouncedQuery },
   );
@@ -428,6 +432,37 @@ const GlobalAISearchDialog = ({
               />
             </Box>
 
+            {smartData?.data?.weeklyBudget != null && (
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  backgroundColor: theme.palette.action.hover,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold">
+                  Буџет за оброк: {smartData.data.weeklyBudget} ден.
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      size="small"
+                      checked={budgetOnly}
+                      onChange={(e) => setBudgetOnly(e.target.checked)}
+                    />
+                  }
+                  label={
+                    <Typography variant="caption">Само во буџет</Typography>
+                  }
+                  sx={{ mr: 0 }}
+                />
+              </Box>
+            )}
+
             <Box sx={{ flexGrow: 1, overflowY: "auto", p: 2 }}>
               {!smartDebouncedQuery ? (
                 <Typography
@@ -588,6 +623,14 @@ const GlobalAISearchDialog = ({
                                 color="primary"
                                 sx={{ borderRadius: 1 }}
                               />
+                              {entry.overBudgetAmount > 0 && (
+                                <Chip
+                                  label={`Доплата: ${entry.overBudgetAmount} ден.`}
+                                  size="small"
+                                  color="error"
+                                  sx={{ borderRadius: 1 }}
+                                />
+                              )}
                             </Box>
 
                             <Box
@@ -604,12 +647,22 @@ const GlobalAISearchDialog = ({
                                     display: "flex",
                                     justifyContent: "space-between",
                                     alignItems: "center",
+                                    ...(prod.overflow && {
+                                      color: theme.palette.error.main,
+                                    }),
                                   }}
                                 >
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    color={prod.overflow ? "error" : "text.secondary"}
+                                  >
                                     {prod.title}
                                   </Typography>
-                                  <Typography variant="body2" fontWeight="bold">
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight="bold"
+                                    color={prod.overflow ? "error" : "inherit"}
+                                  >
                                     {prod.price} ден.
                                   </Typography>
                                 </Box>
