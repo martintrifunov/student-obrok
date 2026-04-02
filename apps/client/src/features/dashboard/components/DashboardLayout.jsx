@@ -7,12 +7,14 @@ import LinkIcon from "@mui/icons-material/Link";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import EventIcon from "@mui/icons-material/Event";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 
 const SECTIONS = [
   { label: "Chains", path: "/dashboard/chains", prefix: "/dashboard/chain", icon: <LinkIcon /> },
   { label: "Markets", path: "/dashboard/markets", prefix: "/dashboard/market", icon: <StorefrontIcon /> },
   { label: "Products", path: "/dashboard/products", prefix: "/dashboard/product", icon: <Inventory2Icon /> },
   { label: "Holidays", path: "/dashboard/holidays", prefix: "/dashboard/holiday", icon: <EventIcon /> },
+  { label: "Reporting", path: "/dashboard/reporting", prefix: "/dashboard/reporting", icon: <AssessmentIcon /> },
 ];
 
 const DashboardLayout = () => {

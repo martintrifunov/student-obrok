@@ -15,6 +15,7 @@ import ChainsPage from "@/features/dashboard/pages/ChainsPage";
 import MarketsPage from "@/features/dashboard/pages/MarketsPage";
 import ProductsPage from "@/features/dashboard/pages/ProductsPage";
 import HolidaysPage from "@/features/dashboard/pages/HolidaysPage";
+import ReportingPage from "@/features/dashboard/pages/ReportingPage";
 import MapPage from "@/features/map/pages/MapPage";
 import FeatureFlagsPage from "@/features/feature-flags/pages/FeatureFlagsPage";
 import { useFeatureFlagStore } from "@/store/featureFlagStore";
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="/dashboard/markets" element={<MarketsPage />} />
               <Route path="/dashboard/products" element={<ProductsPage />} />
               <Route path="/dashboard/holidays" element={<HolidaysPage />} />
+              <Route path="/dashboard/reporting" element={<ReportingPage />} />
               <Route
                 path="/dashboard/features"
                 element={<FeatureFlagsPage />}
