@@ -10,6 +10,7 @@ import DashboardLayout from "@/features/dashboard/components/DashboardLayout";
 import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditChainForm from "@/features/chains/pages/AddOrEditChainForm";
 import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
+import AddOrEditHolidayForm from "@/features/public-holidays/pages/AddOrEditHolidayForm";
 import MapPage from "@/features/map/pages/MapPage";
 import FeatureFlagsPage from "@/features/feature-flags/pages/FeatureFlagsPage";
 import { useFeatureFlagStore } from "@/store/featureFlagStore";
@@ -53,6 +54,14 @@ const App = () => {
               <Route
                 path="/dashboard/market"
                 element={<AddOrEditMarketForm />}
+              />
+              <Route
+                path="/dashboard/holiday/:holidayId"
+                element={<AddOrEditHolidayForm />}
+              />
+              <Route
+                path="/dashboard/holiday"
+                element={<AddOrEditHolidayForm />}
               />
             </Route>
           </Route>

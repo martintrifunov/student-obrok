@@ -17,6 +17,8 @@ import MarketsList from "@/features/markets/components/MarketsList";
 import ProductSearchBar from "@/features/products/components/ProductSearchBar";
 import ChainSearchBar from "@/features/chains/components/ChainSearchBar";
 import MarketSearchBar from "@/features/markets/components/MarketSearchBar";
+import HolidaysList from "@/features/public-holidays/components/HolidaysList";
+import HolidaySearchBar from "@/features/public-holidays/components/HolidaySearchBar";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 const Dashboard = () => {
@@ -27,6 +29,7 @@ const Dashboard = () => {
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [chainSearchTerm, setChainSearchTerm] = useState("");
   const [marketSearchTerm, setMarketSearchTerm] = useState("");
+  const [holidaySearchTerm, setHolidaySearchTerm] = useState("");
   const [generating, setIsGenerating] = useState(false);
   const [errorBag, setErrorBag] = useState("");
 
@@ -157,6 +160,35 @@ const Dashboard = () => {
       </Box>
 
       <ProductsList searchTerm={productSearchTerm} />
+
+      <Typography variant="h5" sx={{ fontWeight: "bold", mt: 6, mb: 2 }}>
+        Public Holidays
+      </Typography>
+      <Box
+        sx={{
+          mb: 3,
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", md: "center" },
+          gap: 2,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: { md: "400px" } }}>
+          <HolidaySearchBar
+            handleSearchChange={(e) => setHolidaySearchTerm(e.target.value)}
+          />
+        </Box>
+        <Button
+          sx={{ width: { xs: "100%", md: "auto" } }}
+          variant="contained"
+          onClick={() => navigate("/dashboard/holiday")}
+          startIcon={<AddIcon />}
+        >
+          Add Holiday
+        </Button>
+      </Box>
+      <HolidaysList searchTerm={holidaySearchTerm} />
     </Box>
   );
 };
