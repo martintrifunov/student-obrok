@@ -51,12 +51,22 @@ export class MarketRepository {
     return MarketModel.find({ chain: chainId }).exec();
   }
 
-  async findAllForReport() {
-    return MarketModel.find()
-      .populate({
-        path: "chain",
-        populate: { path: "image", select: "title filename" },
-      })
+  async findAllForReport({ chainId, marketId, from, to } = {}) {
+    const query = {};
+    if (chainId) query.chain = chainId;
+    if (marketId) query._id = marketId;
+    if (from || to) {
+      query.lastScrapedUpdate = {};
+      if (from) query.lastScrapedUpdate.$gte = new Date(from);
+      if (to) {
+        const endOfDay = new Date(to);
+        endOfDay.setUTCHours(23, 59, 59, 999);
+        query.lastScrapedUpdate.$lte = endOfDay;
+      }
+    }
+
+    return MarketModel.find(query)
+      .populate({ path: "chain", select: "name" })
       .populate({
         path: "marketProducts",
         populate: { path: "product" },

@@ -43,3 +43,6 @@ data/certbot/*
 #File uploads
 apps/server/src/uploads/*
 !apps/server/src/uploads/.gitkeep
+
+#Generated reports
+apps/server/src/data/reports/*

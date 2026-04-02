@@ -136,20 +136,36 @@ export function useAISearch({ q, marketId, page = 1, limit = 10 }, options = {})
 export const smartSearchKeys = {
   all: ["smart-search"],
   query: (params) => [...smartSearchKeys.all, params],
+  budget: () => [...smartSearchKeys.all, "budget"],
 };
 
-export function useSmartSearch({ q, lat, lon }, options = {}) {
+export function useSmartSearchBudget(options = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: smartSearchKeys.query({ q, lat, lon }),
+    queryKey: smartSearchKeys.budget(),
+    queryFn: async () => {
+      const response = await axiosPrivate.get("/smart-search/budget");
+      return response.data;
+    },
+    enabled: options.enabled ?? true,
+    refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
+  });
+}
+
+export function useSmartSearch({ q, lat, lon, budgetOnly }, options = {}) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: smartSearchKeys.query({ q, lat, lon, budgetOnly }),
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append("q", q);
       if (lat != null) params.append("lat", lat);
       if (lon != null) params.append("lon", lon);
+      if (budgetOnly) params.append("budgetOnly", "true");
       const response = await axiosPrivate.get(`/smart-search?${params.toString()}`);
       return response.data;
     },
     enabled: !!q && (options.enabled ?? true),
+    refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
   });
 }

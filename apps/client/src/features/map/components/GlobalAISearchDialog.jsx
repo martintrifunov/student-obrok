@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -17,6 +17,8 @@ import {
   Tabs,
   Tab,
   Divider,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -31,6 +33,7 @@ import { BASE_URL } from "@/api/consts";
 import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
   useAISearch,
+  useSmartSearchBudget,
   useSmartSearch,
 } from "@/features/products/hooks/useProductQueries";
 import useFeatureFlag from "@/hooks/useFeatureFlag";
@@ -40,6 +43,8 @@ const formatDistance = (meters) => {
   if (meters < 1000) return `${meters}m`;
   return `${(meters / 1000).toFixed(1)} km`;
 };
+
+const CRIMSON = "#DC143C";
 
 const GlobalAISearchDialog = ({
   open,
@@ -58,31 +63,54 @@ const GlobalAISearchDialog = ({
   const [page, setPage] = useState(1);
   const [smartInput, setSmartInput] = useState("");
   const [smartDebouncedQuery, setSmartDebouncedQuery] = useState("");
+  const [smartSearchLocation, setSmartSearchLocation] = useState(null);
+  const [budgetOnly, setBudgetOnly] = useState(false);
+  const userLocationRef = useRef(userLocation);
+
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
+
+  const isSmartTabActive = smartSearchEnabled && tab === 0;
+  const isRegularTabActive = smartSearchEnabled ? tab === 1 : tab === 0;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (tab === 0) {
+      if (isRegularTabActive) {
         setDebouncedQuery(searchInput);
         setPage(1);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchInput, tab]);
+  }, [isRegularTabActive, searchInput]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (tab === 1) {
-        setSmartDebouncedQuery(smartInput);
+      if (isSmartTabActive) {
+        const normalizedQuery = smartInput.trim();
+        setSmartDebouncedQuery(normalizedQuery);
+
+        const loc = userLocationRef.current;
+        if (normalizedQuery && loc?.length === 2) {
+          setSmartSearchLocation({
+            lat: Number(loc[1].toFixed(4)),
+            lon: Number(loc[0].toFixed(4)),
+          });
+        } else {
+          setSmartSearchLocation(null);
+        }
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [smartInput, tab]);
+  }, [isSmartTabActive, smartInput]);
 
   const handleExplicitClose = useCallback(() => {
     setSearchInput("");
     setSmartInput("");
     setDebouncedQuery("");
     setSmartDebouncedQuery("");
+    setSmartSearchLocation(null);
+    setBudgetOnly(false);
     setPage(1);
     setTab(0);
     onClose();
@@ -107,7 +135,7 @@ const GlobalAISearchDialog = ({
 
   const { data, isLoading } = useAISearch(
     { q: debouncedQuery, page, limit: 10 },
-    { enabled: open && tab === 0 && !!debouncedQuery },
+    { enabled: open && isRegularTabActive && !!debouncedQuery },
   );
 
   const results = data?.data || [];
@@ -117,11 +145,16 @@ const GlobalAISearchDialog = ({
   const { data: smartData, isLoading: smartLoading } = useSmartSearch(
     {
       q: smartDebouncedQuery,
-      lat: userLocation?.[1],
-      lon: userLocation?.[0],
+      lat: smartSearchLocation?.lat,
+      lon: smartSearchLocation?.lon,
+      budgetOnly,
     },
-    { enabled: open && tab === 1 && !!smartDebouncedQuery },
+    { enabled: open && isSmartTabActive && !!smartDebouncedQuery },
   );
+
+  const { data: smartBudgetData } = useSmartSearchBudget({
+    enabled: open && isSmartTabActive,
+  });
 
   const handleMarketChipClick = useCallback(
     (e, market, productTitle) => {
@@ -188,8 +221,8 @@ const GlobalAISearchDialog = ({
           variant="fullWidth"
           sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
         >
+          <Tab label="Оброк" icon={<ShoppingCartIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
           <Tab label="Пребарување" icon={<AutoAwesomeIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
-          <Tab label="Паметно" icon={<ShoppingCartIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
         </Tabs>
       )}
 
@@ -203,7 +236,7 @@ const GlobalAISearchDialog = ({
             theme.palette.mode === "dark" ? "background.default" : "grey.50",
         }}
       >
-        {tab === 0 && (
+        {isRegularTabActive && (
           <>
             <Box
               sx={{
@@ -401,7 +434,7 @@ const GlobalAISearchDialog = ({
           </>
         )}
 
-        {tab === 1 && (
+        {isSmartTabActive && (
           <>
             <Box
               sx={{
@@ -414,7 +447,7 @@ const GlobalAISearchDialog = ({
                 size="small"
                 fullWidth
                 autoFocus
-                placeholder="Опиши што сакаш да јадеш..."
+                placeholder="Внеси оброк што ти се јаде..."
                 value={smartInput}
                 onChange={(e) => setSmartInput(e.target.value)}
                 InputProps={{
@@ -422,6 +455,38 @@ const GlobalAISearchDialog = ({
                     <ShoppingCartIcon color="primary" sx={{ mr: 1 }} />
                   ),
                 }}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                backgroundColor: theme.palette.action.hover,
+                borderBottom: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Typography variant="body2" fontWeight="bold">
+                Буџет за оброк:{" "}
+                {smartBudgetData?.data?.weeklyBudget != null
+                  ? `${smartBudgetData.data.weeklyBudget} ден.`
+                  : "—"}
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={budgetOnly}
+                    onChange={(e) => setBudgetOnly(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="caption">Само во буџет</Typography>
+                }
+                sx={{ mr: 0 }}
               />
             </Box>
 
@@ -433,8 +498,8 @@ const GlobalAISearchDialog = ({
                   py={4}
                   variant="body2"
                 >
-                  Опишете што сакате да јадете и ќе ви ги најдеме најевтините
-                  состојки во најблискиот маркет.
+                  Внеси оброк, а ние ќе ги најдеме потребните состојки и каде
+                  се најисплатливи.
                 </Typography>
               ) : smartLoading ? (
                 <Box
@@ -447,8 +512,11 @@ const GlobalAISearchDialog = ({
                 </Box>
               ) : smartData?.redirect ? (
                 <Typography textAlign="center" color="text.secondary" py={4}>
-                  Ова е едноставно пребарување. Користете го табот
-                  &quot;Пребарување&quot;.
+                  Не успеавме да го разложиме пребарувањето во јасна листа на
+                  состојки.
+                  <br />
+                  Обиди се со поконкретен оброк (пример: „палачинки“,
+                  „шопска салата“) или користи го табот &quot;Пребарување&quot;.
                 </Typography>
               ) : !smartData?.data ? (
                 <Typography textAlign="center" color="text.secondary" py={4}>
@@ -582,6 +650,17 @@ const GlobalAISearchDialog = ({
                                 color="primary"
                                 sx={{ borderRadius: 1 }}
                               />
+                              {entry.overBudgetAmount > 0 && (
+                                <Chip
+                                  label={`Доплата: ${entry.overBudgetAmount} ден.`}
+                                  size="small"
+                                  sx={{
+                                    borderRadius: 1,
+                                    backgroundColor: CRIMSON,
+                                    color: "#fff",
+                                  }}
+                                />
+                              )}
                             </Box>
 
                             <Box
@@ -600,10 +679,17 @@ const GlobalAISearchDialog = ({
                                     alignItems: "center",
                                   }}
                                 >
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ color: prod.overflow ? CRIMSON : "text.secondary" }}
+                                  >
                                     {prod.title}
                                   </Typography>
-                                  <Typography variant="body2" fontWeight="bold">
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight="bold"
+                                    sx={{ color: prod.overflow ? CRIMSON : "inherit" }}
+                                  >
                                     {prod.price} ден.
                                   </Typography>
                                 </Box>
@@ -619,6 +705,12 @@ const GlobalAISearchDialog = ({
             </Box>
           </>
         )}
+
+        <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
+          <Typography variant="caption" sx={{ color: "text.disabled" }}>
+            Внимание: AI може да направи грешки. Проверете ги состојките пред купување.
+          </Typography>
+        </Box>
       </DialogContent>
     </Dialog>
   );

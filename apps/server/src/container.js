@@ -25,6 +25,12 @@ import { SearchController } from "./modules/search/search.controller.js";
 import { IntentParserService } from "./modules/search/intent-parser.service.js";
 import { SmartSearchService } from "./modules/search/smart-search.service.js";
 import { SmartSearchController } from "./modules/search/smart-search.controller.js";
+import { PublicHolidayRepository } from "./modules/public-holiday/public-holiday.repository.js";
+import { PublicHolidayService } from "./modules/public-holiday/public-holiday.service.js";
+import { PublicHolidayController } from "./modules/public-holiday/public-holiday.controller.js";
+import { ReportJobRepository } from "./modules/report/report-job.repository.js";
+import { ReportService } from "./modules/report/report.service.js";
+import { ReportController } from "./modules/report/report.controller.js";
 
 import { AuthController } from "./modules/auth/auth.controller.js";
 import { ImageController } from "./modules/image/image.controller.js";
@@ -79,10 +85,17 @@ const searchService = new SearchService(
   intentParserService,
 );
 
+const publicHolidayRepository = new PublicHolidayRepository();
+const publicHolidayService = new PublicHolidayService(publicHolidayRepository);
+
+const reportJobRepository = new ReportJobRepository();
+const reportService = new ReportService(reportJobRepository, marketRepository);
+
 const smartSearchService = new SmartSearchService(
   intentParserService,
   searchService,
   featureFlagService,
+  publicHolidayService,
 );
 
 export const scraperService = new ScraperService(
@@ -105,4 +118,6 @@ export const marketController = new MarketController(marketService);
 export const featureFlagController = new FeatureFlagController(featureFlagService);
 export const searchController = new SearchController(searchService);
 export const smartSearchController = new SmartSearchController(smartSearchService);
+export const publicHolidayController = new PublicHolidayController(publicHolidayService);
+export const reportController = new ReportController(reportService);
 export { featureFlagService, embeddingService, productEmbeddingRepository, marketProductRepository };

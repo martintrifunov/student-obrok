@@ -1,14 +1,29 @@
 import { haversineDistance } from "../../shared/utils/haversine.js";
-import { MarketModel } from "../market/market.model.js";
+import { calculateWeeklyBudget } from "../../shared/utils/obrokBudget.js";
 
 export class SmartSearchService {
-  constructor(intentParserService, searchService, featureFlagService) {
+  constructor(intentParserService, searchService, featureFlagService, publicHolidayService) {
     this.intentParserService = intentParserService;
     this.searchService = searchService;
     this.featureFlagService = featureFlagService;
+    this.publicHolidayService = publicHolidayService;
   }
 
-  async search({ q, lat, lon }) {
+  async getBudget() {
+    const budget = await this.#computeBudget();
+    return {
+      data: {
+        weeklyBudget: budget.weeklyBudget,
+        budgetInfo: {
+          workDays: budget.budgetInfo.workDays,
+          holidays: budget.budgetInfo.holidays,
+          segments: budget.budgetInfo.segments,
+        },
+      },
+    };
+  }
+
+  async search({ q, lat, lon, budgetOnly }) {
     const isEnabled = await this.featureFlagService.isEnabled("smart-search");
     if (!isEnabled) {
       return { data: null, error: "Smart search is not enabled." };
@@ -112,9 +127,26 @@ export class SmartSearchService {
       };
     });
 
-    // Sort: complete first → distance ascending → total price ascending
+    const { weeklyBudget, budgetInfo } = await this.#computeBudget();
+
+    // Add budget fields to each market
+    for (const m of rankedMarkets) {
+      m.withinBudget = m.totalPrice <= weeklyBudget;
+      m.overBudgetAmount = m.totalPrice > weeklyBudget
+        ? m.totalPrice - weeklyBudget
+        : 0;
+
+      let runningTotal = 0;
+      for (const p of m.products) {
+        runningTotal += p.price;
+        p.overflow = runningTotal > weeklyBudget;
+      }
+    }
+
+    // Sort: complete first → within-budget first → matchCount → distance → price
     rankedMarkets.sort((a, b) => {
       if (a.complete !== b.complete) return a.complete ? -1 : 1;
+      if (a.withinBudget !== b.withinBudget) return a.withinBudget ? -1 : 1;
       if (a.matchCount !== b.matchCount) return b.matchCount - a.matchCount;
       if (a.distance !== null && b.distance !== null) {
         if (a.distance !== b.distance) return a.distance - b.distance;
@@ -122,19 +154,56 @@ export class SmartSearchService {
       return a.totalPrice - b.totalPrice;
     });
 
+    // Filter to within-budget only if requested
+    const filteredMarkets = budgetOnly
+      ? rankedMarkets.filter((m) => m.withinBudget)
+      : rankedMarkets;
+
     // Find the nearest complete-match market for routing suggestion
     const nearestComplete =
       hasUserLocation &&
-      rankedMarkets.find((m) => m.complete && m.distance !== null);
+      filteredMarkets.find((m) => m.complete && m.distance !== null);
 
     return {
       data: {
         shoppingList,
-        markets: rankedMarkets.slice(0, 20),
+        markets: filteredMarkets.slice(0, 20),
         nearestMarket: nearestComplete || null,
         query: q,
         priceSort: intent.priceSort || "asc",
+        weeklyBudget,
+        budgetInfo: {
+          workDays: budgetInfo.workDays,
+          holidays: budgetInfo.holidays,
+          segments: budgetInfo.segments,
+        },
       },
+    };
+  }
+
+  #getMondayOfWeek(date) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const dow = d.getDay() === 0 ? 7 : d.getDay();
+    d.setDate(d.getDate() - (dow - 1));
+    return d;
+  }
+
+  async #computeBudget() {
+    const now = new Date();
+    const monday = this.#getMondayOfWeek(now);
+    const saturday = new Date(monday);
+    saturday.setDate(saturday.getDate() + 5);
+
+    let holidayDates = [];
+    if (this.publicHolidayService) {
+      const holidays = await this.publicHolidayService.getHolidaysByDateRange(monday, saturday);
+      holidayDates = holidays.map((h) => h.date);
+    }
+
+    const budgetInfo = calculateWeeklyBudget(now, holidayDates);
+    return {
+      weeklyBudget: budgetInfo.budget,
+      budgetInfo,
     };
   }
 }
