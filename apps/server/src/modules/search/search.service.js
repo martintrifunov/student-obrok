@@ -40,14 +40,16 @@ export class SearchService {
     productEmbeddingRepository,
     featureFlagService,
     intentParserService,
+    analyticsService = null,
   ) {
     this.embeddingService = embeddingService;
     this.productEmbeddingRepository = productEmbeddingRepository;
     this.featureFlagService = featureFlagService;
     this.intentParserService = intentParserService;
+    this.analyticsService = analyticsService;
   }
 
-  async search({ q, marketId, page = 1, limit = 10 }) {
+  async search({ q, marketId, page = 1, limit = 10, analytics = null }) {
     const isEnabled = await this.featureFlagService.isEnabled("ai-search");
     if (!isEnabled) {
       return { data: [], pagination: buildPaginationMeta({ total: 0, page, limit }), priceSort: null };
@@ -59,6 +61,13 @@ export class SearchService {
       : { searchTerms: q, priceSort: null, intent: "search", products: [] };
 
     const searchQuery = intent.searchTerms || q;
+
+    await this.analyticsService?.trackFeatureUsage({
+      visitorId: analytics?.visitorId,
+      userId: analytics?.userId,
+      feature: "hybrid-search",
+      path: analytics?.path,
+    });
 
     const [vectorResults, keywordResults] = await Promise.all([
       this.#vectorSearch(searchQuery, marketId),
