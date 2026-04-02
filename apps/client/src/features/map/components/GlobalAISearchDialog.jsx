@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -63,7 +63,13 @@ const GlobalAISearchDialog = ({
   const [page, setPage] = useState(1);
   const [smartInput, setSmartInput] = useState("");
   const [smartDebouncedQuery, setSmartDebouncedQuery] = useState("");
+  const [smartSearchLocation, setSmartSearchLocation] = useState(null);
   const [budgetOnly, setBudgetOnly] = useState(false);
+  const userLocationRef = useRef(userLocation);
+
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
 
   const isSmartTabActive = smartSearchEnabled && tab === 0;
   const isRegularTabActive = smartSearchEnabled ? tab === 1 : tab === 0;
@@ -81,7 +87,18 @@ const GlobalAISearchDialog = ({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isSmartTabActive) {
-        setSmartDebouncedQuery(smartInput);
+        const normalizedQuery = smartInput.trim();
+        setSmartDebouncedQuery(normalizedQuery);
+
+        const loc = userLocationRef.current;
+        if (normalizedQuery && loc?.length === 2) {
+          setSmartSearchLocation({
+            lat: Number(loc[1].toFixed(4)),
+            lon: Number(loc[0].toFixed(4)),
+          });
+        } else {
+          setSmartSearchLocation(null);
+        }
       }
     }, 700);
     return () => clearTimeout(timer);
@@ -92,6 +109,8 @@ const GlobalAISearchDialog = ({
     setSmartInput("");
     setDebouncedQuery("");
     setSmartDebouncedQuery("");
+    setSmartSearchLocation(null);
+    setBudgetOnly(false);
     setPage(1);
     setTab(0);
     onClose();
@@ -126,17 +145,16 @@ const GlobalAISearchDialog = ({
   const { data: smartData, isLoading: smartLoading } = useSmartSearch(
     {
       q: smartDebouncedQuery,
-      lat: userLocation?.[1],
-      lon: userLocation?.[0],
+      lat: smartSearchLocation?.lat,
+      lon: smartSearchLocation?.lon,
       budgetOnly,
     },
     { enabled: open && isSmartTabActive && !!smartDebouncedQuery },
   );
 
-  const { data: smartBudgetData } = useSmartSearchBudget(
-    { budgetOnly },
-    { enabled: open && isSmartTabActive },
-  );
+  const { data: smartBudgetData } = useSmartSearchBudget({
+    enabled: open && isSmartTabActive,
+  });
 
   const handleMarketChipClick = useCallback(
     (e, market, productTitle) => {
@@ -687,6 +705,12 @@ const GlobalAISearchDialog = ({
             </Box>
           </>
         )}
+
+        <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
+          <Typography variant="caption" sx={{ color: "text.disabled" }}>
+            Внимание: AI може да направи грешки. Проверете ги состојките пред купување.
+          </Typography>
+        </Box>
       </DialogContent>
     </Dialog>
   );

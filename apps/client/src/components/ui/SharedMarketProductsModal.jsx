@@ -195,6 +195,7 @@ const SharedMarketProductsModal = ({
             </Box>
           </Box>
         )}
+
         <Box
           sx={{
             p: 2,
@@ -441,6 +442,14 @@ const SharedMarketProductsModal = ({
               size={isMobile ? "small" : "medium"}
               siblingCount={isMobile ? 0 : 1}
             />
+          </Box>
+        )}
+
+        {aiSearchEnabled && (
+          <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
+            <Typography variant="caption" sx={{ color: "text.disabled" }}>
+              Внимание: AI може да направи грешки. Проверете ги состојките пред купување.
+            </Typography>
           </Box>
         )}
       </DialogContent>

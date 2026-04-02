@@ -136,20 +136,19 @@ export function useAISearch({ q, marketId, page = 1, limit = 10 }, options = {})
 export const smartSearchKeys = {
   all: ["smart-search"],
   query: (params) => [...smartSearchKeys.all, params],
-  budget: (params) => [...smartSearchKeys.all, "budget", params],
+  budget: () => [...smartSearchKeys.all, "budget"],
 };
 
-export function useSmartSearchBudget({ budgetOnly }, options = {}) {
+export function useSmartSearchBudget(options = {}) {
   const axiosPrivate = useAxiosPrivate();
   return useQuery({
-    queryKey: smartSearchKeys.budget({ budgetOnly }),
+    queryKey: smartSearchKeys.budget(),
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (budgetOnly) params.append("budgetOnly", "true");
-      const response = await axiosPrivate.get(`/smart-search/budget?${params.toString()}`);
+      const response = await axiosPrivate.get("/smart-search/budget");
       return response.data;
     },
     enabled: options.enabled ?? true,
+    refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
   });
 }
 
@@ -167,5 +166,6 @@ export function useSmartSearch({ q, lat, lon, budgetOnly }, options = {}) {
       return response.data;
     },
     enabled: !!q && (options.enabled ?? true),
+    refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
   });
 }

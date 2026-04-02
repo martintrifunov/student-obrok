@@ -4,7 +4,7 @@ export class SmartSearchController {
   }
 
   getBudget = async (req, res) => {
-    const result = await this.smartSearchService.getBudget(req.query);
+    const result = await this.smartSearchService.getBudget();
     res.status(200).json(result);
   };
 

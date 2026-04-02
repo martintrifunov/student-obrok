@@ -8,5 +8,4 @@ export const smartSearchQuerySchema = z.object({
 });
 
 export const smartSearchBudgetQuerySchema = z.object({
-  budgetOnly: z.coerce.boolean().default(false),
 });
