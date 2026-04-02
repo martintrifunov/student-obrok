@@ -136,7 +136,22 @@ export function useAISearch({ q, marketId, page = 1, limit = 10 }, options = {})
 export const smartSearchKeys = {
   all: ["smart-search"],
   query: (params) => [...smartSearchKeys.all, params],
+  budget: (params) => [...smartSearchKeys.all, "budget", params],
 };
+
+export function useSmartSearchBudget({ budgetOnly }, options = {}) {
+  const axiosPrivate = useAxiosPrivate();
+  return useQuery({
+    queryKey: smartSearchKeys.budget({ budgetOnly }),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (budgetOnly) params.append("budgetOnly", "true");
+      const response = await axiosPrivate.get(`/smart-search/budget?${params.toString()}`);
+      return response.data;
+    },
+    enabled: options.enabled ?? true,
+  });
+}
 
 export function useSmartSearch({ q, lat, lon, budgetOnly }, options = {}) {
   const axiosPrivate = useAxiosPrivate();

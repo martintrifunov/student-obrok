@@ -6,3 +6,7 @@ export const smartSearchQuerySchema = z.object({
   lon: z.coerce.number().min(-180).max(180).optional(),
   budgetOnly: z.coerce.boolean().default(false),
 });
+
+export const smartSearchBudgetQuerySchema = z.object({
+  budgetOnly: z.coerce.boolean().default(false),
+});

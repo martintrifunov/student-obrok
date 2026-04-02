@@ -9,6 +9,20 @@ export class SmartSearchService {
     this.publicHolidayService = publicHolidayService;
   }
 
+  async getBudget() {
+    const budget = await this.#computeBudget();
+    return {
+      data: {
+        weeklyBudget: budget.weeklyBudget,
+        budgetInfo: {
+          workDays: budget.budgetInfo.workDays,
+          holidays: budget.budgetInfo.holidays,
+          segments: budget.budgetInfo.segments,
+        },
+      },
+    };
+  }
+
   async search({ q, lat, lon, budgetOnly }) {
     const isEnabled = await this.featureFlagService.isEnabled("smart-search");
     if (!isEnabled) {
@@ -113,20 +127,7 @@ export class SmartSearchService {
       };
     });
 
-    // Compute weekly obrok budget
-    const now = new Date();
-    const monday = this.#getMondayOfWeek(now);
-    const saturday = new Date(monday);
-    saturday.setDate(saturday.getDate() + 5);
-
-    let holidayDates = [];
-    if (this.publicHolidayService) {
-      const holidays = await this.publicHolidayService.getHolidaysByDateRange(monday, saturday);
-      holidayDates = holidays.map((h) => h.date);
-    }
-
-    const budgetInfo = calculateWeeklyBudget(now, holidayDates);
-    const weeklyBudget = budgetInfo.budget;
+    const { weeklyBudget, budgetInfo } = await this.#computeBudget();
 
     // Add budget fields to each market
     for (const m of rankedMarkets) {
@@ -185,5 +186,24 @@ export class SmartSearchService {
     const dow = d.getDay() === 0 ? 7 : d.getDay();
     d.setDate(d.getDate() - (dow - 1));
     return d;
+  }
+
+  async #computeBudget() {
+    const now = new Date();
+    const monday = this.#getMondayOfWeek(now);
+    const saturday = new Date(monday);
+    saturday.setDate(saturday.getDate() + 5);
+
+    let holidayDates = [];
+    if (this.publicHolidayService) {
+      const holidays = await this.publicHolidayService.getHolidaysByDateRange(monday, saturday);
+      holidayDates = holidays.map((h) => h.date);
+    }
+
+    const budgetInfo = calculateWeeklyBudget(now, holidayDates);
+    return {
+      weeklyBudget: budgetInfo.budget,
+      budgetInfo,
+    };
   }
 }

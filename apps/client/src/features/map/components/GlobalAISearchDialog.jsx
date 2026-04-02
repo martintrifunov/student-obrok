@@ -33,6 +33,7 @@ import { BASE_URL } from "@/api/consts";
 import getCategoryIcon from "@/components/ui/categoryIcons";
 import {
   useAISearch,
+  useSmartSearchBudget,
   useSmartSearch,
 } from "@/features/products/hooks/useProductQueries";
 import useFeatureFlag from "@/hooks/useFeatureFlag";
@@ -130,6 +131,11 @@ const GlobalAISearchDialog = ({
       budgetOnly,
     },
     { enabled: open && isSmartTabActive && !!smartDebouncedQuery },
+  );
+
+  const { data: smartBudgetData } = useSmartSearchBudget(
+    { budgetOnly },
+    { enabled: open && isSmartTabActive },
   );
 
   const handleMarketChipClick = useCallback(
@@ -447,8 +453,8 @@ const GlobalAISearchDialog = ({
             >
               <Typography variant="body2" fontWeight="bold">
                 Буџет за оброк:{" "}
-                {smartData?.data?.weeklyBudget != null
-                  ? `${smartData.data.weeklyBudget} ден.`
+                {smartBudgetData?.data?.weeklyBudget != null
+                  ? `${smartBudgetData.data.weeklyBudget} ден.`
                   : "—"}
               </Typography>
               <FormControlLabel
