@@ -106,16 +106,47 @@ const TermsAndPrivacyModal = ({ open, onAccept }) => {
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
             <strong>2. Колачиња (Cookies) и Local Storage:</strong> Ние
-            користиме технологии како Local Storage исклучиво за функционални
-            потреби на апликацијата (како на пример, зачувување на изборот за
-            темна/светла тема и памтење дека сте ги прифатиле овие услови), со
-            цел да ви овозможиме подобро корисничко искуство.
+            користиме Local Storage за функционални потреби (зачувување на
+            изборот за темна/светла тема и памтење дека сте ги прифатиле овие
+            услови). Покрај тоа, нашиот сервер поставува колаче{" "}
+            <strong>obrok_vid</strong> — анонимен, траен идентификатор за
+            посетители (важност: 1 година). Ова колаче е{" "}
+            <strong>httpOnly</strong> (не е достапно преку JavaScript) и{" "}
+            <strong>не содржи лични податоци</strong>. Се користи исклучиво за
+            следење на бројот на уникатни посети со цел подобрување на
+            апликацијата.{" "}
+            <em>
+              (In addition to Local Storage, our server sets an{" "}
+              <strong>obrok_vid</strong> httpOnly analytics cookie — a random
+              anonymous visitor identifier, valid for 1 year — used solely to
+              count unique visits.)
+            </em>
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            <strong>3. Аналитика:</strong> Може да собираме анонимизирани
-            податоци за посетеноста исклучиво со цел подобрување на стабилноста
-            на апликацијата. Не собираме податоци кои можат лично да ве
-            идентификуваат (PII).
+            <strong>3. Аналитика:</strong> Собираме технички податоци за
+            употребата на апликацијата со цел подобрување на нејзината
+            стабилност и перформанси. Конкретно:{" "}
+            <strong>
+              (а) прегледи на страници и навигациски настани; (б) сигнали за
+              активност на секои 60 секунди додека апликацијата е отворена; (в)
+              употреба на функциите за пребарување (паметно пребарување и
+              хибридно пребарување).
+            </strong>{" "}
+            За секоја сесија на посетители, серверот привремено зачувува{" "}
+            <strong>IP адреса</strong> и <strong>User-Agent</strong> ниска
+            исклучиво за безбедносни цели и проверка на исправноста на
+            системот. Суровите настани се бришат по <strong>90 дена</strong>;
+            месечни агрегирани статистики (само бројки, без лична идентификација)
+            се чуваат подолгорочно. Пристап до детални извештаи имаат само
+            администраторите.{" "}
+            <em>
+              (We collect page views, 60 s activity heartbeats, and
+              smart/hybrid-search usage events. Each visitor session temporarily
+              stores an IP address and User-Agent string for security and
+              reliability checks only. Raw events are deleted after 90 days;
+              anonymous monthly aggregates are retained longer. Detailed reports
+              are accessible only to administrators.)
+            </em>
           </Typography>
         </Box>
       </DialogContent>

@@ -8,6 +8,7 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import EventIcon from "@mui/icons-material/Event";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import InsightsIcon from "@mui/icons-material/Insights";
 import TuneIcon from "@mui/icons-material/Tune";
 
 const SECTIONS = [
@@ -16,6 +17,7 @@ const SECTIONS = [
   { label: "Products", path: "/dashboard/products", prefix: "/dashboard/product", icon: <Inventory2Icon /> },
   { label: "Holidays", path: "/dashboard/holidays", prefix: "/dashboard/holiday", icon: <EventIcon /> },
   { label: "Reports", path: "/dashboard/reporting", prefix: "/dashboard/reporting", icon: <AssessmentIcon /> },
+  { label: "Insights", path: "/dashboard/insights", prefix: "/dashboard/insights", icon: <InsightsIcon /> },
   { label: "Features", path: "/dashboard/features", prefix: "/dashboard/features", icon: <TuneIcon /> },
 ];
 

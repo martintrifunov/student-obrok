@@ -31,6 +31,9 @@ import { PublicHolidayController } from "./modules/public-holiday/public-holiday
 import { ReportJobRepository } from "./modules/report/report-job.repository.js";
 import { ReportService } from "./modules/report/report.service.js";
 import { ReportController } from "./modules/report/report.controller.js";
+import { AnalyticsRepository } from "./modules/analytics/analytics.repository.js";
+import { AnalyticsService } from "./modules/analytics/analytics.service.js";
+import { AnalyticsController } from "./modules/analytics/analytics.controller.js";
 
 import { AuthController } from "./modules/auth/auth.controller.js";
 import { ImageController } from "./modules/image/image.controller.js";
@@ -75,6 +78,8 @@ const geocoderService = new GeocoderService();
 const featureFlagService = new FeatureFlagService(featureFlagRepository);
 const embeddingService = new EmbeddingService();
 const productEmbeddingRepository = new ProductEmbeddingRepository();
+const analyticsRepository = new AnalyticsRepository();
+const analyticsService = new AnalyticsService(analyticsRepository);
 
 const intentParserService = new IntentParserService();
 
@@ -83,6 +88,7 @@ const searchService = new SearchService(
   productEmbeddingRepository,
   featureFlagService,
   intentParserService,
+  analyticsService,
 );
 
 const publicHolidayRepository = new PublicHolidayRepository();
@@ -96,6 +102,7 @@ const smartSearchService = new SmartSearchService(
   searchService,
   featureFlagService,
   publicHolidayService,
+  analyticsService,
 );
 
 export const scraperService = new ScraperService(
@@ -120,4 +127,11 @@ export const searchController = new SearchController(searchService);
 export const smartSearchController = new SmartSearchController(smartSearchService);
 export const publicHolidayController = new PublicHolidayController(publicHolidayService);
 export const reportController = new ReportController(reportService);
-export { featureFlagService, embeddingService, productEmbeddingRepository, marketProductRepository };
+export const analyticsController = new AnalyticsController(analyticsService);
+export {
+  featureFlagService,
+  embeddingService,
+  productEmbeddingRepository,
+  marketProductRepository,
+  analyticsService,
+};

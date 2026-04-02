@@ -18,10 +18,13 @@ import HolidaysPage from "@/features/dashboard/pages/HolidaysPage";
 import ReportingPage from "@/features/dashboard/pages/ReportingPage";
 import MapPage from "@/features/map/pages/MapPage";
 import FeatureFlagsPage from "@/features/feature-flags/pages/FeatureFlagsPage";
+import InsightsPage from "@/features/insights/pages/InsightsPage";
+import useVisitorHeartbeat from "@/features/insights/hooks/useVisitorHeartbeat";
 import { useFeatureFlagStore } from "@/store/featureFlagStore";
 
 const App = () => {
   const fetchFlags = useFeatureFlagStore((state) => state.fetchFlags);
+  useVisitorHeartbeat();
   useEffect(() => { fetchFlags(); }, [fetchFlags]);
   return (
     <Routes>
@@ -37,6 +40,7 @@ const App = () => {
               <Route path="/dashboard/products" element={<ProductsPage />} />
               <Route path="/dashboard/holidays" element={<HolidaysPage />} />
               <Route path="/dashboard/reporting" element={<ReportingPage />} />
+              <Route path="/dashboard/insights" element={<InsightsPage />} />
               <Route
                 path="/dashboard/features"
                 element={<FeatureFlagsPage />}

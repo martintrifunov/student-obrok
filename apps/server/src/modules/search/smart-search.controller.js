@@ -9,7 +9,14 @@ export class SmartSearchController {
   };
 
   search = async (req, res) => {
-    const result = await this.smartSearchService.search(req.query);
+    const result = await this.smartSearchService.search({
+      ...req.query,
+      analytics: {
+        visitorId: req.visitorId,
+        userId: req.user || null,
+        path: req.originalUrl,
+      },
+    });
     res.status(200).json(result);
   };
 }

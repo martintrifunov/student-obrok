@@ -2,11 +2,12 @@ import { haversineDistance } from "../../shared/utils/haversine.js";
 import { calculateWeeklyBudget } from "../../shared/utils/obrokBudget.js";
 
 export class SmartSearchService {
-  constructor(intentParserService, searchService, featureFlagService, publicHolidayService) {
+  constructor(intentParserService, searchService, featureFlagService, publicHolidayService, analyticsService = null) {
     this.intentParserService = intentParserService;
     this.searchService = searchService;
     this.featureFlagService = featureFlagService;
     this.publicHolidayService = publicHolidayService;
+    this.analyticsService = analyticsService;
   }
 
   async getBudget() {
@@ -23,11 +24,18 @@ export class SmartSearchService {
     };
   }
 
-  async search({ q, lat, lon, budgetOnly }) {
+  async search({ q, lat, lon, budgetOnly, analytics = null }) {
     const isEnabled = await this.featureFlagService.isEnabled("smart-search");
     if (!isEnabled) {
       return { data: null, error: "Smart search is not enabled." };
     }
+
+    await this.analyticsService?.trackFeatureUsage({
+      visitorId: analytics?.visitorId,
+      userId: analytics?.userId,
+      feature: "smart-search",
+      path: analytics?.path,
+    });
 
     if (!this.intentParserService.isAvailable()) {
       return { data: null, error: "AI service is not configured." };
