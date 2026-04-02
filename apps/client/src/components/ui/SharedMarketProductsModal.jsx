@@ -58,6 +58,11 @@ const SharedMarketProductsModal = ({
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const [debouncedCategory, setDebouncedCategory] = useState("");
 
+  const handleAiModeToggle = () => {
+    setAiMode((prev) => !prev);
+    setPage(1);
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedTitle(titleInput);
@@ -100,6 +105,27 @@ const SharedMarketProductsModal = ({
   const isAiActive = aiMode && aiSearchEnabled;
   const data = isAiActive ? aiData : regularData;
   const isLoading = isAiActive ? aiLoading : regularLoading;
+
+  const aiToggleSx = {
+    flexShrink: 0,
+    width: 40,
+    height: 40,
+    borderRadius: 1.5,
+    color: aiMode ? "primary.main" : "text.secondary",
+    backgroundColor: aiMode
+      ? theme.palette.mode === "dark"
+        ? "rgba(144, 202, 249, 0.16)"
+        : "rgba(25, 118, 210, 0.08)"
+      : "transparent",
+    border: `1px solid ${aiMode ? theme.palette.primary.main : theme.palette.divider}`,
+    "&:hover": {
+      backgroundColor: aiMode
+        ? theme.palette.mode === "dark"
+          ? "rgba(144, 202, 249, 0.24)"
+          : "rgba(25, 118, 210, 0.16)"
+        : theme.palette.action.hover,
+    },
+  };
 
   const products = isAiActive
     ? (data?.data || []).map((item) => ({
@@ -202,26 +228,89 @@ const SharedMarketProductsModal = ({
             backgroundColor: "background.paper",
             borderBottom: `1px solid ${theme.palette.divider}`,
             display: "flex",
-            gap: 2,
+            gap: { xs: 1.25, sm: 2 },
             flexDirection: isMobile ? "column" : "row",
             alignItems: isMobile ? "stretch" : "center",
           }}
         >
-          <TextField
-            size="small"
-            fullWidth
-            placeholder={isAiActive ? "AI пребарување..." : "Пребарувај по име..."}
-            value={titleInput}
-            onChange={(e) => setTitleInput(e.target.value)}
-            InputProps={{
-              startAdornment: isAiActive ? (
-                <AutoAwesomeIcon color="primary" sx={{ mr: 1 }} />
-              ) : (
-                <SearchIcon color="action" sx={{ mr: 1 }} />
-              ),
-            }}
-          />
-          {!isAiActive && (
+          {isMobile ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <TextField
+                size="small"
+                fullWidth
+                placeholder={
+                  isAiActive ? "AI пребарување..." : "Пребарувај по име..."
+                }
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                InputProps={{
+                  startAdornment: isAiActive ? (
+                    <AutoAwesomeIcon color="primary" sx={{ mr: 1 }} />
+                  ) : (
+                    <SearchIcon color="action" sx={{ mr: 1 }} />
+                  ),
+                }}
+              />
+              {aiSearchEnabled && (
+                <Tooltip
+                  title={aiMode ? "Исклучи AI пребарување" : "AI пребарување"}
+                >
+                  <IconButton onClick={handleAiModeToggle} sx={aiToggleSx}>
+                    <AutoAwesomeIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+          ) : (
+            <>
+              <TextField
+                size="small"
+                fullWidth
+                placeholder={isAiActive ? "AI пребарување..." : "Пребарувај по име..."}
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                InputProps={{
+                  startAdornment: isAiActive ? (
+                    <AutoAwesomeIcon color="primary" sx={{ mr: 1 }} />
+                  ) : (
+                    <SearchIcon color="action" sx={{ mr: 1 }} />
+                  ),
+                }}
+              />
+              {!isAiActive && (
+                <Autocomplete
+                  options={categoryOptions}
+                  fullWidth
+                  size="small"
+                  value={categoryInput || null}
+                  onChange={(event, newValue) => {
+                    setCategoryInput(newValue || "");
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Филтрирај во категорија..."
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <FilterListIcon color="action" sx={{ ml: 1, mr: 0.5 }} />
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              )}
+              {aiSearchEnabled && (
+                <Tooltip title={aiMode ? "Исклучи AI пребарување" : "AI пребарување"}>
+                  <IconButton onClick={handleAiModeToggle} sx={aiToggleSx}>
+                    <AutoAwesomeIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </>
+          )}
+
+          {isMobile && !isAiActive && (
             <Autocomplete
               options={categoryOptions}
               fullWidth
@@ -243,35 +332,6 @@ const SharedMarketProductsModal = ({
                 />
               )}
             />
-          )}
-          {aiSearchEnabled && (
-            <Tooltip title={aiMode ? "Исклучи AI пребарување" : "AI пребарување"}>
-              <IconButton
-                onClick={() => {
-                  setAiMode(!aiMode);
-                  setPage(1);
-                }}
-                sx={{
-                  flexShrink: 0,
-                  color: aiMode ? "primary.main" : "text.secondary",
-                  backgroundColor: aiMode
-                    ? theme.palette.mode === "dark"
-                      ? "rgba(144, 202, 249, 0.16)"
-                      : "rgba(25, 118, 210, 0.08)"
-                    : "transparent",
-                  border: `1px solid ${aiMode ? theme.palette.primary.main : theme.palette.divider}`,
-                  "&:hover": {
-                    backgroundColor: aiMode
-                      ? theme.palette.mode === "dark"
-                        ? "rgba(144, 202, 249, 0.24)"
-                        : "rgba(25, 118, 210, 0.16)"
-                      : theme.palette.action.hover,
-                  },
-                }}
-              >
-                <AutoAwesomeIcon />
-              </IconButton>
-            </Tooltip>
           )}
         </Box>
 
