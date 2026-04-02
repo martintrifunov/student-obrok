@@ -59,24 +59,27 @@ const GlobalAISearchDialog = ({
   const [smartInput, setSmartInput] = useState("");
   const [smartDebouncedQuery, setSmartDebouncedQuery] = useState("");
 
+  const isSmartTabActive = smartSearchEnabled && tab === 0;
+  const isRegularTabActive = smartSearchEnabled ? tab === 1 : tab === 0;
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (tab === 0) {
+      if (isRegularTabActive) {
         setDebouncedQuery(searchInput);
         setPage(1);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchInput, tab]);
+  }, [isRegularTabActive, searchInput]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (tab === 1) {
+      if (isSmartTabActive) {
         setSmartDebouncedQuery(smartInput);
       }
     }, 700);
     return () => clearTimeout(timer);
-  }, [smartInput, tab]);
+  }, [isSmartTabActive, smartInput]);
 
   const handleExplicitClose = useCallback(() => {
     setSearchInput("");
@@ -107,7 +110,7 @@ const GlobalAISearchDialog = ({
 
   const { data, isLoading } = useAISearch(
     { q: debouncedQuery, page, limit: 10 },
-    { enabled: open && tab === 0 && !!debouncedQuery },
+    { enabled: open && isRegularTabActive && !!debouncedQuery },
   );
 
   const results = data?.data || [];
@@ -120,7 +123,7 @@ const GlobalAISearchDialog = ({
       lat: userLocation?.[1],
       lon: userLocation?.[0],
     },
-    { enabled: open && tab === 1 && !!smartDebouncedQuery },
+    { enabled: open && isSmartTabActive && !!smartDebouncedQuery },
   );
 
   const handleMarketChipClick = useCallback(
@@ -188,8 +191,8 @@ const GlobalAISearchDialog = ({
           variant="fullWidth"
           sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}
         >
+          <Tab label="Оброк" icon={<ShoppingCartIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
           <Tab label="Пребарување" icon={<AutoAwesomeIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
-          <Tab label="Паметно" icon={<ShoppingCartIcon />} iconPosition="start" sx={{ minHeight: 48 }} />
         </Tabs>
       )}
 
@@ -203,7 +206,7 @@ const GlobalAISearchDialog = ({
             theme.palette.mode === "dark" ? "background.default" : "grey.50",
         }}
       >
-        {tab === 0 && (
+        {isRegularTabActive && (
           <>
             <Box
               sx={{
@@ -401,7 +404,7 @@ const GlobalAISearchDialog = ({
           </>
         )}
 
-        {tab === 1 && (
+        {isSmartTabActive && (
           <>
             <Box
               sx={{
@@ -414,7 +417,7 @@ const GlobalAISearchDialog = ({
                 size="small"
                 fullWidth
                 autoFocus
-                placeholder="Опиши што сакаш да јадеш..."
+                placeholder="Внеси оброк што ти се јаде..."
                 value={smartInput}
                 onChange={(e) => setSmartInput(e.target.value)}
                 InputProps={{
@@ -433,8 +436,8 @@ const GlobalAISearchDialog = ({
                   py={4}
                   variant="body2"
                 >
-                  Опишете што сакате да јадете и ќе ви ги најдеме најевтините
-                  состојки во најблискиот маркет.
+                  Внеси оброк, а ние ќе ги најдеме потребните состојки и каде
+                  се најисплатливи.
                 </Typography>
               ) : smartLoading ? (
                 <Box
@@ -447,8 +450,11 @@ const GlobalAISearchDialog = ({
                 </Box>
               ) : smartData?.redirect ? (
                 <Typography textAlign="center" color="text.secondary" py={4}>
-                  Ова е едноставно пребарување. Користете го табот
-                  &quot;Пребарување&quot;.
+                  Не успеавме да го разложиме пребарувањето во јасна листа на
+                  состојки.
+                  <br />
+                  Обиди се со поконкретен оброк (пример: „палачинки“,
+                  „шопска салата“) или користи го табот &quot;Пребарување&quot;.
                 </Typography>
               ) : !smartData?.data ? (
                 <Typography textAlign="center" color="text.secondary" py={4}>
