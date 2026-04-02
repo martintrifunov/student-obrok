@@ -28,9 +28,10 @@ import {
 } from "@/features/public-holidays/hooks/useHolidayQueries";
 
 const HolidaysTableContainer = styled(TableContainer)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius * 2,
+  borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.divider}`,
-  boxShadow: "0px 2px 10px rgba(0,0,0,0.03)",
+  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.02)",
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const formatDate = (dateStr) => {

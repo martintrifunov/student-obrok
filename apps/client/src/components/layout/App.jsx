@@ -11,6 +11,10 @@ import PersistLogin from "@/features/auth/components/PersistLogin";
 import AddOrEditChainForm from "@/features/chains/pages/AddOrEditChainForm";
 import AddOrEditMarketForm from "@/features/markets/pages/AddOrEditMarketForm";
 import AddOrEditHolidayForm from "@/features/public-holidays/pages/AddOrEditHolidayForm";
+import ChainsPage from "@/features/dashboard/pages/ChainsPage";
+import MarketsPage from "@/features/dashboard/pages/MarketsPage";
+import ProductsPage from "@/features/dashboard/pages/ProductsPage";
+import HolidaysPage from "@/features/dashboard/pages/HolidaysPage";
 import MapPage from "@/features/map/pages/MapPage";
 import FeatureFlagsPage from "@/features/feature-flags/pages/FeatureFlagsPage";
 import { useFeatureFlagStore } from "@/store/featureFlagStore";
@@ -27,6 +31,10 @@ const App = () => {
           <Route element={<RequireAuth />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/chains" element={<ChainsPage />} />
+              <Route path="/dashboard/markets" element={<MarketsPage />} />
+              <Route path="/dashboard/products" element={<ProductsPage />} />
+              <Route path="/dashboard/holidays" element={<HolidaysPage />} />
               <Route
                 path="/dashboard/features"
                 element={<FeatureFlagsPage />}
