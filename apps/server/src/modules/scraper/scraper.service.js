@@ -172,7 +172,10 @@ export class ScraperService {
       }
 
       const rawProducts = result.products;
-      if (!rawProducts || !rawProducts.length) return;
+      if (!rawProducts || !rawProducts.length) {
+        console.warn(`[Scraper] ⚠️  [${name}] Returned 0 products.`);
+        return;
+      }
 
       const productsData = rawProducts.map(({ title, category }) => ({
         title,

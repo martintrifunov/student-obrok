@@ -3,7 +3,6 @@ import { BaseScraper } from "./base.scraper.js";
 const CENOVNIK_URL = "https://www.superkitgo.mk/cenovnik.html";
 const MARKETI_URL = "https://www.superkitgo.mk/marketi.html";
 const TABLE_API_BASE = "https://www.superkitgo.mk/table.php";
-const MAX_PRICE = 840;
 const PER_PAGE = 1000;
 const FETCH_TIMEOUT_MS = 60_000;
 
@@ -181,7 +180,7 @@ export class SuperKitGoScraper extends BaseScraper {
 
   /**
    * Extract products from a JSON response page.
-   * Filters: only available (dostapnost === "1") and price <= MAX_PRICE.
+    * Filters: only available (dostapnost === "1") and valid positive prices.
    */
   #extractProducts(products) {
     if (!products?.length) return [];
@@ -192,7 +191,7 @@ export class SuperKitGoScraper extends BaseScraper {
 
       const rawPrice = String(p.prodazna_cena).replace(",", ".").replace(/[^\d.]/g, "");
       const price = parseFloat(rawPrice);
-      if (isNaN(price) || price <= 0 || price > MAX_PRICE) return acc;
+  if (isNaN(price) || price <= 0) return acc;
 
       const title = (p.product_name || "").trim();
       if (!title) return acc;

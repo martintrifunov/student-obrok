@@ -92,7 +92,7 @@ describe("SuperKitGoScraper", () => {
       expect(result.products[0].title).toBe("AVAILABLE");
     });
 
-    it("filters out products exceeding max price", async () => {
+    it("keeps products regardless of upper price range", async () => {
       const apiData = makeApiResponse([
         makeProduct({ product_name: "CHEAP", dostapnost: "1", prodazna_cena: "100.00" }),
         makeProduct({ product_name: "EXPENSIVE", dostapnost: "1", prodazna_cena: "999.00" }),
@@ -104,8 +104,8 @@ describe("SuperKitGoScraper", () => {
       });
 
       const result = await scraper.fetchProducts(null, "https://www.superkitgo.mk/table.php?market=market11", null);
-      expect(result.products).toHaveLength(1);
-      expect(result.products[0].title).toBe("CHEAP");
+      expect(result.products).toHaveLength(2);
+      expect(result.products.map((product) => product.title)).toEqual(["CHEAP", "EXPENSIVE"]);
     });
 
     it("filters out products with zero price", async () => {

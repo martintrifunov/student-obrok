@@ -1,0 +1,246 @@
+import { BaseScraper } from "./base.scraper.js";
+
+const INDEX_URL = "https://kipper.mk/mk/marketet/";
+const NAV_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_NAV_TIMEOUT_MS ?? "90000",
+  10,
+);
+const LOAD_MORE_DELAY_MS = 1200;
+const LOAD_MORE_MAX_CLICKS = 30;
+const AJAX_PAGE_SIZE = 500;
+
+export class KipperScraper extends BaseScraper {
+  get chainName() {
+    return "Kipper";
+  }
+
+  get chainImageKey() {
+    return "kipper";
+  }
+
+  get geocodeSuffix() {
+    return "Македонија";
+  }
+
+  async fetchMarkets(page) {
+    await page.goto(INDEX_URL, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+
+    let previousLinkCount = 0;
+    for (let clickCount = 0; clickCount < LOAD_MORE_MAX_CLICKS; clickCount++) {
+      const currentLinkCount = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("h3 a[href]"))
+          .filter((link) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
+          .length,
+      );
+
+      const clicked = await page.evaluate(() => {
+        const button = Array.from(document.querySelectorAll("a, button, span"))
+          .find((element) => /load more/i.test(element.textContent || ""));
+
+        if (!button) return false;
+
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+        return true;
+      });
+
+      if (!clicked) break;
+
+      await new Promise((resolve) => setTimeout(resolve, LOAD_MORE_DELAY_MS));
+
+      const nextLinkCount = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("h3 a[href]"))
+          .filter((link) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
+          .length,
+      );
+
+      if (nextLinkCount <= currentLinkCount || nextLinkCount === previousLinkCount) {
+        break;
+      }
+
+      previousLinkCount = nextLinkCount;
+    }
+
+    const detailUrls = await page.evaluate(() => {
+      const links = Array.from(document.querySelectorAll("h3 a[href]"))
+        .map((link) => link.href)
+        .filter((href) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(href));
+
+      return Array.from(new Set(links));
+    });
+
+    const markets = [];
+    for (const detailUrl of detailUrls) {
+      await page.goto(detailUrl, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+      await page.waitForFunction(
+        () => /Град:|Адреса:|Општина:/i.test(document.body.innerText),
+        { timeout: 15_000 },
+      ).catch(() => {});
+
+      const market = await page.evaluate(() => {
+        const bodyText = document.body.innerText.replace(/\u00a0/g, " ");
+        const extractField = (label) => {
+          const match = bodyText.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
+          return match ? match[1].trim() : "";
+        };
+
+        const name = document.querySelector("h1")?.textContent?.trim() || "";
+        const city = extractField("Град");
+        const address = extractField("Адреса");
+
+        return {
+          name,
+          address: [address, city].filter(Boolean).join(", "),
+        };
+      });
+
+      if (!market.name) continue;
+
+      markets.push({
+        ...market,
+        pricelistUrl: detailUrl,
+      });
+    }
+
+    return BaseScraper.deduplicateByName(markets);
+  }
+
+  async fetchProducts(page, storeUrl, previousUpdateString) {
+    await page.goto(storeUrl, { waitUntil: "networkidle2", timeout: NAV_TIMEOUT_MS });
+
+    await page.waitForFunction(
+      () => {
+        const hasBootstrapData = !!window.productsData?.post_id;
+        if (hasBootstrapData) return true;
+
+        return /нема податоци|моментално сме под одржување/i.test(document.body.innerText);
+      },
+      { timeout: NAV_TIMEOUT_MS },
+    ).catch(() => {});
+
+    const pageUpdateString = await page.evaluate(() => {
+      const match = document.body.innerText.match(
+        /Датум и време на последно ажурирање на цените:\s*([^\n]+)/i,
+      );
+      return match ? match[1].trim() : null;
+    });
+
+    const pageUpdateDate = this.parseUpdateDate(pageUpdateString);
+    if (previousUpdateString && pageUpdateDate && previousUpdateString.getTime() === pageUpdateDate.getTime()) {
+      return { upToDate: true };
+    }
+
+    const allProducts = await page.evaluate(async (ajaxPageSize) => {
+      const toText = (value) => {
+        if (value === null || value === undefined) return "";
+        if (typeof value === "string") {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = value;
+          return (wrapper.textContent || "").replace(/\s+/g, " ").trim();
+        }
+        return String(value).replace(/\s+/g, " ").trim();
+      };
+
+      const postId = window.productsData?.post_id;
+      if (!postId) return [];
+
+      const buildBody = (start, draw) => {
+        const body = new URLSearchParams();
+        body.set("draw", String(draw));
+
+        const columns = [
+          ["product_name", true, true],
+          ["product_price", true, false],
+          ["product_type_alt", true, false],
+          ["product_subgroup", true, true],
+          ["product_status", true, false],
+          ["product_price_normal", true, true],
+          ["", true, false],
+          ["", true, true],
+          ["", true, false],
+        ];
+
+        columns.forEach(([name, searchable, orderable], idx) => {
+          body.set(`columns[${idx}][data]`, name);
+          body.set(`columns[${idx}][name]`, "");
+          body.set(`columns[${idx}][searchable]`, searchable ? "true" : "false");
+          body.set(`columns[${idx}][orderable]`, orderable ? "true" : "false");
+          body.set(`columns[${idx}][search][value]`, "");
+          body.set(`columns[${idx}][search][regex]`, "false");
+        });
+
+        body.set("order[0][column]", "0");
+        body.set("order[0][dir]", "asc");
+        body.set("order[0][name]", "");
+        body.set("start", String(start));
+        body.set("length", String(ajaxPageSize));
+        body.set("search[value]", "");
+        body.set("search[regex]", "false");
+        body.set("action", "get_products_data");
+        body.set("post_id", String(postId));
+
+        return body;
+      };
+
+      const products = [];
+      let start = 0;
+      let draw = 1;
+      let total = Number.POSITIVE_INFINITY;
+
+      while (start < total) {
+        const res = await fetch("https://kipper.mk/wp-admin/admin-ajax.php", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            Accept: "application/json, text/plain, */*",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: buildBody(start, draw),
+        });
+
+        if (!res.ok) break;
+
+        const payload = await res.json();
+        const rows = Array.isArray(payload.data) ? payload.data : [];
+        total = Number(payload.recordsFiltered || payload.recordsTotal || rows.length);
+
+        if (!rows.length) break;
+
+        for (const row of rows) {
+          const title = toText(row.product_name);
+          if (!title) continue;
+
+          const availability = toText(row.product_status).toUpperCase();
+          if (availability === "НЕ") continue;
+
+          const priceText = toText(row.product_price)
+            .replace(",", ".")
+            .replace(/[^\d.]/g, "");
+          const price = Number.parseFloat(priceText);
+          if (Number.isNaN(price) || price <= 0) continue;
+
+          const category =
+            toText(row.product_subgroup) || toText(row.product_type_alt) || "Општо";
+
+          products.push({ title, price, category });
+        }
+
+        start += rows.length;
+        draw += 1;
+      }
+
+      return products;
+    }, AJAX_PAGE_SIZE);
+
+    const latestByTitle = new Map();
+    for (const product of allProducts) {
+      latestByTitle.set(product.title, product);
+    }
+
+    return {
+      upToDate: false,
+      products: Array.from(latestByTitle.values()),
+      newUpdateDate: pageUpdateDate,
+    };
+  }
+}

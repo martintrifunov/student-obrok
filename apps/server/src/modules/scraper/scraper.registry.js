@@ -3,6 +3,7 @@ import { RamstoreScraper } from "./markets/ramstore.scraper.js";
 import { StokomakScraper } from "./markets/stokomak.scraper.js";
 import { KamScraper } from "./markets/kam.scraper.js";
 import { SuperKitGoScraper } from "./markets/superkitgo.scraper.js";
+import { KipperScraper } from "./markets/kipper.scraper.js";
 
 const SCRAPER_REGISTRY = {
   vero: { create: () => new VeroScraper() },
@@ -10,6 +11,7 @@ const SCRAPER_REGISTRY = {
   stokomak: { create: () => new StokomakScraper() },
   kam: { create: () => new KamScraper() },
   superkitgo: { create: () => new SuperKitGoScraper() },
+  kipper: { create: () => new KipperScraper() },
 };
 
 export const SCRAPER_KEYS = Object.keys(SCRAPER_REGISTRY);

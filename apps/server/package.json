@@ -18,6 +18,7 @@
     "scrape:stokomak": "node src/scripts/scrape.js stokomak",
     "scrape:kam": "node src/scripts/scrape.js kam",
     "scrape:superkitgo": "node src/scripts/scrape.js superkitgo",
+    "scrape:kipper": "node src/scripts/scrape.js kipper",
     "scrape:debug:vero": "node src/scripts/debug-vero.js",
     "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js",
     "coords:populate": "node src/scripts/populate-coordinates.js",
@@ -26,6 +27,7 @@
     "coords:populate:stokomak": "node src/scripts/populate-coordinates.js stokomak",
     "coords:populate:kam": "node src/scripts/populate-coordinates.js kam",
     "coords:populate:superkitgo": "node src/scripts/populate-coordinates.js superkitgo",
+    "coords:populate:kipper": "node src/scripts/populate-coordinates.js kipper",
     "coords:seed": "node src/scripts/seed-coordinates.js",
     "embeddings:generate": "node src/scripts/generate-embeddings.js",
     "embeddings:generate:force": "node src/scripts/generate-embeddings.js --force"

@@ -2,7 +2,6 @@ import { BaseScraper } from "./base.scraper.js";
 import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://stokomak.proverkanaceni.mk/";
-const MAX_PRICE = 840;
 
 export class StokomakScraper extends BaseScraper {
   get chainName() {
@@ -76,7 +75,7 @@ export class StokomakScraper extends BaseScraper {
         isFirstPage = false;
       }
 
-      const pageProducts = await page.evaluate(extractProductsFromTable, MAX_PRICE);
+      const pageProducts = await page.evaluate(extractProductsFromTable);
 
       allProducts.push(...pageProducts);
 

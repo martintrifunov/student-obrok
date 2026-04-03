@@ -2,7 +2,6 @@ import { BaseScraper } from "./base.scraper.js";
 import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://ramstore.com.mk/marketi/";
-const MAX_PRICE = 840;
 const NAV_TIMEOUT_MS = Number.parseInt(
   process.env.SCRAPER_NAV_TIMEOUT_MS ?? "90000",
   10,
@@ -133,7 +132,7 @@ export class RamstoreScraper extends BaseScraper {
     }
 
     // Fast path: read DataTables data directly instead of clicking through pages.
-    const fastPath = await page.evaluate((maxPrice) => {
+    const fastPath = await page.evaluate(() => {
       const table = document.querySelector("table.dataTable, table");
       if (!table) return { supported: false, products: [] };
 
@@ -153,10 +152,10 @@ export class RamstoreScraper extends BaseScraper {
 
       const indexOf = (keywords) =>
         headers.findIndex((h) => keywords.some((k) => h.includes(k)));
-      const colTitle = indexOf(["назив"]);
+      const colTitle = indexOf(["назив", "име на артикал"]);
       const colPrice = indexOf(["продажна цена"]);
       const colCategory = indexOf(["опис на производ", "опис на стока"]);
-      const colAvailable = indexOf(["достапност"]);
+      const colAvailable = indexOf(["достапност во маркет", "достапност"]);
 
       if (colTitle === -1 || colPrice === -1) {
         return { supported: false, products: [] };
@@ -190,7 +189,7 @@ export class RamstoreScraper extends BaseScraper {
           .replace(",", ".")
           .replace(/[^\d.]/g, "");
         const price = Number.parseFloat(rawPrice);
-        if (Number.isNaN(price) || price > maxPrice) continue;
+        if (Number.isNaN(price) || price <= 0) continue;
 
         const title = asText(cells[colTitle]);
         if (!title) continue;
@@ -202,7 +201,7 @@ export class RamstoreScraper extends BaseScraper {
       }
 
       return { supported: true, products };
-    }, MAX_PRICE);
+    });
 
     if (fastPath.supported) {
       // Keep the latest seen price per title to avoid unnecessary duplicate writes.
@@ -235,7 +234,6 @@ export class RamstoreScraper extends BaseScraper {
     while (hasNextPage) {
       const products = await page.evaluate(
         extractProductsFromTable,
-        MAX_PRICE,
         { tableSelector: "table.dataTable, table" },
       );
 
