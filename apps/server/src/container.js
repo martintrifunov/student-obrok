@@ -132,6 +132,7 @@ export {
   featureFlagService,
   embeddingService,
   productEmbeddingRepository,
+  productRepository,
   marketProductRepository,
   analyticsService,
 };

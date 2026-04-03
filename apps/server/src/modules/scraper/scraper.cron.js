@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import { syncProductEmbeddings } from "../search/product-embedding-sync.service.js";
 import { createAllScrapers } from "./scraper.registry.js";
 
 /**
@@ -6,8 +7,18 @@ import { createAllScrapers } from "./scraper.registry.js";
  * Schedule: 03:00 on Monday and Thursday (twice a week).
  *
  * @param {import('./scraper.service.js').ScraperService} scraperService
+ * @param {import('../search/embedding.service.js').EmbeddingService} embeddingService
+ * @param {import('../search/product-embedding.repository.js').ProductEmbeddingRepository} productEmbeddingRepository
+ * @param {import('../product/product.repository.js').ProductRepository} productRepository
+ * @param {import('../feature-flag/feature-flag.service.js').FeatureFlagService} featureFlagService
  */
-export const startScraperCron = (scraperService) => {
+export const startScraperCron = (
+  scraperService,
+  embeddingService,
+  productEmbeddingRepository,
+  productRepository,
+  featureFlagService,
+) => {
   cron.schedule("0 3 * * 1,4", async () => {
     console.log("[ScraperCron] Starting scheduled scrape run...");
 
@@ -25,9 +36,18 @@ export const startScraperCron = (scraperService) => {
     }
 
     console.log("[ScraperCron] All markets done.");
+
+    // Generate embeddings for any new/changed products after all scraping is complete.
+    await syncProductEmbeddings({
+      embeddingService,
+      productEmbeddingRepository,
+      productRepository,
+      featureFlagService,
+      logPrefix: "[ScraperCron]",
+    });
   });
 
   console.log(
     "[ScraperCron] Scheduled — runs at 03:00 every Monday and Thursday.",
   );
-}
+};
