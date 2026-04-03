@@ -4,6 +4,7 @@ const MARKER_COLORS = {
   stokomak: "#f4c430",
   kam: "#ff5fa2",
   superkitgo: "#0d47a1",
+  kipper: "#c88a2b",
 };
 
 const normalizeChainKey = (value = "") =>

@@ -12,6 +12,7 @@ const toDisplayChainName = (key) => {
   const normalized = key.toLowerCase();
   if (normalized === "kam") return "KAM";
   if (normalized === "superkitgo") return "Super Kit-Go";
+  if (normalized === "kipper") return "Kipper";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
