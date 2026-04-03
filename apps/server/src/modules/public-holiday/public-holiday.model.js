@@ -7,4 +7,4 @@ const PublicHolidaySchema = new mongoose.Schema({
 
 PublicHolidaySchema.index({ date: 1 });
 
-export const PublicHolidayModel = mongoose.model("PublicHoliday", PublicHolidaySchema);
+export const PublicHolidayModel = mongoose.model("PublicHoliday", PublicHolidaySchema, "public_holidays");

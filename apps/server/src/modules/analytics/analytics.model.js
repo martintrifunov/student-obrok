@@ -60,6 +60,6 @@ const analyticsMonthlyAggregateSchema = new mongoose.Schema(
 
 analyticsMonthlyAggregateSchema.index({ monthStart: 1 });
 
-export const AnalyticsEventModel = mongoose.model("AnalyticsEvent", analyticsEventSchema);
-export const VisitorSessionModel = mongoose.model("VisitorSession", visitorSessionSchema);
-export const AnalyticsMonthlyAggregateModel = mongoose.model("AnalyticsMonthlyAggregate", analyticsMonthlyAggregateSchema);
+export const AnalyticsEventModel = mongoose.model("AnalyticsEvent", analyticsEventSchema, "analytics_events");
+export const VisitorSessionModel = mongoose.model("VisitorSession", visitorSessionSchema, "visitor_sessions");
+export const AnalyticsMonthlyAggregateModel = mongoose.model("AnalyticsMonthlyAggregate", analyticsMonthlyAggregateSchema, "analytics_monthly_aggregates");
