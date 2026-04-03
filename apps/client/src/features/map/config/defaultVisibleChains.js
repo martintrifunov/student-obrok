@@ -2,9 +2,16 @@ import MARKER_COLORS from "@/features/map/config/markerColors";
 
 const FALLBACK = ["Vero", "Ramstore"];
 
+const normalizeChainName = (value = "") =>
+  String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+
 const toDisplayChainName = (key) => {
   const normalized = key.toLowerCase();
   if (normalized === "kam") return "KAM";
+  if (normalized === "superkitgo") return "Super Kit-Go";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
@@ -13,12 +20,12 @@ export const KNOWN_CHAIN_NAMES = Object.keys(MARKER_COLORS).map(
 );
 
 const CHAIN_NAME_BY_LOWER = new Map(
-  KNOWN_CHAIN_NAMES.map((name) => [name.toLowerCase(), name]),
+  KNOWN_CHAIN_NAMES.map((name) => [normalizeChainName(name), name]),
 );
 
 export const toCanonicalChainName = (name) => {
   if (typeof name !== "string") return null;
-  return CHAIN_NAME_BY_LOWER.get(name.trim().toLowerCase()) ?? null;
+  return CHAIN_NAME_BY_LOWER.get(normalizeChainName(name)) ?? null;
 };
 
 const parseDefaultVisibleChains = () => {
@@ -27,13 +34,13 @@ const parseDefaultVisibleChains = () => {
 
   const requested = raw
     .split(",")
-    .map((s) => s.trim().toLowerCase())
+    .map((s) => normalizeChainName(s))
     .filter(Boolean);
 
   if (requested.length === 0) return FALLBACK;
 
   const valid = KNOWN_CHAIN_NAMES.filter((name) =>
-    requested.includes(name.toLowerCase()),
+    requested.includes(normalizeChainName(name)),
   );
 
   return valid.length > 0 ? valid : FALLBACK;

@@ -1,4 +1,4 @@
-import MARKER_COLORS from "@/features/map/config/markerColors";
+import MARKER_COLORS, { getChainColor } from "@/features/map/config/markerColors";
 
 export const getClusterGradient = (cluster, supercluster) => {
   if (!cluster || !supercluster) return null;
@@ -19,13 +19,9 @@ export const getClusterGradient = (cluster, supercluster) => {
     const chainNames = Object.keys(chainCountMap).sort();
     if (chainNames.length === 0) return null;
 
-    const chainColors = chainNames.map((chainKey) => {
-      return (
-        Object.entries(MARKER_COLORS).find(([key]) =>
-          chainKey.includes(key.toLowerCase()),
-        )?.[1] ?? MARKER_COLORS.vero
-      );
-    });
+    const chainColors = chainNames.map((chainKey) =>
+      getChainColor(chainKey, MARKER_COLORS.vero),
+    );
 
     if (chainColors.length === 1) {
       return chainColors[0];
@@ -46,11 +42,5 @@ export const getClusterGradient = (cluster, supercluster) => {
 };
 
 export const getMarkerColor = (chainName = "") => {
-  const normalizedName = chainName.trim().toLowerCase();
-
-  return (
-    Object.entries(MARKER_COLORS).find(([chainKey]) =>
-      normalizedName.includes(chainKey.toLowerCase()),
-    )?.[1] ?? MARKER_COLORS.vero
-  );
+  return getChainColor(chainName, MARKER_COLORS.vero);
 };
