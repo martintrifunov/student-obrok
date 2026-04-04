@@ -22,6 +22,65 @@ export class KipperScraper extends BaseScraper {
     return "Македонија";
   }
 
+  /**
+   * Kipper commonly returns: "4 April 2026 - 13:21".
+   * Keep base parser fallback for DD.MM.YYYY / DD/MM/YYYY variants.
+   */
+  parseUpdateDate(raw) {
+    if (!raw) return null;
+
+    const match = raw.match(
+      /(\d{1,2})\s+([A-Za-zА-Яа-яЃѓЅѕЈјЉљЊњЌќЏџ]+)\s+(\d{4})\s*[-–]\s*(\d{1,2}):(\d{2})/,
+    );
+
+    if (!match) {
+      return super.parseUpdateDate(raw);
+    }
+
+    const [, day, monthNameRaw, year, hours, minutes] = match;
+    const monthName = monthNameRaw.toLowerCase();
+
+    const monthLookup = new Map([
+      ["january", 0],
+      ["february", 1],
+      ["march", 2],
+      ["april", 3],
+      ["may", 4],
+      ["june", 5],
+      ["july", 6],
+      ["august", 7],
+      ["september", 8],
+      ["october", 9],
+      ["november", 10],
+      ["december", 11],
+      ["јануари", 0],
+      ["февруари", 1],
+      ["март", 2],
+      ["април", 3],
+      ["мај", 4],
+      ["јуни", 5],
+      ["јули", 6],
+      ["август", 7],
+      ["септември", 8],
+      ["октомври", 9],
+      ["ноември", 10],
+      ["декември", 11],
+    ]);
+
+    const monthIndex = monthLookup.get(monthName);
+    if (monthIndex === undefined) {
+      return super.parseUpdateDate(raw);
+    }
+
+    return new Date(
+      Number(year),
+      monthIndex,
+      Number(day),
+      Number(hours),
+      Number(minutes),
+    );
+  }
+
   async fetchMarkets(page) {
     await page.goto(INDEX_URL, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
 

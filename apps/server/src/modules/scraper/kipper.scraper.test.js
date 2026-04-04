@@ -55,16 +55,26 @@ describe("KipperScraper", () => {
     const page = {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
-      evaluate: vi.fn().mockResolvedValueOnce("03.04.2026 06:08"),
+      evaluate: vi.fn().mockResolvedValueOnce("4 April 2026 - 13:21"),
     };
 
     const result = await scraper.fetchProducts(
       page,
       "https://kipper.mk/mk/kipper-163-tetove/",
-      new Date(2026, 3, 3, 6, 8),
+      new Date(2026, 3, 4, 13, 21),
     );
 
     expect(result).toEqual({ upToDate: true });
+  });
+
+  it("parses month-name update date format used by Kipper pages", () => {
+    const result = scraper.parseUpdateDate("4 April 2026 - 13:21");
+    expect(result).toEqual(new Date(2026, 3, 4, 13, 21));
+  });
+
+  it("keeps fallback parsing for DD.MM.YYYY HH:mm format", () => {
+    const result = scraper.parseUpdateDate("03.04.2026 06:08");
+    expect(result).toEqual(new Date(2026, 3, 3, 6, 8));
   });
 
   it("keeps available products including high-priced ones", async () => {
