@@ -2,7 +2,6 @@ import { BaseScraper } from "./base.scraper.js";
 import { extractProductsFromTable } from "../utils/table-evaluate.js";
 
 const INDEX_URL = "https://pricelist.vero.com.mk/";
-const MAX_PRICE = 840;
 
 export class VeroScraper extends BaseScraper {
   get chainName() {
@@ -74,7 +73,7 @@ export class VeroScraper extends BaseScraper {
         isFirstPage = false;
       }
 
-      const pageProducts = await page.evaluate(extractProductsFromTable, MAX_PRICE);
+      const pageProducts = await page.evaluate(extractProductsFromTable);
 
       allProducts.push(...pageProducts);
 

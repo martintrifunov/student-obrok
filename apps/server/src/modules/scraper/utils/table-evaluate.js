@@ -8,14 +8,24 @@
 /**
  * Extract products from an HTML table inside a Puppeteer page.
  *
- * @param {number} maxPrice - Maximum allowed price
  * @param {Object} opts
  * @param {string} [opts.tableSelector] - CSS selector for the table (default: auto-detect by "Назив" header)
  * @param {string} [opts.defaultCategory="Општо"] - Fallback category value
+ * @param {string[]} [opts.titleKeywords]
+ * @param {string[]} [opts.priceKeywords]
+ * @param {string[]} [opts.categoryKeywords]
+ * @param {string[]} [opts.availabilityKeywords]
  * @returns {Array<{title: string, price: number, category: string}>}
  */
-export const extractProductsFromTable = (maxPrice, opts = {}) => {
-  const { tableSelector, defaultCategory = "Општо" } = opts;
+export const extractProductsFromTable = (opts = {}) => {
+  const {
+    tableSelector,
+    defaultCategory = "Општо",
+    titleKeywords = ["назив", "име на артикал"],
+    priceKeywords = ["продажна цена", "цена"],
+    categoryKeywords = ["опис на стока", "опис на производ", "категорија"],
+    availabilityKeywords = ["достапност во маркет", "достапност"],
+  } = opts;
 
   let productTable;
   if (tableSelector) {
@@ -23,7 +33,9 @@ export const extractProductsFromTable = (maxPrice, opts = {}) => {
   } else {
     productTable = Array.from(document.querySelectorAll("table")).find((t) =>
       Array.from(t.querySelectorAll("th")).some((th) =>
-        th.textContent.includes("Назив"),
+        titleKeywords.some((keyword) =>
+          th.textContent.toLowerCase().includes(keyword),
+        ),
       ),
     );
   }
@@ -40,10 +52,10 @@ export const extractProductsFromTable = (maxPrice, opts = {}) => {
   const indexOf = (keywords) =>
     headers.findIndex((h) => keywords.some((k) => h.includes(k)));
 
-  const colTitle = indexOf(["назив"]);
-  const colPrice = indexOf(["продажна цена", "цена"]);
-  const colCategory = indexOf(["опис на стока", "опис на производ", "категорија"]);
-  const colAvailable = indexOf(["достапност"]);
+  const colTitle = indexOf(titleKeywords);
+  const colPrice = indexOf(priceKeywords);
+  const colCategory = indexOf(categoryKeywords);
+  const colAvailable = indexOf(availabilityKeywords);
 
   if (colTitle === -1 || colPrice === -1) return [];
 
@@ -64,7 +76,7 @@ export const extractProductsFromTable = (maxPrice, opts = {}) => {
       .replace(",", ".")
       .replace(/[^\d.]/g, "");
     const price = parseFloat(rawPrice);
-    if (isNaN(price) || price > maxPrice) return acc;
+    if (isNaN(price) || price <= 0) return acc;
 
     const title = cells[colTitle]?.textContent.trim();
     if (!title) return acc;

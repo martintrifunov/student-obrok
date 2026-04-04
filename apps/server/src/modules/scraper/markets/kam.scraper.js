@@ -4,7 +4,6 @@ import { extractPdfTextItems } from "../utils/pdf-text-extractor.js";
 const INDEX_URL = "https://kam.com.mk/ceni-vo-marketi.nspx";
 const SHOP_LIST_PATH = "/ShopsWeb/LoadShopList";
 const PDF_BASE = "https://kam.com.mk/";
-const MAX_PRICE = 840;
 const FETCH_TIMEOUT_MS = 60_000;
 const FETCH_RETRIES = 3;
 
@@ -202,7 +201,7 @@ export class KamScraper extends BaseScraper {
 
     const rawPrice = collect("price").replace(",", ".").replace(/[^\d.]/g, "");
     const price = parseFloat(rawPrice);
-    if (isNaN(price) || price <= 0 || price > MAX_PRICE) return null;
+    if (isNaN(price) || price <= 0) return null;
 
     const category = collect("category") || "Општо";
     return { title, price, category };

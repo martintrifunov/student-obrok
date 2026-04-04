@@ -38,7 +38,7 @@ import useFeatureFlag from "@/hooks/useFeatureFlag";
 import GlobalAISearchDialog from "@/features/map/components/GlobalAISearchDialog";
 import RouteConfirmDialog from "@/features/map/components/RouteConfirmDialog";
 import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
-import MARKER_COLORS from "@/features/map/config/markerColors";
+import { getChainColor } from "@/features/map/config/markerColors";
 import {
   DEFAULT_VISIBLE_CHAINS,
   KNOWN_CHAIN_NAMES,
@@ -519,7 +519,7 @@ const MapPage = () => {
             }}
           >
             {KNOWN_CHAIN_NAMES.map((name) => {
-              const color = MARKER_COLORS[name.toLowerCase()];
+              const color = getChainColor(name);
               const active = visibleChains.has(name);
               return (
                 <Box

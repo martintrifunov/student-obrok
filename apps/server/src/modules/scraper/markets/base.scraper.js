@@ -56,8 +56,8 @@ export class BaseScraper {
 
   /**
    * Scrape a single store's pricelist page.
-   * Must filter out unavailable products (Достапност = "Не")
-   * and products with price > 840.
+    * Must filter out unavailable products (Достапност = "Не")
+    * and invalid or zero prices.
    *
    * @param {import('puppeteer').Page} page - A Puppeteer page instance.
    * @param {string} storeUrl - The URL of the store's pricelist.

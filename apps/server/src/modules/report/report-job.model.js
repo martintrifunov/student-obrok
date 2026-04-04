@@ -37,4 +37,4 @@ const reportJobSchema = new mongoose.Schema(
 reportJobSchema.index({ requestedBy: 1, status: 1 });
 reportJobSchema.index({ createdAt: 1 });
 
-export const ReportJobModel = mongoose.model("ReportJob", reportJobSchema);
+export const ReportJobModel = mongoose.model("ReportJob", reportJobSchema, "report_jobs");

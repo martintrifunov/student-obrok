@@ -15,9 +15,11 @@ const CHAIN_IMAGE_DEFS = [
   { key: "ramstore", title: "chain-ramstore" },
   { key: "stokomak", title: "chain-stokomak" },
   { key: "kam", title: "chain-kam" },
+  { key: "superkitgo", title: "chain-superkitgo" },
+  { key: "kipper", title: "chain-kipper" },
 ];
 
-const SUPPORTED_EXTS = [".png", ".jpg", ".jpeg", ".webp"];
+const SUPPORTED_EXTS = [".png", ".jpg", ".jpeg", ".webp", ".svg"];
 
 const findSourceFile = (key) => {
   for (const ext of SUPPORTED_EXTS) {
@@ -32,6 +34,7 @@ const MIME_TYPES = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".svg": "image/svg+xml",
 };
 
 export const seedChainImages = async () => {

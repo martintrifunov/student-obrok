@@ -44,6 +44,7 @@ export function useDeleteChain() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["markets"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
@@ -60,6 +61,7 @@ export function useSaveChain(isEditMode, chainId) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["markets"] });
       if (isEditMode) {
         queryClient.invalidateQueries({
           queryKey: chainKeys.detail(chainId),

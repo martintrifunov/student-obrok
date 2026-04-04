@@ -16,6 +16,7 @@ import { GeocoderService } from "../modules/scraper/geocoder.service.js";
 import { ScraperService } from "../modules/scraper/scraper.service.js";
 import { EmbeddingService } from "../modules/search/embedding.service.js";
 import { ProductEmbeddingRepository } from "../modules/search/product-embedding.repository.js";
+import { syncProductEmbeddings } from "../modules/search/product-embedding-sync.service.js";
 import { FeatureFlagRepository } from "../modules/feature-flag/feature-flag.repository.js";
 import { FeatureFlagService } from "../modules/feature-flag/feature-flag.service.js";
 import {
@@ -50,17 +51,17 @@ async function main() {
   console.log("[scrape] DB connected.\n");
 
   const featureFlagService = new FeatureFlagService(new FeatureFlagRepository());
+  const embeddingService = new EmbeddingService();
+  const productEmbeddingRepository = new ProductEmbeddingRepository();
+  const productRepository = new ProductRepository();
 
   const scraperService = new ScraperService(
     new ChainRepository(),
     new MarketRepository(),
-    new ProductRepository(),
+    productRepository,
     new MarketProductRepository(),
     new ImageRepository(),
     new GeocoderService(),
-    new EmbeddingService(),
-    new ProductEmbeddingRepository(),
-    featureFlagService,
   );
 
   // Start total timer
@@ -70,6 +71,15 @@ async function main() {
     await scraperService.runForMarket(scraper);
   }
 
+  // Generate embeddings after all scraping completes
+  await syncProductEmbeddings({
+    embeddingService,
+    productEmbeddingRepository,
+    productRepository,
+    featureFlagService,
+    logPrefix: "[scrape]",
+  });
+
   // Calculate total seconds
   const totalDuration = ((performance.now() - globalStartTime) / 1000).toFixed(
     2,
@@ -77,7 +87,7 @@ async function main() {
 
   await mongoose.disconnect();
   console.log(
-    `[scrape] 🎉 All scraping completed in ${totalDuration} seconds. DB disconnected.`,
+    `[scrape] 🎉 All done in ${totalDuration} seconds. DB disconnected.`,
   );
   process.exit(0);
 }

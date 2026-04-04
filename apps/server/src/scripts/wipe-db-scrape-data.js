@@ -8,6 +8,19 @@ const __dirname = path.dirname(__filename);
 
 config({ path: path.resolve(__dirname, "../../../../.env") });
 
+const COLLECTIONS_TO_WIPE = [
+  "chains",
+  "markets",
+  "market_products",
+  "products",
+  "product_embeddings",
+];
+
+async function wipeCollection(db, collectionName) {
+  const result = await db.collection(collectionName).deleteMany({});
+  console.log(`- ${collectionName}: deleted ${result.deletedCount}`);
+}
+
 async function wipe() {
   const uri = process.env.MONGO_URI_LOCAL ?? process.env.MONGO_URI;
   if (!uri) throw new Error("No Mongo URI found");
@@ -15,18 +28,18 @@ async function wipe() {
   console.log("Connecting to database...");
   await mongoose.connect(uri);
 
-  console.log("Wiping collections...");
-  await mongoose.connection.db.collection("chains").deleteMany({});
-  await mongoose.connection.db.collection("markets").deleteMany({});
-  await mongoose.connection.db.collection("marketproducts").deleteMany({});
+  try {
+    console.log("Wiping collections...");
+    const db = mongoose.connection.db;
 
-  await mongoose.connection.db
-    .collection("products")
-    .drop()
-    .catch(() => console.log("Products collection already empty or missing."));
+    for (const collectionName of COLLECTIONS_TO_WIPE) {
+      await wipeCollection(db, collectionName);
+    }
 
-  console.log("✅ Database wiped cleanly!");
-  await mongoose.disconnect();
+    console.log("✅ Database wiped cleanly!");
+  } finally {
+    await mongoose.disconnect();
+  }
 }
 
 wipe().catch((err) => {
