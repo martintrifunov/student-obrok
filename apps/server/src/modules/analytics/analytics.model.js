@@ -42,8 +42,6 @@ const visitorSessionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-visitorSessionSchema.index({ lastSeenAt: 1 });
-
 const analyticsMonthlyAggregateSchema = new mongoose.Schema(
   {
     month: { type: String, required: true, unique: true, index: true },
@@ -57,8 +55,6 @@ const analyticsMonthlyAggregateSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
-analyticsMonthlyAggregateSchema.index({ monthStart: 1 });
 
 export const AnalyticsEventModel = mongoose.model("AnalyticsEvent", analyticsEventSchema, "analytics_events");
 export const VisitorSessionModel = mongoose.model("VisitorSession", visitorSessionSchema, "visitor_sessions");
