@@ -1,10 +1,11 @@
 /**
- * Populate market-coordinates.json using the free Nominatim geocoding service.
+ * Populate market-coordinates.json using Google Geocoding API (with Nominatim fallback).
  *
  * Usage:
  *   node src/scripts/populate-coordinates.js [--force] [chain]
  *
- * No API key required — uses OpenStreetMap Nominatim (1 req/s rate limit).
+ * Preferred provider: Google Geocoding API (set GOOGLE_MAPS_API_KEY).
+ * Fallback provider: OpenStreetMap Nominatim.
  * Will NOT overwrite existing entries unless --force is passed.
  * Post-processing spreads duplicate coordinates via small jitter (~30 m).
  *
@@ -17,6 +18,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import puppeteer from "puppeteer";
+import { config } from "dotenv";
 
 import {
   createScraper,
@@ -26,9 +28,12 @@ import { normalizeMarketName } from "../modules/scraper/normalize-market-name.js
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+config({ path: path.resolve(__dirname, "../../../../.env") });
 
 const COORDS_PATH = path.resolve(__dirname, "../data/market-coordinates.json");
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+const GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json";
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY?.trim();
 
 // Macedonian Cyrillic → Latin transliteration (multi-char digraphs first)
 const CYR_TO_LAT = [
@@ -74,7 +79,106 @@ const CITY_FALLBACK = {
   "Валандово": [41.3174, 22.5600],
 };
 
+const CITY_ALIASES = {
+  "Скопје": ["Skopje"],
+  "Битола": ["Bitola"],
+  "Тетово": ["Tetovo"],
+  "Куманово": ["Kumanovo"],
+  "Велес": ["Veles"],
+  "Штип": ["Stip", "Shtip"],
+  "Охрид": ["Ohrid"],
+  "Прилеп": ["Prilep"],
+  "Кичево": ["Kicevo", "Kichevo"],
+  "Гостивар": ["Gostivar"],
+  "Струмица": ["Strumica"],
+  "Гевгелија": ["Gevgelija"],
+  "Кавадарци": ["Kavadarci"],
+  "Струга": ["Struga"],
+  "Кочани": ["Kocani", "Kochani"],
+  "Неготино": ["Negotino"],
+  "Радовиш": ["Radovis"],
+  "Ресен": ["Resen"],
+  "Виница": ["Vinica"],
+  "Берово": ["Berovo"],
+  "Свети Николе": ["Sveti Nikole"],
+  "Демир Хисар": ["Demir Hisar"],
+  "Пробиштип": ["Probistip", "Probishtip"],
+  "Делчево": ["Delcevo", "Delchevo"],
+  "Крива Паланка": ["Kriva Palanka"],
+  "Дебар": ["Debar"],
+  "Валандово": ["Valandovo"],
+};
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const containsWholeWord = (text, term) => {
+  if (!text || !term) return false;
+  const pattern = new RegExp(
+    `(^|[^\\p{L}])${escapeRegex(term.toLowerCase())}($|[^\\p{L}])`,
+    "u",
+  );
+  return pattern.test(text.toLowerCase());
+};
+
+const normalizeAddress = (value = "") =>
+  value
+    .replace(/[’']/g, "")
+    .replace(/\b(Бул\.?|Ул\.?|ул\.?|бул\.?|улица|булевар)\b/gi, " ")
+    .replace(/\bбр\.?\s*/gi, " ")
+    .replace(/\bbb\b/gi, " ")
+    .replace(/\s*\/\s*/g, " ")
+    .replace(/[–-].*$/, "")
+    .replace(/\s+,/g, ",")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const stripTrailingCity = (address, city) => {
+  if (!city) return address;
+
+  const aliases = [city, ...(CITY_ALIASES[city] || [])]
+    .slice()
+    .sort((a, b) => b.length - a.length);
+
+  let out = address;
+  for (const alias of aliases) {
+    out = out.replace(new RegExp(`,?\\s*${escapeRegex(alias)}\\s*$`, "i"), "");
+  }
+
+  return out.replace(/,+$/, "").trim();
+};
+
+const resultMatchesCity = (result, city) => {
+  if (!city) return true;
+
+  const aliases = [city, ...(CITY_ALIASES[city] || [])].map((s) => s.toLowerCase());
+  const fields = [
+    result?.display_name || "",
+    ...(result?.address ? Object.values(result.address) : []),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return aliases.some((alias) => fields.includes(alias));
+};
+
+const resultMatchesCityGoogle = (result, city) => {
+  if (!city) return true;
+
+  const aliases = [city, ...(CITY_ALIASES[city] || []), transliterate(city)].map((s) =>
+    s.toLowerCase(),
+  );
+
+  const fields = [
+    result?.formatted_address || "",
+    ...((result?.address_components || []).map((part) => part?.long_name || "")),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return aliases.some((alias) => containsWholeWord(fields, alias));
+};
 
 const loadCoords = () => {
   try {
@@ -88,11 +192,12 @@ const saveCoords = (coords) => {
   fs.writeFileSync(COORDS_PATH, JSON.stringify(coords, null, 2) + "\n", "utf-8");
 };
 
-const nominatimSearch = async (query) => {
+const nominatimSearch = async (query, city) => {
   const url = new URL(NOMINATIM_URL);
   url.searchParams.set("q", query);
   url.searchParams.set("format", "json");
-  url.searchParams.set("limit", "1");
+  url.searchParams.set("limit", "3");
+  url.searchParams.set("addressdetails", "1");
   url.searchParams.set("countrycodes", "mk");
 
   const res = await fetch(url.toString(), {
@@ -102,43 +207,117 @@ const nominatimSearch = async (query) => {
   if (!res.ok) return null;
   const data = await res.json();
   if (!data.length) return null;
-  return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+
+  const match = data.find((candidate) => resultMatchesCity(candidate, city));
+  if (!match) return null;
+
+  return [parseFloat(match.lat), parseFloat(match.lon)];
+};
+
+const googleGeocodeSearch = async (query, city) => {
+  if (!GOOGLE_MAPS_API_KEY) return null;
+
+  const url = new URL(GOOGLE_GEOCODE_URL);
+  url.searchParams.set("address", query);
+  url.searchParams.set("key", GOOGLE_MAPS_API_KEY);
+  url.searchParams.set("region", "mk");
+
+  const res = await fetch(url.toString());
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  if (data.status === "ZERO_RESULTS") return null;
+  if (data.status !== "OK" || !Array.isArray(data.results) || !data.results.length) {
+    return null;
+  }
+
+  const match = data.results.find((candidate) => resultMatchesCityGoogle(candidate, city));
+  if (!match?.geometry?.location) return null;
+
+  return [parseFloat(match.geometry.location.lat), parseFloat(match.geometry.location.lng)];
 };
 
 const extractCity = (address) => {
   if (!address) return null;
-  for (const city of Object.keys(CITY_FALLBACK)) {
-    if (address.includes(city)) return city;
+
+  const parts = address
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const candidates = [
+    parts.at(-1),
+    parts.length > 1 ? parts.slice(-2).join(" ") : null,
+    address,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    for (const [city, aliases] of Object.entries(CITY_ALIASES)) {
+      const names = [city, ...aliases];
+      if (names.some((name) => containsWholeWord(candidate, name))) {
+        return city;
+      }
+    }
   }
+
   return null;
 };
 
 const buildQueries = (market, chainName) => {
-  const addr = market.address || market.name;
-  const city = extractCity(addr);
-  const cleanAddr = addr
-    .replace(/(Бул\.|Ул\.|ул\.|бул\.|бр\.|бр)/gi, "")
-    .split("–")[0]
-    .trim();
+  const rawAddress = market.address || market.name || "";
+  const city = extractCity(`${market.name || ""}, ${rawAddress}`);
 
-  return [
-    `${transliterate(cleanAddr)}, North Macedonia`,
-    `${chainName} ${transliterate(city || cleanAddr)}, North Macedonia`,
-    city ? `${transliterate(cleanAddr)}, ${transliterate(city)}` : null,
-  ].filter(Boolean);
+  const cleanAddress = normalizeAddress(rawAddress);
+  const addressNoCity = stripTrailingCity(cleanAddress, city);
+
+  const branchLabel = normalizeAddress(
+    (market.name || "").replace(/^СУПЕР\s+КИТ-ГО\s*/i, ""),
+  );
+
+  const cityLatin = city ? transliterate(city) : "";
+  const addressLatin = transliterate(addressNoCity || cleanAddress);
+  const branchLatin = transliterate(branchLabel);
+  const isSuperKitGo = /kit-go/i.test(chainName);
+
+  const querySet = new Set([
+    cityLatin ? `${addressLatin}, ${cityLatin}, North Macedonia` : null,
+    `${addressLatin}, North Macedonia`,
+    `${chainName} ${cityLatin || addressLatin}, North Macedonia`,
+    cityLatin ? `${cityLatin}, North Macedonia` : null,
+  ]);
+
+  if (isSuperKitGo) {
+    querySet.add(branchLatin ? `${branchLatin}, ${cityLatin}, North Macedonia` : null);
+    querySet.add(
+      branchLatin ? `Super Kit-Go ${branchLatin}, ${cityLatin}, North Macedonia` : null,
+    );
+    querySet.add(
+      cityLatin && branchLatin
+        ? `Super Kit-Go ${branchLatin} ${cityLatin}, North Macedonia`
+        : null,
+    );
+  }
+
+  return [...querySet].filter((q) => q && q.length > 10 && !q.includes(", ,"));
 };
 
 const geocodeMarket = async (market, chainName) => {
   const queries = buildQueries(market, chainName);
+  const city = extractCity(`${market.name || ""}, ${market.address || ""}`);
 
   for (const q of queries) {
-    const result = await nominatimSearch(q);
-    if (result) return { coords: result, query: q };
+    const googleResult = await googleGeocodeSearch(q, city);
+    if (googleResult) return { coords: googleResult, query: q, provider: "google" };
+
+    const nominatimResult = await nominatimSearch(q, city);
+    if (nominatimResult) {
+      return { coords: nominatimResult, query: q, provider: "nominatim" };
+    }
+
     await sleep(1100);
   }
 
   // City-center fallback
-  const city = extractCity(market.address);
   if (city && CITY_FALLBACK[city]) {
     return { coords: CITY_FALLBACK[city], fallback: true, query: city };
   }
@@ -190,6 +369,14 @@ const main = async () => {
   const failures = [];
   const skipped = [];
 
+  if (GOOGLE_MAPS_API_KEY) {
+    console.log("[populate] Geocoder provider: Google (Nominatim fallback enabled).");
+  } else {
+    console.warn(
+      "[populate] GOOGLE_MAPS_API_KEY is not set. Falling back to Nominatim only.",
+    );
+  }
+
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -229,7 +416,10 @@ const main = async () => {
           saveCoords(coords);
           successes.push(key);
           const tag = result.fallback ? "⚠️  city-center fallback" : "✅";
-          console.log(`  ${tag} ${key}: [${result.coords}] via "${result.query}"`);
+          const via = result.fallback
+            ? result.query
+            : `${result.query} (${result.provider || "city-fallback"})`;
+          console.log(`  ${tag} ${key}: [${result.coords}] via "${via}"`);
         } else {
           failures.push(key);
           console.log(`  ❌ ${key}: No result`);
