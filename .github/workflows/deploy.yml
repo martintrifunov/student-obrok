@@ -20,7 +20,7 @@ jobs:
 
       - name: Install server dependencies
         working-directory: ./apps/server
-        run: npm ci
+        run: npm install
 
       - name: Run server tests
         working-directory: ./apps/server
