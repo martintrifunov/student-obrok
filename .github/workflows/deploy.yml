@@ -5,8 +5,30 @@ on:
     types: [published]
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install server dependencies
+        working-directory: ./apps/server
+        run: npm ci
+
+      - name: Run server tests
+        working-directory: ./apps/server
+        run: npm test
+
   deploy:
     name: Deploy to Production
+    needs: [test]
     runs-on: ubuntu-latest
 
     steps:

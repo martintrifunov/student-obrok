@@ -18,8 +18,10 @@ COPY package.json package-lock.json ./
 
 RUN npm ci --omit=dev
 
-COPY . .
+COPY --chown=node:node . .
 
 EXPOSE 5000
+
+USER node
 
 ENTRYPOINT ["node", "./src/server.js"]
