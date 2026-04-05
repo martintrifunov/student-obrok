@@ -1,13 +1,27 @@
 import puppeteer from "puppeteer";
 
+const DEFAULT_CONCURRENT_TABS = process.env.NODE_ENV === "production" ? "2" : "4";
 const CONCURRENT_TABS = Number.parseInt(
-  process.env.SCRAPER_CONCURRENT_TABS ?? "4",
+  process.env.SCRAPER_CONCURRENT_TABS ?? DEFAULT_CONCURRENT_TABS,
   10,
 );
 const NAV_TIMEOUT_MS = Number.parseInt(
   process.env.SCRAPER_NAV_TIMEOUT_MS ?? "90000",
   10,
 );
+const PROTOCOL_TIMEOUT_MS = Number.parseInt(
+  process.env.SCRAPER_PROTOCOL_TIMEOUT_MS ?? "180000",
+  10,
+);
+
+const isTransientScrapeError = (err) => {
+  const message = err?.message ?? "";
+  return (
+    message.includes("Navigation timeout")
+    || message.includes("Runtime.callFunctionOn timed out")
+    || message.includes("net::ERR_ABORTED")
+  );
+};
 
 export class ScraperService {
   constructor(
@@ -33,7 +47,7 @@ export class ScraperService {
     const startTime = performance.now();
     console.log(`\n[ScraperService] 🚀 Starting ${scraper.constructor.name}`);
     console.log(
-      `[ScraperService] Settings: concurrency=${CONCURRENT_TABS}, navTimeout=${NAV_TIMEOUT_MS}ms`,
+      `[ScraperService] Settings: concurrency=${CONCURRENT_TABS}, navTimeout=${NAV_TIMEOUT_MS}ms, protocolTimeout=${PROTOCOL_TIMEOUT_MS}ms`,
     );
 
     const chainImageTitle = `chain-${scraper.chainImageKey}`;
@@ -54,6 +68,7 @@ export class ScraperService {
 
     const browser = await puppeteer.launch({
       headless: true,
+      protocolTimeout: PROTOCOL_TIMEOUT_MS,
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       args: [
         "--no-sandbox",
@@ -151,15 +166,41 @@ export class ScraperService {
   async #scrapeAndSaveStore(marketData, scraper, browser) {
     const { name, pricelistUrl, marketDoc } = marketData;
     const tabStartTime = performance.now();
-    const page = await browser.newPage();
+    let page = await browser.newPage();
     await this.#optimizePage(page);
 
     try {
-      const result = await scraper.fetchProducts(
-        page,
-        pricelistUrl,
-        marketDoc.lastScrapedUpdate,
-      );
+      let result;
+      let lastError;
+
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          result = await scraper.fetchProducts(
+            page,
+            pricelistUrl,
+            marketDoc.lastScrapedUpdate,
+          );
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          if (attempt === 2 || !isTransientScrapeError(err)) {
+            throw err;
+          }
+
+          console.warn(
+            `[ScraperService] Retry ${attempt}/1 for [${name}] after transient error: ${err.message}`,
+          );
+
+          await page.close().catch(() => {});
+          page = await browser.newPage();
+          await this.#optimizePage(page);
+        }
+      }
+
+      if (lastError) {
+        throw lastError;
+      }
 
       if (result.upToDate) {
         const tabDuration = ((performance.now() - tabStartTime) / 1000).toFixed(
