@@ -56,6 +56,12 @@ jobs:
             sed -i '/VITE_RELEASE_VERSION/d' apps/client/.env
             echo "VITE_RELEASE_VERSION=$RELEASE_TAG" >> apps/client/.env
             
+            echo "--- Building Documentation ---"
+            cd apps/docs
+            npm ci
+            npm run docs:build
+            cd ../..
+            
             echo "--- Rebuilding Docker Containers ---"
             docker compose -f docker-compose.prod.yml up --build -d
             

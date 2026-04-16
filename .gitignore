@@ -43,5 +43,9 @@ data/certbot/*
 apps/server/src/uploads/*
 !apps/server/src/uploads/.gitkeep
 
+# Docs
+apps/docs/.vitepress/cache/*
+apps/docs/.vitepress/dist/*
+
 #Generated reports
 apps/server/src/data/reports/*
