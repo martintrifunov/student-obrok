@@ -1,0 +1,16 @@
+FROM node:24-alpine
+
+WORKDIR /app
+RUN apk add --no-cache git
+RUN chown node:node /app
+USER node
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["npm", "run", "docs:dev", "--", "--host", "0.0.0.0", "--port", "5173"]
