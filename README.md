@@ -1,36 +1,62 @@
-# Student Obrok 🍽️🎓
+# Student Obrok
 
-Student Obrok is a modern web application designed to help university students find affordable, budget-friendly meal deals around their location via an interactive 3D map. 
+Student Obrok is an open source web application for discovering student-friendly meal offers on an interactive map.
 
-Built with a feature-sliced React frontend (Vite, Zustand, TanStack Query, MapLibre GL) and a robust Express 5 / MongoDB backend. Routing is handled via a dedicated OSRM instance.
+Built with a React frontend, an Express and MongoDB backend, OSRM routing, and a VitePress documentation site.
 
----
+[Documentation](https://docs.obrok.net) | [Website](https://obrok.net) | [Environment Templates](./ENV_TEMPLATES.md) | [License](./LICENSE)
 
-## 🚀 Quick Start (Development)
+## Why Student Obrok?
 
-The entire development environment is fully containerized.
+Students usually piece together meal options from scattered menus, social posts, and map searches that are not built for price-sensitive, location-aware decisions. Student Obrok brings those concerns into one system: nearby offers, routing, searchable data, and supporting operational tooling.
 
-1. Clone the repository.
-2. Ensure you have Docker and Docker Compose installed.
-3. Configure your `.env` and `apps/client/.env` files (See [ENV_TEMPLATES.md](./ENV_TEMPLATES.md)).
-4. Download the necessary OpenStreetMap `.osrm` data and place it in `/data/map`.
-5. Run the dev environment:
+The goal is straightforward: make affordable food options easier to discover, inspect, and compare without requiring users to jump between multiple tools.
+
+## What It Includes
+
+- Interactive map browsing for nearby offers and locations
+- Route-aware travel estimates through OSRM
+- Search and filtering across chains, markets, and products
+- Reporting, insights, feature flags, and supporting admin flows
+- Self-hosted development and deployment with Docker Compose
+- Maintained engineering documentation for architecture and operations
+
+## Repository Layout
+
+- `apps/client` contains the React frontend built with Vite
+- `apps/server` contains the Express API, data workflows, and background jobs
+- `apps/docs` contains the VitePress documentation site
+- `apps/nginx` contains the production reverse proxy configuration
+- `data/map` stores OSRM routing data used by the map service
+
+## Quick Start
+
+The fastest way to run the project locally is through Docker Compose.
+
+### Prerequisites
+
+1. Install Docker and Docker Compose.
+2. Configure the root `.env` file and `apps/client/.env` using [ENV_TEMPLATES.md](./ENV_TEMPLATES.md).
+3. Prepare OSRM data under `data/map`.
+
+### Run the full stack
 
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
-*   **Frontend:** `http://localhost:3500`
-*   **Backend API:** `http://localhost:5000`
-*   **OSRM Routing:** `http://localhost:5001`
-*   **Docs (VitePress):** `http://localhost:5173`
 
----
+### Local endpoints
 
-## 📚 Engineering Documentation (VitePress)
+- Frontend: `http://localhost:3500`
+- Backend API: `http://localhost:5000`
+- OSRM: `http://localhost:5001`
+- Docs: `http://localhost:5173`
 
-Architecture, backend, frontend, deployment, and design-pattern documentation lives in `apps/docs/`.
+## Documentation
 
-Run locally:
+Project documentation lives in `apps/docs` and is published at [docs.obrok.net](https://docs.obrok.net). It covers architecture, backend modules, frontend flows, deployment, and engineering patterns.
+
+### Run docs locally
 
 ```bash
 cd apps/docs
@@ -38,26 +64,14 @@ npm install
 npm run docs:dev
 ```
 
-Run in Docker Compose dev:
+### Run docs in Docker Compose
 
 ```bash
 docker compose -f docker-compose.dev.yml build docs
 docker compose -f docker-compose.dev.yml up docs
 ```
 
-Or run the full stack including docs:
-
-```bash
-docker compose -f docker-compose.dev.yml up --build
-```
-
-If docs dependencies change, rebuild the docs service image:
-
-```bash
-docker compose -f docker-compose.dev.yml build docs
-```
-
-Build and preview:
+### Build docs for verification
 
 ```bash
 cd apps/docs
@@ -65,27 +79,45 @@ npm run docs:build
 npm run docs:preview
 ```
 
----
+## Development
 
-## 🌍 Production Deployment
+The repository is structured as a small monorepo with separate client, server, docs, and infrastructure directories.
 
-Production relies on Nginx for reverse-proxying and Let's Encrypt (Certbot) for automated SSL generation and renewal.
+For day-to-day development:
 
-### First-Time Server Setup
-When deploying to a brand new VPS, you must generate the initial SSL certificates. We have automated the "Chicken and Egg" Nginx/SSL problem. 
+- Use `docker-compose.dev.yml` to run the full stack locally
+- Keep route data under `data/map` up to date before testing routing behavior
+- Use `apps/docs` for architecture and operational documentation updates alongside code changes
 
-Simply run:
+## Production
+
+Production runs behind Nginx with TLS handled by Let's Encrypt via Certbot. The production stack is defined in `docker-compose.prod.yml`.
+
+### First-time server setup
+
+For a new VPS, bootstrap certificates and start the stack with:
+
 ```bash
 ./init-ssl.sh
 ```
-This script will generate dummy certs, boot Nginx, fetch real Let's Encrypt certificates, reload the web server, and start the application.
 
-### CI/CD automated deployments
-This project uses GitHub Actions for CI/CD. 
-To deploy a new version to production:
-1. Push your code to the `main` branch.
-2. In GitHub, go to **Releases** -> **Draft a new release**.
-3. Create a tag using Calendar Versioning (e.g., `v2026.03.13.1`).
+The script creates temporary certificates, starts Nginx, requests real certificates, reloads the web server, and brings the application online.
+
+### Release workflow
+
+Deployments are triggered from GitHub Actions on published releases.
+
+1. Push the required changes.
+2. Create a GitHub release.
+3. Tag the release using the existing Calendar Versioning pattern, for example `v2026.03.13.1`.
 4. Publish the release.
 
-The GitHub Action will automatically SSH into the VPS, pull the tagged code, inject the dynamic version number into the frontend, and rebuild the Docker containers with zero manual intervention. SSL renewals are handled automatically in the background via the Docker containers.
+The deployment workflow connects to the VPS, pulls the tagged revision, rebuilds the docs site, injects the release version into the frontend environment, and recreates the production containers.
+
+## Contributing
+
+Contributions should keep code, deployment behavior, and documentation aligned. If a change affects architecture, flows, or operations, update the relevant docs in `apps/docs` as part of the same change set.
+
+## License
+
+This project is licensed under the terms in [LICENSE](./LICENSE).
