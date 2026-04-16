@@ -2,12 +2,13 @@
 set -e # Stops the script immediately if Docker fails to build
 
 domains=(obrok.net docs.obrok.net)
+cert_name="obrok.net"
 rsa_key_size=4096
 data_path="./data/certbot"
 email="your-email@example.com" # REPLACE WITH YOUR EMAIL
 
 if [ -d "$data_path" ]; then
-  read -p "Existing data found for $domains. Continue and replace existing certificate? (y/N) " decision
+  read -p "Existing data found for ${domains[*]}. Continue and replace existing certificate? (y/N) " decision
   if [ "$decision" != "Y" ] && [ "$decision" != "y" ]; then
     exit
   fi
@@ -18,9 +19,9 @@ mkdir -p "$data_path/conf"
 curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > "$data_path/conf/options-ssl-nginx.conf"
 curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > "$data_path/conf/ssl-dhparams.pem"
 
-echo "### Creating dummy certificate for $domains ..."
-path="/etc/letsencrypt/live/$domains"
-mkdir -p "$data_path/conf/live/$domains"
+echo "### Creating dummy certificate for ${domains[*]} ..."
+path="/etc/letsencrypt/live/$cert_name"
+mkdir -p "$data_path/conf/live/$cert_name"
 docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1\
     -keyout '$path/privkey.pem' \
@@ -30,13 +31,13 @@ docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
 echo "### Starting nginx ..."
 docker compose -f docker-compose.prod.yml up --build --force-recreate -d nginx
 
-echo "### Deleting dummy certificate for $domains ..."
+echo "### Deleting dummy certificate for $cert_name ..."
 docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-  rm -Rf /etc/letsencrypt/live/$domains && \
-  rm -Rf /etc/letsencrypt/archive/$domains && \
-  rm -Rf /etc/letsencrypt/renewal/$domains.conf" certbot
+  rm -Rf /etc/letsencrypt/live/$cert_name && \
+  rm -Rf /etc/letsencrypt/archive/$cert_name && \
+  rm -Rf /etc/letsencrypt/renewal/$cert_name.conf" certbot
 
-echo "### Requesting Let's Encrypt certificate for $domains ..."
+echo "### Requesting Let's Encrypt certificate for ${domains[*]} ..."
 domain_args=""
 for domain in "${domains[@]}"; do
   domain_args="$domain_args -d $domain"
@@ -46,6 +47,7 @@ done
 docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     --email $email \
+    --cert-name $cert_name \
     $domain_args \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
