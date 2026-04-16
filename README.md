@@ -22,6 +22,48 @@ docker compose -f docker-compose.dev.yml up --build
 *   **Frontend:** `http://localhost:3500`
 *   **Backend API:** `http://localhost:5000`
 *   **OSRM Routing:** `http://localhost:5001`
+*   **Docs (VitePress):** `http://localhost:5173`
+
+---
+
+## 📚 Engineering Documentation (VitePress)
+
+Architecture, backend, frontend, deployment, and design-pattern documentation lives in `apps/docs/`.
+
+Run locally:
+
+```bash
+cd apps/docs
+npm install
+npm run docs:dev
+```
+
+Run in Docker Compose dev:
+
+```bash
+docker compose -f docker-compose.dev.yml build docs
+docker compose -f docker-compose.dev.yml up docs
+```
+
+Or run the full stack including docs:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+If docs dependencies change, rebuild the docs service image:
+
+```bash
+docker compose -f docker-compose.dev.yml build docs
+```
+
+Build and preview:
+
+```bash
+cd apps/docs
+npm run docs:build
+npm run docs:preview
+```
 
 ---
 
