@@ -1,22 +1,24 @@
 # Student Obrok
 
-Student Obrok is an open source web application for discovering student-friendly meal offers on an interactive map.
+Student Obrok is an open source web application that scrapes product data from nearby market chains and helps users plan affordable meals from real store inventory.
 
-Built with a React frontend, an Express and MongoDB backend, OSRM routing, and a VitePress documentation site.
+It combines a React frontend, an Express and MongoDB backend, OSRM routing, and a VitePress documentation site.
 
 [Documentation](https://docs.obrok.net) | [Website](https://obrok.net) | [Environment Templates](./ENV_TEMPLATES.md) | [License](./LICENSE)
 
 ## Why Student Obrok?
 
-Students usually piece together meal options from scattered menus, social posts, and map searches that are not built for price-sensitive, location-aware decisions. Student Obrok brings those concerns into one system: nearby offers, routing, searchable data, and supporting operational tooling.
+Students looking for affordable meals usually have to jump between market flyers, store searches, recipe ideas, and map tools. That workflow is fragmented, hard to compare, and not especially useful when the real question is what meal can be made from products that are actually available nearby.
 
-The goal is straightforward: make affordable food options easier to discover, inspect, and compare without requiring users to jump between multiple tools.
+Student Obrok brings those pieces together. It collects product data from nearby chains, lets users search ingredients directly, and includes an AI recipe decomposition flow that turns meal searches into ingredient lists tied to real markets.
 
 ## What It Includes
 
-- Interactive map browsing for nearby offers and locations
-- Route-aware travel estimates through OSRM
-- Search and filtering across chains, markets, and products
+- Scraped product data from nearby market chains
+- AI recipe decomposition for meal-oriented search and ingredient-based results
+- Ingredient-level search across chains, markets, and products
+- Interactive map browsing for markets and nearby locations
+- Route-aware travel estimates to selected markets through OSRM
 - Reporting, insights, feature flags, and supporting admin flows
 - Self-hosted development and deployment with Docker Compose
 - Maintained engineering documentation for architecture and operations
