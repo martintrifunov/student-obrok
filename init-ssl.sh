@@ -12,6 +12,8 @@ if [ -d "$data_path" ]; then
   if [ "$decision" != "Y" ] && [ "$decision" != "y" ]; then
     exit
   fi
+  echo "### Wiping old certbot data to avoid stale lineage counters ..."
+  rm -rf "$data_path/conf"
 fi
 
 echo "### Downloading recommended TLS parameters ..."
@@ -33,9 +35,9 @@ docker compose -f docker-compose.prod.yml up --build --force-recreate -d nginx
 
 echo "### Deleting dummy certificate for $cert_name ..."
 docker compose -f docker-compose.prod.yml run --rm --entrypoint "\
-  rm -Rf /etc/letsencrypt/live/${cert_name}* && \
-  rm -Rf /etc/letsencrypt/archive/${cert_name}* && \
-  rm -Rf /etc/letsencrypt/renewal/${cert_name}*.conf" certbot
+  rm -Rf /etc/letsencrypt/live/$cert_name && \
+  rm -Rf /etc/letsencrypt/archive/$cert_name && \
+  rm -Rf /etc/letsencrypt/renewal/$cert_name.conf" certbot
 
 echo "### Requesting Let's Encrypt certificate for ${domains[*]} ..."
 domain_args=""
