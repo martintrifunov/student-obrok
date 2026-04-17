@@ -3,7 +3,13 @@ import { Button } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import SharedMarketProductsModal from "@/components/ui/SharedMarketProductsModal";
 
-const MapProductInfoModal = ({ marketId, marketName }) => {
+const MapProductInfoModal = ({
+  marketId,
+  marketName,
+  initialSearch,
+  initialAiMode,
+  initialShoppingList,
+}) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = (e) => {
@@ -32,6 +38,9 @@ const MapProductInfoModal = ({ marketId, marketName }) => {
         }}
         marketId={marketId}
         title={`${marketName || "Маркет"} Продукти`}
+        initialSearch={initialSearch}
+        initialAiMode={initialAiMode}
+        initialShoppingList={initialShoppingList}
       />
     </>
   );

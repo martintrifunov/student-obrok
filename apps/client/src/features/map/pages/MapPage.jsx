@@ -101,6 +101,7 @@ const MapPage = () => {
 
   const [routeConfirm, setRouteConfirm] = useState(null);
   const [productModalTarget, setProductModalTarget] = useState(null);
+  const [activeSmartRouteContext, setActiveSmartRouteContext] = useState(null);
 
   const mapRef = useRef(null);
 
@@ -141,6 +142,7 @@ const MapPage = () => {
     setRouteEnd(null);
     setRoutingMode("walking");
     setIsDisabledRoutingButton(false);
+    setActiveSmartRouteContext(null);
   }, []);
 
   const handleDashboardClick = useCallback(() => {
@@ -192,6 +194,12 @@ const MapPage = () => {
     setProductModalTarget({
       marketId: routeConfirm.market._id,
       marketName: routeConfirm.market.name || "Маркет",
+      searchTerm: routeConfirm.searchTerm || "",
+      shoppingList: routeConfirm.products || [],
+      initialAiMode: false,
+    });
+    setActiveSmartRouteContext({
+      marketId: routeConfirm.market._id,
       searchTerm: routeConfirm.searchTerm || "",
       shoppingList: routeConfirm.products || [],
       initialAiMode: false,
@@ -336,6 +344,7 @@ const MapPage = () => {
           onChainLocation={handleChainLocation}
           isDisabledRoutingButton={isDisabledRoutingButton || hasRoute}
           visibleChains={visibleChains}
+          activeSmartRouteContext={activeSmartRouteContext}
         />
         {hasRoute && (
           <RoutingEngine

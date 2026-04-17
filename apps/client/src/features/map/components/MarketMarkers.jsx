@@ -16,7 +16,12 @@ import { getClusterGradient, getMarkerColor } from "@/features/map/utils/markerU
 
 const CLUSTER_MARKER_COLOR = MARKER_COLORS.vero;
 
-const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains }) => {
+const MarketMarkers = ({
+  onChainLocation,
+  isDisabledRoutingButton,
+  visibleChains,
+  activeSmartRouteContext,
+}) => {
   const theme = useTheme();
   const [selectedMarket, setSelectedMarket] = useState(null);
   const [bounds, setBounds] = useState(null);
@@ -237,6 +242,21 @@ const MarketMarkers = ({ onChainLocation, isDisabledRoutingButton, visibleChains
                       <MapProductInfoModal
                         marketId={market._id}
                         marketName={market.name}
+                        initialSearch={
+                          activeSmartRouteContext?.marketId === market._id
+                            ? activeSmartRouteContext.searchTerm
+                            : ""
+                        }
+                        initialAiMode={
+                          activeSmartRouteContext?.marketId === market._id
+                            ? activeSmartRouteContext.initialAiMode
+                            : false
+                        }
+                        initialShoppingList={
+                          activeSmartRouteContext?.marketId === market._id
+                            ? activeSmartRouteContext.shoppingList
+                            : []
+                        }
                       />
                       <Button
                         disabled={isDisabledRoutingButton}
