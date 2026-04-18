@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ProductService } from "./product.service.js";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
+import mongoose from "mongoose";
+
+vi.mock("mongoose", async () => {
+  const actual = await vi.importActual("mongoose");
+  return {
+    ...actual,
+    default: {
+      ...actual.default,
+      startSession: vi.fn(() => ({
+        withTransaction: (fn) => fn(),
+        endSession: vi.fn(),
+      })),
+    },
+  };
+});
 
 const mockProductRepository = {
   findAll: vi.fn(),
@@ -24,12 +39,17 @@ const mockMarketProductRepository = {
   deleteByProduct: vi.fn(),
 };
 
+const mockProductEmbeddingRepository = {
+  deleteByProduct: vi.fn(),
+};
+
 const makeSut = () =>
   new ProductService(
     mockProductRepository,
     mockMarketRepository,
     mockImageRepository,
     mockMarketProductRepository,
+    mockProductEmbeddingRepository,
   );
 
 beforeEach(() => vi.clearAllMocks());
@@ -211,11 +231,13 @@ describe("ProductService", () => {
       const product = { _id: "p1", title: "Pizza" };
       mockProductRepository.findById.mockResolvedValue(product);
       mockMarketProductRepository.deleteByProduct.mockResolvedValue(null);
+      mockProductEmbeddingRepository.deleteByProduct.mockResolvedValue(null);
       mockProductRepository.delete.mockResolvedValue(null);
       const sut = makeSut();
       await sut.deleteProduct("p1");
-      expect(mockMarketProductRepository.deleteByProduct).toHaveBeenCalledWith("p1");
-      expect(mockProductRepository.delete).toHaveBeenCalledWith(product);
+      expect(mockMarketProductRepository.deleteByProduct).toHaveBeenCalledWith("p1", expect.any(Object));
+      expect(mockProductEmbeddingRepository.deleteByProduct).toHaveBeenCalledWith("p1", expect.any(Object));
+      expect(mockProductRepository.delete).toHaveBeenCalledWith(product, expect.any(Object));
     });
   });
 });

@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ChainService } from "./chain.service.js";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
+import mongoose from "mongoose";
+
+vi.mock("mongoose", async () => {
+  const actual = await vi.importActual("mongoose");
+  return {
+    ...actual,
+    default: {
+      ...actual.default,
+      startSession: vi.fn(() => ({
+        withTransaction: (fn) => fn(),
+        endSession: vi.fn(),
+      })),
+    },
+  };
+});
 
 const mockChainRepository = {
   findAll: vi.fn(),
@@ -160,7 +175,7 @@ describe("ChainService", () => {
       expect(mockMarketRepository.findByChain).toHaveBeenCalledWith("v1");
       expect(mockMarketProductRepository.deleteByMarket).toHaveBeenCalledTimes(2);
       expect(mockMarketRepository.delete).toHaveBeenCalledTimes(2);
-      expect(mockChainRepository.delete).toHaveBeenCalledWith(chain);
+      expect(mockChainRepository.delete).toHaveBeenCalledWith(chain, expect.any(Object));
     });
   });
 });
