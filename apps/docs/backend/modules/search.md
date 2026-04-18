@@ -68,6 +68,12 @@ flowchart TD
 - **Batch processing**: rate-limited at 350ms between batches
 - **Retry**: exponential backoff on API busy/rate-limit responses
 
+### Embedding Sync
+
+- Uses a Mongoose cursor to stream products instead of bulk-loading all documents into memory.
+- Loads only `product` and `textHash` fields from existing embeddings (skips 768-dim vectors) to build the diff map.
+- Only products with changed or missing text hashes are sent for embedding generation.
+
 ### Intent Parser Service
 
 - **Model**: Gemini 2.5 Flash
