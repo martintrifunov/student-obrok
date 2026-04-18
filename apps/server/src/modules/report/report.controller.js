@@ -32,6 +32,12 @@ export class ReportController {
     const { filePath, fileName } = await this.reportService.downloadReport(jobId, userId);
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-    createReadStream(filePath).pipe(res);
+    const stream = createReadStream(filePath);
+    stream.on("error", (err) => {
+      console.error("Report stream error:", err);
+      if (!res.headersSent) res.sendStatus(500);
+      else res.destroy();
+    });
+    stream.pipe(res);
   };
 }
