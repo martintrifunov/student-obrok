@@ -127,10 +127,12 @@ export class ReportService {
 
       await fs.mkdir(REPORTS_DIR, { recursive: true });
       const fileName = `report-${jobIdStr}.csv`;
-      await fs.writeFile(path.join(REPORTS_DIR, fileName), csv, "utf-8");
+      const filePath = path.join(REPORTS_DIR, fileName);
+      await fs.writeFile(filePath, csv, "utf-8");
 
       const freshJob = await this.reportJobRepository.findById(jobId);
       if (!freshJob || freshJob.status === ReportJobStatus.CANCELLED || freshJob.status === ReportJobStatus.ABORTED) {
+        await fs.unlink(filePath).catch(() => {});
         return;
       }
 
@@ -139,6 +141,8 @@ export class ReportService {
       freshJob.finishedAt = new Date();
       await this.reportJobRepository.save(freshJob);
     } catch (err) {
+      const orphanPath = path.join(REPORTS_DIR, `report-${jobIdStr}.csv`);
+      await fs.unlink(orphanPath).catch(() => {});
       try {
         const job = await this.reportJobRepository.findById(jobId);
         if (job && job.status !== ReportJobStatus.CANCELLED && job.status !== ReportJobStatus.ABORTED) {
