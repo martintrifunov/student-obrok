@@ -1,4 +1,5 @@
 import { PublicHolidayModel } from "./public-holiday.model.js";
+import { escapeRegExp } from "../../shared/utils/bilingualRegex.js";
 
 export class PublicHolidayRepository {
   async findAll({ page, limit, filter = {} }) {
@@ -44,7 +45,7 @@ export class PublicHolidayRepository {
   #buildQuery(filter = {}) {
     const query = {};
     if (filter.name) {
-      query.name = { $regex: filter.name, $options: "i" };
+      query.name = { $regex: escapeRegExp(filter.name), $options: "i" };
     }
     if (filter.from || filter.to) {
       query.date = {};

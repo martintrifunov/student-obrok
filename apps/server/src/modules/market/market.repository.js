@@ -1,4 +1,5 @@
 import { MarketModel } from "./market.model.js";
+import { escapeRegExp } from "../../shared/utils/bilingualRegex.js";
 
 export class MarketRepository {
   #populate() {
@@ -13,7 +14,7 @@ export class MarketRepository {
   #buildQuery(filter = {}) {
     const query = {};
     if (filter.name) {
-      query.name = { $regex: filter.name, $options: "i" };
+      query.name = { $regex: escapeRegExp(filter.name), $options: "i" };
     }
     if (filter.chain) {
       query.chain = filter.chain;
