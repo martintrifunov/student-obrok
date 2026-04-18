@@ -59,6 +59,7 @@ jobs:
             echo "--- Building Documentation ---"
             cd apps/docs
             npm ci
+            rm -rf .vitepress/cache
             npm run docs:build
             cd ../..
             
