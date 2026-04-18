@@ -1,6 +1,8 @@
 import crypto from "crypto";
+import { ProductModel } from "../product/product.model.js";
 
 const BATCH_SIZE = 50;
+const CURSOR_BATCH_SIZE = 500;
 
 export async function syncProductEmbeddings({
   embeddingService,
@@ -24,16 +26,21 @@ export async function syncProductEmbeddings({
       }
     }
 
-    const { docs: products } = await productRepository.findAll({ page: 1, limit: 0 });
-    logger.log(`${logPrefix} Generating embeddings for ${products.length} products...`);
+    const totalProducts = await ProductModel.countDocuments().exec();
+    logger.log(`${logPrefix} Generating embeddings for ${totalProducts} products...`);
 
-    const existing = await productEmbeddingRepository.findAll();
+    const existing = await productEmbeddingRepository.findAllHashes();
     const existingMap = new Map(
       existing.map((entry) => [entry.product.toString(), entry.textHash]),
     );
 
     const toEmbed = [];
-    for (const product of products) {
+    const cursor = ProductModel.find()
+      .select("_id title category")
+      .lean()
+      .cursor({ batchSize: CURSOR_BATCH_SIZE });
+
+    for await (const product of cursor) {
       const text = product.category
         ? `${product.title} ${product.category}`
         : product.title;
@@ -46,7 +53,7 @@ export async function syncProductEmbeddings({
 
     logger.log(
       `${logPrefix} ${toEmbed.length} products need new embeddings ` +
-        `(${products.length - toEmbed.length} up-to-date).`,
+        `(${totalProducts - toEmbed.length} up-to-date).`,
     );
 
     if (toEmbed.length === 0) return;

@@ -6,6 +6,7 @@ const HolidaySearchBar = ({ handleSearchChange }) => {
   return (
     <TextField
       hiddenLabel
+      aria-label="Search holidays"
       placeholder="Search holidays..."
       variant="outlined"
       onChange={handleSearchChange}

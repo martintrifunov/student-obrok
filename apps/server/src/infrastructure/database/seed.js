@@ -2,6 +2,11 @@ import bcrypt from "bcrypt";
 import { UserModel } from "../../modules/auth/user.model.js";
 
 export const seedAdminUser = async () => {
+  if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+    console.error("ADMIN_USERNAME and ADMIN_PASSWORD must be set.");
+    process.exit(1);
+  }
+
   const existing = await UserModel.findOne({
     username: process.env.ADMIN_USERNAME,
   }).exec();
@@ -11,6 +16,7 @@ export const seedAdminUser = async () => {
     await UserModel.create({
       username: process.env.ADMIN_USERNAME,
       password: hashed,
+      role: "admin",
     });
     console.log("Admin user seeded.");
   }

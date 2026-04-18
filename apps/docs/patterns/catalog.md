@@ -18,7 +18,7 @@ Student Obrok uses explicit, practical patterns to keep modules understandable a
 | Middleware Pipeline | Ordered cross-cutting HTTP concerns | apps/server/src/app.js |
 | Feature Flag Gate | Runtime enablement of risky/experimental features | apps/server/src/modules/feature-flag and apps/client/src/store/featureFlagStore.js |
 | Query Key Factory | Predictable cache keys and invalidation | apps/client/src/features/*/hooks |
-| Axios Interceptor Retry | Access token refresh and replay | apps/client/src/hooks/useAxiosPrivate.js |
+| Fetch Private Retry | Access token refresh and replay on 401 | apps/client/src/api/fetch.js |
 | Persisted UI Store | Client preferences across sessions | apps/client/src/store/themeStore.js |
 
 ## Risks and Trade-offs

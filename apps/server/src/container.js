@@ -48,6 +48,7 @@ const productRepository = new ProductRepository();
 const marketProductRepository = new MarketProductRepository();
 const marketRepository = new MarketRepository();
 const featureFlagRepository = new FeatureFlagRepository();
+const productEmbeddingRepository = new ProductEmbeddingRepository();
 
 const tokenService = new TokenService();
 const fileService = new FileService();
@@ -66,6 +67,7 @@ const productService = new ProductService(
   marketRepository,
   imageRepository,
   marketProductRepository,
+  productEmbeddingRepository,
 );
 
 const marketService = new MarketService(
@@ -77,7 +79,6 @@ const marketService = new MarketService(
 const geocoderService = new GeocoderService();
 const featureFlagService = new FeatureFlagService(featureFlagRepository);
 const embeddingService = new EmbeddingService();
-const productEmbeddingRepository = new ProductEmbeddingRepository();
 const analyticsRepository = new AnalyticsRepository();
 const analyticsService = new AnalyticsService(analyticsRepository);
 

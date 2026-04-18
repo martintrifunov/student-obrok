@@ -76,8 +76,8 @@ export class ProductRepository {
     return product.save();
   }
 
-  async delete(product) {
-    return product.deleteOne();
+  async delete(product, options = {}) {
+    return product.deleteOne(options);
   }
 
   async bulkUpsertProducts(products) {

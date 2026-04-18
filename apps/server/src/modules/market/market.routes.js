@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { marketController } from "../../container.js";
 import verifyJWT from "../auth/middleware/verifyJWT.js";
+import verifyAdmin from "../auth/middleware/verifyAdmin.js";
 import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import {
   marketQuerySchema,
@@ -25,18 +26,21 @@ router.get(
 router.post(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(createMarketSchema),
   marketController.create,
 );
 router.put(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(updateMarketSchema),
   marketController.update,
 );
 router.delete(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(deleteMarketSchema),
   marketController.delete,
 );

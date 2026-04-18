@@ -38,7 +38,16 @@ Runbooks define routine operational tasks and incident responses for production.
 3. Verify MongoDB availability and query performance.
 4. Retry with smaller date range or lower scope while investigating.
 
-## 5. docs.obrok.net Validation
+## 5. Scraper Data Management
+
+1. Wipe all scraper data: `npm run scrape:db:wipe` (inside the API container).
+2. Wipe a single chain: `npm run scrape:db:wipe:<chain>` (e.g. `scrape:db:wipe:kipper`).
+3. Re-scrape the chain: `npm run scrape:<chain>`.
+4. Verify data via API or application UI.
+
+Available chain keys: vero, ramstore, stokomak, kam, superkitgo, kipper.
+
+## 6. docs.obrok.net Validation
 
 1. Build docs from apps/docs folder (docs:build).
 2. Validate static output exists at apps/docs/.vitepress/dist.

@@ -13,7 +13,7 @@ export class FeatureFlagRepository {
     return FeatureFlagModel.findOneAndUpdate(
       { key },
       { $set: { enabled, ...(description !== undefined && { description }) } },
-      { upsert: true, new: true, lean: true },
+      { upsert: true, returnDocument: "after", lean: true },
     ).exec();
   }
 }

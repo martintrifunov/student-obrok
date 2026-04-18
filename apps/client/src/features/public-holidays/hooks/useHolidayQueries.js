@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { fetchPrivate } from "@/api/fetch";
 
 export const holidayKeys = {
   all: ["public-holidays"],
@@ -8,40 +8,34 @@ export const holidayKeys = {
 };
 
 export function useHolidays({ searchTerm, page = 1, limit = 5 } = {}) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...holidayKeys.all, "list", searchTerm, page, limit],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
       if (page) params.append("page", page);
       if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("name", searchTerm);
-
-      const response = await axiosPrivate.get(`/public-holidays?${params}`);
-      return response.data;
+      return fetchPrivate(`/public-holidays?${params}`);
     },
   });
 }
 
 export function useHoliday(id) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: holidayKeys.detail(id),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/public-holidays/${id}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/public-holidays/${id}`),
     enabled: !!id,
   });
 }
 
 export function useDeleteHoliday() {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      await axiosPrivate.delete("/public-holidays", { data: { id } });
-    },
+    mutationFn: (id) =>
+      fetchPrivate("/public-holidays", {
+        method: "DELETE",
+        body: JSON.stringify({ id }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: holidayKeys.all });
     },
@@ -49,15 +43,14 @@ export function useDeleteHoliday() {
 }
 
 export function useSaveHoliday(isEditMode, holidayId) {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (holidayData) => {
-      if (isEditMode)
-        return axiosPrivate.put("/public-holidays", holidayData);
-      return axiosPrivate.post("/public-holidays", holidayData);
-    },
+    mutationFn: (holidayData) =>
+      fetchPrivate("/public-holidays", {
+        method: isEditMode ? "PUT" : "POST",
+        body: JSON.stringify(holidayData),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: holidayKeys.all });
       if (isEditMode) {

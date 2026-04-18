@@ -44,8 +44,7 @@ flowchart TD
 | Dependency | Usage |
 |------------|-------|
 | `authStore` | Auth state persistence |
-| `useAxiosPrivate` | Attach access token to API calls |
-| Axios | `/login`, `/logout` API calls |
+| `fetchPublic` / `fetchPrivate` | API calls with auth retry |
 
 ## Source Anchors
 
@@ -53,4 +52,4 @@ flowchart TD
 |------|-----------|
 | `apps/client/src/features/auth/` | Login page, guards, auth hooks |
 | `apps/client/src/store/authStore.js` | Auth state (Zustand, persisted) |
-| `apps/client/src/hooks/useAxiosPrivate.js` | Token interceptor with 403 retry |
+| `apps/client/src/api/fetch.js` | Fetch wrappers with 401 retry |

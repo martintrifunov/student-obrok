@@ -20,8 +20,8 @@ The frontend separates local/client state (Zustand) from server state (TanStack 
 ```mermaid
 flowchart TD
   UI[Feature UI] --> Hooks[Feature Query Hooks]
-  Hooks --> Axios[Axios Public/Private]
-  Axios --> API[Backend API]
+  Hooks --> Fetch[Fetch Public/Private]
+  Fetch --> API[Backend API]
   API --> Hooks
   Hooks --> Cache[React Query Cache]
   Cache --> UI
@@ -43,7 +43,7 @@ flowchart TD
 | `apps/client/src/store/featureFlagStore.js` | Feature flag cache (Zustand) |
 | `apps/client/src/features/products/hooks/useProductQueries.js` | Example query key factory |
 | `apps/client/src/features/chains/hooks/useChainQueries.js` | Example query key factory |
-| `apps/client/src/hooks/useAxiosPrivate.js` | Axios interceptor for auth |
+| `apps/client/src/api/fetch.js` | Fetch wrappers with auth retry |
 
 ## Risks and Trade-offs
 

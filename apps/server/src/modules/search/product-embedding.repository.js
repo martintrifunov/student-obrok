@@ -15,11 +15,18 @@ export class ProductEmbeddingRepository {
     return ProductEmbeddingModel.find().lean().exec();
   }
 
+  async findAllHashes() {
+    return ProductEmbeddingModel.find()
+      .select("product textHash")
+      .lean()
+      .exec();
+  }
+
   async upsert(productId, embedding, textHash) {
     return ProductEmbeddingModel.findOneAndUpdate(
       { product: productId },
       { $set: { embedding, textHash } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: "after" },
     ).exec();
   }
 
@@ -33,6 +40,10 @@ export class ProductEmbeddingRepository {
       },
     }));
     return ProductEmbeddingModel.bulkWrite(ops, { ordered: false });
+  }
+
+  async deleteByProduct(productId, options = {}) {
+    return ProductEmbeddingModel.deleteOne({ product: productId }, options).exec();
   }
 
   async count() {

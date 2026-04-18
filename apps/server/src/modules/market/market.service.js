@@ -55,6 +55,7 @@ export class MarketService {
   async deleteMarket(id) {
     const market = await this.marketRepository.findById(id);
     if (!market) throw new NotFoundError(`No market matches ID ${id}.`);
+
     await this.marketProductRepository.deleteByMarket(id);
     await this.marketRepository.delete(market);
   }

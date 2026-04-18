@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
 export class TokenService {
-  generateAccessToken(username) {
+  generateAccessToken(username, role) {
     return jwt.sign(
-      { UserInfo: { username } },
+      { UserInfo: { username, role } },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15min" },
     );
@@ -28,7 +28,7 @@ export class TokenService {
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
   }
@@ -37,7 +37,7 @@ export class TokenService {
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "Lax",
     });
   }
 }

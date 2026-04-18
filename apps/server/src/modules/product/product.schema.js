@@ -47,3 +47,7 @@ export const deleteProductSchema = z.object({
 export const productParamsSchema = z.object({
   id: zodObjectId,
 });
+
+export const categoriesQuerySchema = z.object({
+  marketId: zodObjectId.optional(),
+});

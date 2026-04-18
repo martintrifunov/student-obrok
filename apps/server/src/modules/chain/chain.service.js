@@ -66,7 +66,6 @@ export class ChainService {
       await this.marketProductRepository.deleteByMarket(market._id);
       await this.marketRepository.delete(market);
     }
-
     await this.chainRepository.delete(chain);
   }
 

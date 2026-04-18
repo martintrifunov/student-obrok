@@ -21,7 +21,7 @@ The backend is an Express service organized by modules and built with layered ar
 ### Middleware Stack (Order Matters)
 
 1. Helmet security headers.
-2. Credential handling and CORS.
+2. CORS (with credentials enabled).
 3. Body parsers and cookie parser.
 4. Visitor tracking.
 5. Route mounting.

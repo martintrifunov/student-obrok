@@ -43,8 +43,8 @@ const main = async () => {
   console.log("[Embeddings] Connected to MongoDB");
   console.log(`[Embeddings] Force mode: ${force ? "ON" : "OFF"}`);
 
-  const products = await ProductModel.find().lean().exec();
-  console.log(`[Embeddings] Found ${products.length} products`);
+  const totalProducts = await ProductModel.countDocuments().exec();
+  console.log(`[Embeddings] Found ${totalProducts} products`);
 
   const existingMap = new Map();
   if (!force) {
@@ -56,15 +56,20 @@ const main = async () => {
   }
 
   const toEmbed = [];
-  for (const product of products) {
+  const cursor = ProductModel.find()
+    .select("_id title category")
+    .lean()
+    .cursor({ batchSize: 500 });
+
+  for await (const product of cursor) {
     const text = buildEmbeddingText(product);
     const hash = textHash(text);
     if (!force && existingMap.get(product._id.toString()) === hash) continue;
-    toEmbed.push({ product, text, hash });
+    toEmbed.push({ productId: product._id, text, hash });
   }
 
   console.log(
-    `[Embeddings] ${toEmbed.length} products need embeddings (${products.length - toEmbed.length} skipped)`,
+    `[Embeddings] ${toEmbed.length} products need embeddings (${totalProducts - toEmbed.length} skipped)`,
   );
 
   if (toEmbed.length === 0) {
@@ -80,7 +85,7 @@ const main = async () => {
     const embeddings = await embeddingService.generateBatchEmbeddings(texts);
 
     const entries = batch.map((b, idx) => ({
-      productId: b.product._id,
+      productId: b.productId,
       embedding: embeddings[idx],
       textHash: b.hash,
     }));

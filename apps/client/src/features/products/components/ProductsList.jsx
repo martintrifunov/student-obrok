@@ -119,6 +119,7 @@ const ProductsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="edit product"
                           onClick={() =>
                             navigate(`/dashboard/product/${product._id}`)
                           }
@@ -128,6 +129,7 @@ const ProductsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="delete product"
                           onClick={() => handleRemoveProduct(product._id)}
                           disabled={deleteMutation.isPending}
                         >
@@ -221,6 +223,7 @@ const ProductsList = ({ searchTerm }) => {
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
                           color="inherit"
+                          aria-label="edit product"
                           onClick={() =>
                             navigate(`/dashboard/product/${product._id}`)
                           }
@@ -229,6 +232,7 @@ const ProductsList = ({ searchTerm }) => {
                         </IconButton>
                         <IconButton
                           color="inherit"
+                          aria-label="delete product"
                           onClick={() => handleRemoveProduct(product._id)}
                           disabled={deleteMutation.isPending}
                         >

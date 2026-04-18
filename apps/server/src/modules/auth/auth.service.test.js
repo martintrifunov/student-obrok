@@ -9,6 +9,9 @@ const mockAuthRepository = {
   findByUsername: vi.fn(),
   findByRefreshToken: vi.fn(),
   save: vi.fn(),
+  rotateRefreshToken: vi.fn(),
+  removeRefreshToken: vi.fn(),
+  clearRefreshTokens: vi.fn(),
 };
 
 const mockTokenService = {
@@ -114,27 +117,32 @@ describe("AuthService", () => {
       mockTokenService.verifyRefreshToken.mockResolvedValue({
         username: "maco",
       });
-      const hackedUser = { refreshToken: ["token-abc"] };
+      const hackedUser = { _id: "u1", refreshToken: ["token-abc"] };
       mockAuthRepository.findByUsername.mockResolvedValue(hackedUser);
-      mockAuthRepository.save.mockResolvedValue(null);
+      mockAuthRepository.clearRefreshTokens.mockResolvedValue(null);
       const sut = makeSut();
       await expect(sut.refresh("token-abc")).rejects.toThrow(UnauthorizedError);
-      expect(hackedUser.refreshToken).toEqual([]);
+      expect(mockAuthRepository.clearRefreshTokens).toHaveBeenCalledWith("u1");
     });
 
     it("returns new tokens on valid refresh", async () => {
-      const user = { username: "maco", refreshToken: ["token-abc"] };
+      const user = { _id: "u1", username: "maco", refreshToken: ["token-abc"] };
       mockAuthRepository.findByRefreshToken.mockResolvedValue(user);
       mockTokenService.verifyRefreshToken.mockResolvedValue({
         username: "maco",
       });
-      mockAuthRepository.save.mockResolvedValue(null);
+      mockAuthRepository.rotateRefreshToken.mockResolvedValue(user);
       const sut = makeSut();
       const result = await sut.refresh("token-abc");
       expect(result).toEqual({
         accessToken: "access-token",
         newRefreshToken: "refresh-token",
       });
+      expect(mockAuthRepository.rotateRefreshToken).toHaveBeenCalledWith(
+        "u1",
+        "token-abc",
+        "refresh-token",
+      );
     });
   });
 });

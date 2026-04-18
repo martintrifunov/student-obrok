@@ -27,7 +27,7 @@ export class AuthService {
       if (!tokenInDb) refreshTokenArray = [];
     }
 
-    const accessToken = this.tokenService.generateAccessToken(user.username);
+    const accessToken = this.tokenService.generateAccessToken(user.username, user.role);
     const newRefreshToken = this.tokenService.generateRefreshToken(
       user.username,
     );
@@ -68,8 +68,7 @@ export class AuthService {
         );
 
         if (hackedUser) {
-          hackedUser.refreshToken = [];
-          await this.authRepository.save(hackedUser);
+          await this.authRepository.clearRefreshTokens(hackedUser._id);
         }
       } catch {
         // Invalid token — no further action needed
@@ -77,10 +76,6 @@ export class AuthService {
 
       throw new UnauthorizedError();
     }
-
-    const newRefreshTokenArray = user.refreshToken.filter(
-      (rt) => rt !== existingRefreshToken,
-    );
 
     try {
       const decoded =
@@ -93,20 +88,29 @@ export class AuthService {
 
       const accessToken = this.tokenService.generateAccessToken(
         decoded.username,
+        user.role,
       );
       const newRefreshToken = this.tokenService.generateRefreshToken(
         user.username,
       );
 
-      user.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-      await this.authRepository.save(user);
+      // Atomic swap: pull old token + push new token in one operation.
+      // If a concurrent request already consumed this token, updated is null.
+      const updated = await this.authRepository.rotateRefreshToken(
+        user._id,
+        existingRefreshToken,
+        newRefreshToken,
+      );
+      if (!updated) throw new UnauthorizedError();
 
       return { accessToken, newRefreshToken };
     } catch (err) {
-      // Token expired — save cleaned array and reject
-      user.refreshToken = [...newRefreshTokenArray];
-      await this.authRepository.save(user);
-      throw new UnauthorizedError();
+      // Token expired or tampered — remove old token atomically and reject
+      await this.authRepository.removeRefreshToken(
+        user._id,
+        existingRefreshToken,
+      );
+      throw err instanceof UnauthorizedError ? err : new UnauthorizedError();
     }
   }
 }

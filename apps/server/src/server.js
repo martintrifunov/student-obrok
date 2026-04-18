@@ -10,6 +10,10 @@ import { scraperService, analyticsService, embeddingService, productEmbeddingRep
 
 const PORT = process.env.PORT || 5000;
 
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
 connectDB();
 
 mongoose.connection.once("open", async () => {

@@ -27,7 +27,7 @@ flowchart LR
 
 ### Auth Recovery Behavior
 
-- Axios interceptor attempts token refresh on 403.
+- `fetchPrivate` retries requests on 401 after transparent token refresh.
 - Guard components keep protected UI unavailable when auth is invalid.
 
 ## Source Anchors
@@ -37,7 +37,7 @@ flowchart LR
 | `apps/client/src/components/layout/App.jsx` | Route definitions |
 | `apps/client/src/features/auth/components/PersistLogin.jsx` | Silent token refresh wrapper |
 | `apps/client/src/features/auth/components/RequireAuth.jsx` | Auth guard for dashboard routes |
-| `apps/client/src/hooks/useAxiosPrivate.js` | Token interceptor with 403 retry |
+| `apps/client/src/api/fetch.js` | Token retry via fetchPrivate 401 handler |
 
 ## Risks and Trade-offs
 

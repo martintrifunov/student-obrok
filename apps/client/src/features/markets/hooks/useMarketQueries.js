@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { fetchPrivate } from "@/api/fetch";
 
 export const marketKeys = {
   all: ["markets"],
@@ -8,40 +8,34 @@ export const marketKeys = {
 };
 
 export function useMarkets({ searchTerm, page = 1, limit = 5 } = {}) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...marketKeys.all, "list", searchTerm, page, limit],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
       if (page) params.append("page", page);
       if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("name", searchTerm);
-
-      const response = await axiosPrivate.get(`/markets?${params}`);
-      return response.data;
+      return fetchPrivate(`/markets?${params}`);
     },
   });
 }
 
 export function useMarket(id) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: marketKeys.detail(id),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/markets/${id}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/markets/${id}`),
     enabled: !!id,
   });
 }
 
 export function useDeleteMarket() {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      await axiosPrivate.delete("/markets", { data: { id } });
-    },
+    mutationFn: (id) =>
+      fetchPrivate("/markets", {
+        method: "DELETE",
+        body: JSON.stringify({ id }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: marketKeys.all });
       queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -51,14 +45,14 @@ export function useDeleteMarket() {
 }
 
 export function useSaveMarket(isEditMode, marketId) {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (marketData) => {
-      if (isEditMode) return axiosPrivate.put("/markets", marketData);
-      return axiosPrivate.post("/markets", marketData);
-    },
+    mutationFn: (marketData) =>
+      fetchPrivate("/markets", {
+        method: isEditMode ? "PUT" : "POST",
+        body: JSON.stringify(marketData),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: marketKeys.all });
       queryClient.invalidateQueries({ queryKey: ["chains"] });
@@ -72,23 +66,21 @@ export function useSaveMarket(isEditMode, marketId) {
 }
 
 export function useMarketsDropdown() {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...marketKeys.all, "dropdown"],
     queryFn: async () => {
-      const res = await axiosPrivate.get("/markets?limit=0");
-      return res.data.data;
+      const data = await fetchPrivate("/markets?limit=0");
+      return data.data;
     },
   });
 }
 
 export function useMarketsForMap() {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...marketKeys.all, "map"],
     queryFn: async () => {
-      const res = await axiosPrivate.get("/markets?limit=0");
-      return res.data.data;
+      const data = await fetchPrivate("/markets?limit=0");
+      return data.data;
     },
   });
 }

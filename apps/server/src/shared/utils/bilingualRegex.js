@@ -36,7 +36,8 @@ const latToCyrMap = {
   z: "з",
 };
 
-const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRegExp = (str) =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const transliterateLatinToCyrillic = (text) => {
   let cyrStr = text.toLowerCase();

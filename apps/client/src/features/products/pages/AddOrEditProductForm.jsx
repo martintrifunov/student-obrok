@@ -11,7 +11,6 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  styled,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -165,7 +164,7 @@ const AddOrEditProductForm = () => {
     if (selectedImageId) productData.image = selectedImageId;
 
     saveMutation.mutate(productData, {
-      onSuccess: () => navigate("/dashboard"),
+      onSuccess: () => navigate("/dashboard/products"),
       onError: (error) => {
         setErrors(error.response?.data || { message: "Error saving product" });
       },
@@ -371,7 +370,7 @@ const AddOrEditProductForm = () => {
           <Button
             variant="text"
             color="inherit"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/dashboard/products")}
             sx={{ textTransform: "none" }}
             startIcon={<CloseIcon />}
           >
@@ -442,27 +441,5 @@ const AddOrEditProductForm = () => {
     </Container>
   );
 };
-
-const QuillWrapper = styled(Box)(({ theme }) => ({
-  width: "100%",
-  "& .quill": { height: "100%", display: "flex", flexDirection: "column" },
-  "& .ql-toolbar": {
-    borderTopLeftRadius: theme.shape.borderRadius,
-    borderTopRightRadius: theme.shape.borderRadius,
-    borderColor: theme.palette.divider,
-  },
-  "& .ql-container": {
-    flexGrow: 1,
-    overflow: "auto",
-    borderBottomLeftRadius: theme.shape.borderRadius,
-    borderBottomRightRadius: theme.shape.borderRadius,
-    borderColor: theme.palette.divider,
-    fontFamily: theme.typography.fontFamily,
-    fontSize: theme.typography.body1.fontSize,
-  },
-  height: "250px",
-  marginBottom: "3vh",
-  [theme.breakpoints.down("md")]: { height: "250px", marginBottom: "5vh" },
-}));
 
 export default AddOrEditProductForm;

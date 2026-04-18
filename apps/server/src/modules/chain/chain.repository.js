@@ -1,4 +1,5 @@
 import { ChainModel } from "./chain.model.js";
+import { escapeRegExp } from "../../shared/utils/bilingualRegex.js";
 
 export class ChainRepository {
   #populate() {
@@ -11,7 +12,7 @@ export class ChainRepository {
   #buildQuery(filter = {}) {
     const query = {};
     if (filter.name) {
-      query.name = { $regex: filter.name, $options: "i" };
+      query.name = { $regex: escapeRegExp(filter.name), $options: "i" };
     }
     return query;
   }
@@ -58,7 +59,7 @@ export class ChainRepository {
     return chain.save();
   }
 
-  async delete(chain) {
-    return chain.deleteOne();
+  async delete(chain, options = {}) {
+    return chain.deleteOne(options);
   }
 }

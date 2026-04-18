@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { publicHolidayController } from "../../container.js";
 import verifyJWT from "../auth/middleware/verifyJWT.js";
+import verifyAdmin from "../auth/middleware/verifyAdmin.js";
 import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import {
   publicHolidayQuerySchema,
@@ -25,18 +26,21 @@ router.get(
 router.post(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(createPublicHolidaySchema),
   publicHolidayController.create,
 );
 router.put(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(updatePublicHolidaySchema),
   publicHolidayController.update,
 );
 router.delete(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(deletePublicHolidaySchema),
   publicHolidayController.delete,
 );

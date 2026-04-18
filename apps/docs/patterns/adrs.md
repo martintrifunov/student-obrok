@@ -44,3 +44,10 @@ This page tracks major architectural decisions and the reasons behind them.
 - Context: AI/embedding features carry cost and operational variability.
 - Decision: Gate behavior through feature flags in backend and frontend.
 - Consequences: Safer rollout, requires discipline to remove stale flags.
+
+## ADR-006: Replace Axios With Native Fetch
+
+- Status: Accepted
+- Context: Axios added a dependency for functionality now available natively. The interceptor pattern coupled auth retry logic to a mutable shared instance, causing re-render issues.
+- Decision: Replace axios with a thin fetch wrapper (`fetchPublic`/`fetchPrivate`) that reads auth state from Zustand's `getState()` and handles 401 retry internally.
+- Consequences: One fewer dependency, simpler auth retry without React lifecycle coupling, and direct integration with TanStack Query. Error shape changes from `AxiosError` to custom `HttpError`.

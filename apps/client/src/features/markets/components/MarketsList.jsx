@@ -124,6 +124,7 @@ const MarketsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="edit market"
                           onClick={() =>
                             navigate(`/dashboard/market/${market._id}`)
                           }
@@ -133,6 +134,7 @@ const MarketsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="delete market"
                           onClick={() => handleRemoveMarket(market._id)}
                           disabled={deleteMutation.isPending}
                         >
@@ -238,6 +240,7 @@ const MarketsList = ({ searchTerm }) => {
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
                           color="inherit"
+                          aria-label="edit market"
                           onClick={() =>
                             navigate(`/dashboard/market/${market._id}`)
                           }
@@ -246,6 +249,7 @@ const MarketsList = ({ searchTerm }) => {
                         </IconButton>
                         <IconButton
                           color="inherit"
+                          aria-label="delete market"
                           onClick={() => handleRemoveMarket(market._id)}
                           disabled={deleteMutation.isPending}
                         >

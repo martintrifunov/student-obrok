@@ -60,7 +60,7 @@ Mutations invalidate related query keys (e.g., deleting a chain invalidates mark
 | Dependency | Usage |
 |------------|-------|
 | `useDebounce` | Debounced search across all lists |
-| `useAxiosPrivate` | Authenticated API calls |
+| `fetchPrivate` | Authenticated API calls |
 | Images feature | Image gallery selector |
 | Material-UI | Tables, forms, dialogs, pagination |
 
