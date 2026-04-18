@@ -29,7 +29,7 @@ export class AnalyticsRepository {
         },
         $setOnInsert: { firstSeenAt: seenAt },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: "after" },
     ).exec();
   }
 
@@ -295,7 +295,7 @@ export class AnalyticsRepository {
           source: "raw-events",
         },
       },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: "after" },
     ).exec();
   }
 

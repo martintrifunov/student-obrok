@@ -26,7 +26,7 @@ export class ProductEmbeddingRepository {
     return ProductEmbeddingModel.findOneAndUpdate(
       { product: productId },
       { $set: { embedding, textHash } },
-      { upsert: true, new: true },
+      { upsert: true, returnDocument: "after" },
     ).exec();
   }
 
