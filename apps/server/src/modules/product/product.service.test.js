@@ -235,9 +235,9 @@ describe("ProductService", () => {
       mockProductRepository.delete.mockResolvedValue(null);
       const sut = makeSut();
       await sut.deleteProduct("p1");
-      expect(mockMarketProductRepository.deleteByProduct).toHaveBeenCalledWith("p1", expect.any(Object));
-      expect(mockProductEmbeddingRepository.deleteByProduct).toHaveBeenCalledWith("p1", expect.any(Object));
-      expect(mockProductRepository.delete).toHaveBeenCalledWith(product, expect.any(Object));
+      expect(mockMarketProductRepository.deleteByProduct).toHaveBeenCalledWith("p1");
+      expect(mockProductEmbeddingRepository.deleteByProduct).toHaveBeenCalledWith("p1");
+      expect(mockProductRepository.delete).toHaveBeenCalledWith(product);
     });
   });
 });

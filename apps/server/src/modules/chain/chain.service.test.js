@@ -175,7 +175,7 @@ describe("ChainService", () => {
       expect(mockMarketRepository.findByChain).toHaveBeenCalledWith("v1");
       expect(mockMarketProductRepository.deleteByMarket).toHaveBeenCalledTimes(2);
       expect(mockMarketRepository.delete).toHaveBeenCalledTimes(2);
-      expect(mockChainRepository.delete).toHaveBeenCalledWith(chain, expect.any(Object));
+      expect(mockChainRepository.delete).toHaveBeenCalledWith(chain);
     });
   });
 });
