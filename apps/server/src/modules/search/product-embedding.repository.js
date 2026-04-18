@@ -15,6 +15,13 @@ export class ProductEmbeddingRepository {
     return ProductEmbeddingModel.find().lean().exec();
   }
 
+  async findAllHashes() {
+    return ProductEmbeddingModel.find()
+      .select("product textHash")
+      .lean()
+      .exec();
+  }
+
   async upsert(productId, embedding, textHash) {
     return ProductEmbeddingModel.findOneAndUpdate(
       { product: productId },
