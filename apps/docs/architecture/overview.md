@@ -42,7 +42,7 @@ flowchart TD
   Router --> FeatureUI[Feature Pages]
   FeatureUI --> DataHooks[React Query Hooks]
   FeatureUI --> Stores[Zustand Stores]
-  DataHooks --> API[Axios API Layer]
+  DataHooks --> API[Fetch API Layer]
 ```
 
 ## Source Anchors

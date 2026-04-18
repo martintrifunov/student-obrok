@@ -34,7 +34,7 @@ flowchart TD
 | `apps/client/src/components/layout/App.jsx` | Route tree and guards |
 | `apps/client/src/features/` | Feature-based module directories |
 | `apps/client/src/store/` | Zustand stores (auth, theme, flags) |
-| `apps/client/src/hooks/` | Shared hooks (axios, debounce, feature flag) |
+| `apps/client/src/hooks/` | Shared hooks (debounce, feature flag) |
 
 ## Risks and Trade-offs
 

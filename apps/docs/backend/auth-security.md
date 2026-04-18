@@ -22,7 +22,7 @@ sequenceDiagram
   DB-->>API: User record
   API-->>U: Access token + refresh cookie
   U->>API: Protected request with access token
-  API-->>U: 200 or 403
+  API-->>U: 200 or 401
   U->>API: Refresh request (cookie)
   API-->>U: New access token
 ```
@@ -45,7 +45,7 @@ sequenceDiagram
 | Path | Relevance |
 |------|-----------|
 | `apps/server/src/modules/auth/` | Auth module (controller, service, routes, model) |
-| `apps/server/src/modules/auth/middleware/` | JWT verification, admin check, credentials |
+| `apps/server/src/modules/auth/middleware/` | JWT verification, admin check |
 | `apps/server/src/config/corsOptions.js` | CORS origin enforcement |
 | `apps/server/src/shared/middleware/errorHandler.js` | Centralized error handler |
 | `apps/server/src/config/multerConfig.js` | File upload configuration |

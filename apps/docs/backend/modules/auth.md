@@ -70,13 +70,13 @@ sequenceDiagram
 | Path | Relevance |
 |------|-----------|
 | `apps/server/src/modules/auth/` | Controller, service, routes, schema, model, repository |
-| `apps/server/src/modules/auth/middleware/` | verifyJWT, verifyAdminUser, optionalVerifyJWT, credentials |
+| `apps/server/src/modules/auth/middleware/` | verifyJWT, verifyAdminUser, optionalVerifyJWT |
 
 ## Failure Modes
 
 | Failure | Behavior |
 |---------|----------|
 | Invalid credentials | 401 with generic message |
-| Expired refresh token | 403, client redirects to login |
-| Token reuse detected | All user tokens wiped, 403 |
+| Expired refresh token | 401, client redirects to login |
+| Token reuse detected | All user tokens wiped, 401 |
 | Rate limit exceeded | 429, retry after cooldown |
