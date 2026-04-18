@@ -10,11 +10,19 @@ import {
   analyticsFeatureTrendQuerySchema,
   analyticsExportQuerySchema,
 } from "./analytics.schema.js";
+import { createRateLimiter } from "../../shared/middleware/rateLimiter.js";
+
+const heartbeatLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: "Too many heartbeat requests. Please slow down.",
+});
 
 const router = Router();
 
 router.post(
   "/heartbeat",
+  heartbeatLimiter,
   optionalVerifyJWT,
   validateRequest(analyticsHeartbeatSchema),
   analyticsController.heartbeat,
