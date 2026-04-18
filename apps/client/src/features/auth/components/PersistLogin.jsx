@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import useRefreshToken from "@/features/auth/hooks/useRefreshToken";
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -8,13 +8,6 @@ const PersistLogin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const refresh = useRefreshToken();
   const { auth, persist } = useAuth();
-  const authRef = useRef(auth);
-  const persistRef = useRef(persist);
-
-  useEffect(() => {
-    authRef.current = auth;
-    persistRef.current = persist;
-  }, [auth, persist]);
 
   useEffect(() => {
     let isMounted = true;
@@ -28,14 +21,15 @@ const PersistLogin = () => {
       }
     };
 
-    if (!authRef.current?.accessToken && persistRef.current) {
+    if (!auth?.accessToken && persist) {
       verifyRefreshToken();
     } else {
       setIsLoading(false);
     }
 
     return () => (isMounted = false);
-  }, [refresh]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>

@@ -16,23 +16,7 @@ export class AuthRepository {
   async rotateRefreshToken(userId, oldToken, newToken) {
     return UserModel.findOneAndUpdate(
       { _id: userId, refreshToken: oldToken },
-      [
-        {
-          $set: {
-            refreshToken: {
-              $concatArrays: [
-                {
-                  $filter: {
-                    input: "$refreshToken",
-                    cond: { $ne: ["$$this", oldToken] },
-                  },
-                },
-                [newToken],
-              ],
-            },
-          },
-        },
-      ],
+      { $set: { "refreshToken.$": newToken } },
       { returnDocument: "after" },
     ).exec();
   }
