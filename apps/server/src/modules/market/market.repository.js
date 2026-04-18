@@ -67,11 +67,13 @@ export class MarketRepository {
     }
 
     return MarketModel.find(query)
+      .limit(500)
       .populate({ path: "chain", select: "name" })
       .populate({
         path: "marketProducts",
         populate: { path: "product" },
       })
+      .lean()
       .exec();
   }
 
