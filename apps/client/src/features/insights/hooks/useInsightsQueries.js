@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { fetchPrivate } from "@/api/fetch";
 
 export const insightsKeys = {
   all: ["insights"],
@@ -8,36 +8,25 @@ export const insightsKeys = {
 };
 
 export function useInsightsSummary(days = 30) {
-  const axiosPrivate = useAxiosPrivate();
-
   return useQuery({
     queryKey: insightsKeys.summary(days),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/analytics/summary?days=${days}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/analytics/summary?days=${days}`),
     enabled: !!days,
   });
 }
 
 export function useInsightsFeatureTrends(days = 30) {
-  const axiosPrivate = useAxiosPrivate();
-
   return useQuery({
     queryKey: insightsKeys.featureTrends(days),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/analytics/feature-trends?days=${days}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/analytics/feature-trends?days=${days}`),
     enabled: !!days,
   });
 }
 
-export async function downloadInsightsCsv(axiosPrivate, days = 30) {
-  const res = await axiosPrivate.get(`/analytics/export?days=${days}`, {
-    responseType: "blob",
-  });
-  const url = window.URL.createObjectURL(new Blob([res.data]));
+export async function downloadInsightsCsv(days = 30) {
+  const res = await fetchPrivate(`/analytics/export?days=${days}`, { raw: true });
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.setAttribute("download", `insights-${days}d.csv`);

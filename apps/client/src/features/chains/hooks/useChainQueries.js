@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { fetchPrivate } from "@/api/fetch";
 
 export const chainKeys = {
   all: ["chains"],
@@ -8,40 +8,34 @@ export const chainKeys = {
 };
 
 export function useChains({ searchTerm, page = 1, limit = 5 } = {}) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...chainKeys.all, "list", searchTerm, page, limit],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
       if (page) params.append("page", page);
       if (limit !== undefined) params.append("limit", limit);
       if (searchTerm) params.append("name", searchTerm);
-
-      const response = await axiosPrivate.get(`/chains?${params}`);
-      return response.data;
+      return fetchPrivate(`/chains?${params}`);
     },
   });
 }
 
 export function useChain(id) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: chainKeys.detail(id),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/chains/${id}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/chains/${id}`),
     enabled: !!id,
   });
 }
 
 export function useDeleteChain() {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id) => {
-      await axiosPrivate.delete("/chains", { data: { id } });
-    },
+    mutationFn: (id) =>
+      fetchPrivate("/chains", {
+        method: "DELETE",
+        body: JSON.stringify({ id }),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
       queryClient.invalidateQueries({ queryKey: ["markets"] });
@@ -51,14 +45,14 @@ export function useDeleteChain() {
 }
 
 export function useSaveChain(isEditMode, chainId) {
-  const axiosPrivate = useAxiosPrivate();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (chainData) => {
-      if (isEditMode) return axiosPrivate.put("/chains", chainData);
-      return axiosPrivate.post("/chains", chainData);
-    },
+    mutationFn: (chainData) =>
+      fetchPrivate("/chains", {
+        method: isEditMode ? "PUT" : "POST",
+        body: JSON.stringify(chainData),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chainKeys.all });
       queryClient.invalidateQueries({ queryKey: ["markets"] });
@@ -72,12 +66,11 @@ export function useSaveChain(isEditMode, chainId) {
 }
 
 export function useChainsDropdown() {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: [...chainKeys.all, "dropdown"],
     queryFn: async () => {
-      const res = await axiosPrivate.get("/chains?limit=0");
-      return res.data.data;
+      const data = await fetchPrivate("/chains?limit=0");
+      return data.data;
     },
   });
 }

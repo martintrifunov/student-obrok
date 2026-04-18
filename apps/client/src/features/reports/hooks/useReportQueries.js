@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import { fetchPrivate } from "@/api/fetch";
 
 export const reportKeys = {
   all: ["reports"],
@@ -7,23 +7,19 @@ export const reportKeys = {
 };
 
 export function useCreateReport() {
-  const axiosPrivate = useAxiosPrivate();
   return useMutation({
-    mutationFn: async (filters) => {
-      const res = await axiosPrivate.post("/reports", filters);
-      return res.data;
-    },
+    mutationFn: (filters) =>
+      fetchPrivate("/reports", {
+        method: "POST",
+        body: JSON.stringify(filters),
+      }),
   });
 }
 
 export function useReportStatus(jobId) {
-  const axiosPrivate = useAxiosPrivate();
   return useQuery({
     queryKey: reportKeys.job(jobId),
-    queryFn: async () => {
-      const res = await axiosPrivate.get(`/reports/${jobId}`);
-      return res.data;
-    },
+    queryFn: () => fetchPrivate(`/reports/${jobId}`),
     enabled: !!jobId,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
@@ -34,24 +30,18 @@ export function useReportStatus(jobId) {
 }
 
 export function useCancelReport() {
-  const axiosPrivate = useAxiosPrivate();
   return useMutation({
-    mutationFn: async (jobId) => {
-      const res = await axiosPrivate.post(`/reports/${jobId}/cancel`);
-      return res.data;
-    },
+    mutationFn: (jobId) =>
+      fetchPrivate(`/reports/${jobId}/cancel`, { method: "POST" }),
   });
 }
 
 export function useDownloadReport() {
-  const axiosPrivate = useAxiosPrivate();
-
   return useMutation({
     mutationFn: async (jobId) => {
-      const res = await axiosPrivate.get(`/reports/${jobId}/download`, {
-        responseType: "blob",
-      });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const res = await fetchPrivate(`/reports/${jobId}/download`, { raw: true });
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "Report.csv");

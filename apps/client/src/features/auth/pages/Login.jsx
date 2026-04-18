@@ -12,7 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
-import axios from "@/api/axios";
+import { fetchPublic } from "@/api/fetch";
 import { useLocation, useNavigate } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
 
@@ -31,19 +31,13 @@ const Login = () => {
     event.preventDefault();
     setError(null);
     try {
-      const response = await axios.post(
-        "/login",
-        JSON.stringify({
-          username,
-          password,
-        }),
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        },
-      );
+      const data = await fetchPublic("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-      const accessToken = response?.data?.accessToken;
+      const accessToken = data?.accessToken;
 
       setAuth({ username, accessToken });
       setUsername("");

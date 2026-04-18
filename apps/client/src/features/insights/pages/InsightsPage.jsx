@@ -32,7 +32,6 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 import {
   useInsightsSummary,
   useInsightsFeatureTrends,
@@ -69,7 +68,6 @@ const ChartCard = ({ title, children }) => (
 const InsightsPage = () => {
   const [days, setDays] = useState(30);
   const [exportError, setExportError] = useState("");
-  const axiosPrivate = useAxiosPrivate();
   const { data, isLoading, isError, error } = useInsightsSummary(days);
   const { data: featureTrendData } = useInsightsFeatureTrends(days);
 
@@ -87,7 +85,7 @@ const InsightsPage = () => {
   const handleExport = async () => {
     setExportError("");
     try {
-      await downloadInsightsCsv(axiosPrivate, days);
+      await downloadInsightsCsv(days);
     } catch (err) {
       setExportError(err?.response?.data?.message || "Only admin users can export insights CSV.");
     }

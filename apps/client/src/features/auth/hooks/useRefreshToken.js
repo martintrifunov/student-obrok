@@ -1,13 +1,13 @@
-import { axiosPublic } from "@/api/axios";
+import { fetchPublic } from "@/api/fetch";
 import { useAuthStore } from "@/store/authStore";
 
 const useRefreshToken = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const refresh = async () => {
-    const response = await axiosPublic.get("/refresh");
-    setAuth((prev) => ({ ...prev, accessToken: response.data.accessToken }));
-    return response.data.accessToken;
+    const data = await fetchPublic("/refresh");
+    setAuth((prev) => ({ ...prev, accessToken: data.accessToken }));
+    return data.accessToken;
   };
 
   return refresh;

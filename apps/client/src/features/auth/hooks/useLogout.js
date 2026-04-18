@@ -1,4 +1,4 @@
-import { axiosPublic } from "@/api/axios";
+import { fetchPublic } from "@/api/fetch";
 import { useAuthStore } from "@/store/authStore";
 
 const useLogout = () => {
@@ -7,7 +7,7 @@ const useLogout = () => {
   const logout = async () => {
     logoutAction();
     try {
-      await axiosPublic.get("/logout");
+      await fetchPublic("/logout");
     } catch (err) {
       console.error(err);
     }

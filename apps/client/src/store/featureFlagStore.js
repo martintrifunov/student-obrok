@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosPublic } from "@/api/axios";
+import { fetchPublic } from "@/api/fetch";
 
 export const useFeatureFlagStore = create((set, get) => ({
   flags: {},
@@ -7,16 +7,16 @@ export const useFeatureFlagStore = create((set, get) => ({
   fetchFlags: async () => {
     if (get().loaded) return;
     try {
-      const res = await axiosPublic.get("/flags");
-      set({ flags: res.data, loaded: true });
+      const data = await fetchPublic("/flags");
+      set({ flags: data, loaded: true });
     } catch {
       set({ loaded: true });
     }
   },
   refetchFlags: async () => {
     try {
-      const res = await axiosPublic.get("/flags");
-      set({ flags: res.data, loaded: true });
+      const data = await fetchPublic("/flags");
+      set({ flags: data, loaded: true });
     } catch {
       /* keep existing state */
     }

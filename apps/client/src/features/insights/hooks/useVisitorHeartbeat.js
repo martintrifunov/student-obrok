@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { axiosPublic } from "@/api/axios";
+import { fetchPublic } from "@/api/fetch";
 
 const HEARTBEAT_INTERVAL_MS = 60 * 1000;
 
@@ -14,7 +14,11 @@ export default function useVisitorHeartbeat() {
 
   const sendHeartbeat = useCallback(async ({ path, isPageView = false }) => {
     try {
-      await axiosPublic.post("/analytics/heartbeat", { path, isPageView });
+      await fetchPublic("/analytics/heartbeat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path, isPageView }),
+      });
     } catch {
       // Analytics should never block UX.
     }
