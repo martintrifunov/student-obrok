@@ -28,7 +28,7 @@ export class TokenService {
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
   }
@@ -37,7 +37,7 @@ export class TokenService {
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: true,
-      sameSite: "None",
+      sameSite: "Lax",
     });
   }
 }
