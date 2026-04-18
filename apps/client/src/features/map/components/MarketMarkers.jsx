@@ -81,6 +81,7 @@ const MarketMarkers = ({
         properties: {
           cluster: false,
           marketIndex: index,
+          chainName: market.chain?.name || market.name,
         },
         geometry: {
           type: "Point",

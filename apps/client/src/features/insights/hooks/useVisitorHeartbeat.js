@@ -16,7 +16,6 @@ export default function useVisitorHeartbeat() {
     try {
       await fetchPublic("/analytics/heartbeat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path, isPageView }),
       });
     } catch {
