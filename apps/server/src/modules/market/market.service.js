@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
@@ -57,14 +56,7 @@ export class MarketService {
     const market = await this.marketRepository.findById(id);
     if (!market) throw new NotFoundError(`No market matches ID ${id}.`);
 
-    const session = await mongoose.startSession();
-    try {
-      await session.withTransaction(async () => {
-        await this.marketProductRepository.deleteByMarket(id, { session });
-        await this.marketRepository.delete(market, { session });
-      });
-    } finally {
-      await session.endSession();
-    }
+    await this.marketProductRepository.deleteByMarket(id);
+    await this.marketRepository.delete(market);
   }
 }
