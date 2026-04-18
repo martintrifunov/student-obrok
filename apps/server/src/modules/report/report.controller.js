@@ -1,4 +1,5 @@
 import { createReadStream } from "fs";
+import { unlink } from "fs/promises";
 
 export class ReportController {
   constructor(reportService) {
@@ -37,6 +38,9 @@ export class ReportController {
       console.error("Report stream error:", err);
       if (!res.headersSent) res.sendStatus(500);
       else res.destroy();
+    });
+    stream.on("close", () => {
+      unlink(filePath).catch(() => {});
     });
     stream.pipe(res);
   };
