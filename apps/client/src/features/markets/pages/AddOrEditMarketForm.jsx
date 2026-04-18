@@ -98,7 +98,7 @@ const AddOrEditMarketForm = () => {
     if (selectedChainId) marketData.chain = selectedChainId;
 
     saveMutation.mutate(marketData, {
-      onSuccess: () => navigate("/dashboard"),
+      onSuccess: () => navigate("/dashboard/markets"),
       onError: (error) => {
         setErrors(error.response?.data || { message: "Error saving market" });
       },
@@ -206,7 +206,7 @@ const AddOrEditMarketForm = () => {
           <Button
             variant="text"
             color="inherit"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/dashboard/markets")}
             sx={{ textTransform: "none" }}
             startIcon={<CloseIcon />}
           >

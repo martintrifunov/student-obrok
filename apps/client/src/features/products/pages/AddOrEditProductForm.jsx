@@ -164,7 +164,7 @@ const AddOrEditProductForm = () => {
     if (selectedImageId) productData.image = selectedImageId;
 
     saveMutation.mutate(productData, {
-      onSuccess: () => navigate("/dashboard"),
+      onSuccess: () => navigate("/dashboard/products"),
       onError: (error) => {
         setErrors(error.response?.data || { message: "Error saving product" });
       },
@@ -370,7 +370,7 @@ const AddOrEditProductForm = () => {
           <Button
             variant="text"
             color="inherit"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/dashboard/products")}
             sx={{ textTransform: "none" }}
             startIcon={<CloseIcon />}
           >

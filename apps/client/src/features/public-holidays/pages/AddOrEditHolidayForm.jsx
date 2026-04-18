@@ -66,7 +66,7 @@ const AddOrEditHolidayForm = () => {
     holidayData.date = holiday.date;
 
     saveMutation.mutate(holidayData, {
-      onSuccess: () => navigate("/dashboard"),
+      onSuccess: () => navigate("/dashboard/holidays"),
       onError: (error) => {
         setErrors(
           error.response?.data || { message: "Error saving holiday" },
@@ -86,7 +86,7 @@ const AddOrEditHolidayForm = () => {
           {fetchHolidayError?.response?.data?.message ||
             "Failed to load holiday."}
         </Alert>
-        <Button variant="outlined" onClick={() => navigate("/dashboard")}>
+        <Button variant="outlined" onClick={() => navigate("/dashboard/holidays")}>
           Back to Dashboard
         </Button>
       </Container>
@@ -144,12 +144,22 @@ const AddOrEditHolidayForm = () => {
               fullWidth
               required
               slotProps={{ inputLabel: { shrink: true } }}
+              onClick={(e) => e.currentTarget.querySelector("input")?.showPicker?.()}
+              sx={{
+                cursor: "pointer",
+                "& input": { cursor: "pointer" },
+                "& input::-webkit-calendar-picker-indicator": {
+                  filter: (theme) =>
+                    theme.palette.mode === "dark" ? "invert(1)" : "none",
+                  cursor: "pointer",
+                },
+              }}
             />
           </Box>
         </Paper>
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-          <Button variant="text" onClick={() => navigate("/dashboard")}>
+          <Button variant="text" onClick={() => navigate("/dashboard/holidays")}>
             Cancel
           </Button>
           <Button
