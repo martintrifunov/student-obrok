@@ -9,6 +9,7 @@ import {
   updateProductSchema,
   deleteProductSchema,
   productParamsSchema,
+  categoriesQuerySchema,
 } from "./product.schema.js";
 
 const router = Router();
@@ -18,7 +19,11 @@ router.get(
   validateRequest(productQuerySchema, "query"),
   productController.getAll,
 );
-router.get("/categories", productController.getCategories);
+router.get(
+  "/categories",
+  validateRequest(categoriesQuerySchema, "query"),
+  productController.getCategories,
+);
 router.get(
   "/:id",
   validateRequest(productParamsSchema, "params"),
