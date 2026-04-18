@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 
-import credentials from "./modules/auth/middleware/credentials.js";
 import corsOptions from "./config/corsOptions.js";
 import { errorHandler } from "./shared/middleware/errorHandler.js";
 import visitorTracking from "./shared/middleware/visitorTracking.js";
@@ -31,7 +30,6 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
-app.use(credentials);
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ limit: "10mb", extended: false }));
 app.use(express.json({ limit: "10mb" }));
