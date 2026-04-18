@@ -44,7 +44,7 @@ jobs:
           envs: RELEASE_TAG
           script: |
             # Navigate to the exact absolute path on the VPS
-            cd /home/maco/projects/student-obrok
+            cd /home/maco/projects/obrok
             
             echo "--- Fetching latest code for $RELEASE_TAG ---"
             git fetch --tags

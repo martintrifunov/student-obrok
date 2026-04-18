@@ -71,7 +71,7 @@ services:
     ports:
       - "127.0.0.1:6969:27017"
     volumes:
-      - student_obrok_db:/data/db
+      - obrok_db:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
@@ -86,4 +86,4 @@ networks:
     driver: bridge
 
 volumes:
-  student_obrok_db:
+  obrok_db:

@@ -1,16 +1,16 @@
-# Student Obrok
+# Obrok
 
-Student Obrok is an open source web application that scrapes product data from nearby market chains and helps users plan affordable meals from real store inventory.
+Obrok is an open source web application that scrapes product data from nearby market chains and helps users plan affordable meals from real store inventory.
 
 It combines a React frontend, an Express and MongoDB backend, OSRM routing, and a VitePress documentation site.
 
 [Documentation](https://docs.obrok.net) | [Website](https://obrok.net) | [Environment Templates](./ENV_TEMPLATES.md) | [License](./LICENSE)
 
-## Why Student Obrok?
+## Why Obrok?
 
 Students looking for affordable meals usually have to jump between market flyers, store searches, recipe ideas, and map tools. That workflow is fragmented, hard to compare, and not especially useful when the real question is what meal can be made from products that are actually available nearby.
 
-Student Obrok brings those pieces together. It collects product data from nearby chains, lets users search ingredients directly, and includes an AI recipe decomposition flow that turns meal searches into ingredient lists tied to real markets.
+Obrok brings those pieces together. It collects product data from nearby chains, lets users search ingredients directly, and includes an AI recipe decomposition flow that turns meal searches into ingredient lists tied to real markets.
 
 ## What It Includes
 

@@ -6,7 +6,7 @@ title: Deployment Overview
 
 ## Public Summary
 
-Student Obrok uses Docker Compose for both development and production, with Nginx as production reverse proxy and Certbot for SSL renewal.
+Obrok uses Docker Compose for both development and production, with Nginx as production reverse proxy and Certbot for SSL renewal.
 
 ## Internal Details
 

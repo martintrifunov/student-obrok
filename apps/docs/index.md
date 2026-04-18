@@ -1,13 +1,13 @@
 ---
-title: Student Obrok Documentation
+title: Obrok Documentation
 description: Full-stack technical documentation for architecture, backend, frontend, deployment, and design patterns.
 ---
 
-# Student Obrok Documentation
+# Obrok Documentation
 
 ## Public Summary
 
-Student Obrok is a full-stack platform for market data ingestion, search, reporting, and route-aware exploration. The system combines:
+Obrok is a full-stack platform for market data ingestion, search, reporting, and route-aware exploration. The system combines:
 
 - A React client with feature-based modules.
 - An Express API with layered architecture and cron-driven data ingestion.

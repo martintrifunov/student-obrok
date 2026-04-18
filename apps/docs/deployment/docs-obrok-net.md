@@ -26,7 +26,7 @@ Example server block (conceptual):
 server {
   listen 443 ssl;
   server_name docs.obrok.net;
-  root /var/www/student-obrok-docs;
+  root /var/www/obrok-docs;
   index index.html;
 
   location / {

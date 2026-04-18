@@ -201,7 +201,7 @@ const nominatimSearch = async (query, city) => {
   url.searchParams.set("countrycodes", "mk");
 
   const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "student-obrok-coords/1.0" },
+    headers: { "User-Agent": "obrok-coords/1.0" },
   });
 
   if (!res.ok) return null;
