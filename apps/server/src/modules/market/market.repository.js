@@ -83,7 +83,7 @@ export class MarketRepository {
     return market.save();
   }
 
-  async delete(market) {
-    return market.deleteOne();
+  async delete(market, options = {}) {
+    return market.deleteOne(options);
   }
 }

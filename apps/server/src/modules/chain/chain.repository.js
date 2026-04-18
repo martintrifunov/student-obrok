@@ -59,7 +59,7 @@ export class ChainRepository {
     return chain.save();
   }
 
-  async delete(chain) {
-    return chain.deleteOne();
+  async delete(chain, options = {}) {
+    return chain.deleteOne(options);
   }
 }

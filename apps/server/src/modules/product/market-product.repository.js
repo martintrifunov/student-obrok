@@ -118,11 +118,11 @@ export class MarketProductRepository {
     return MarketProductModel.create(data);
   }
 
-  async deleteByMarket(marketId) {
-    return MarketProductModel.deleteMany({ market: marketId }).exec();
+  async deleteByMarket(marketId, options = {}) {
+    return MarketProductModel.deleteMany({ market: marketId }, options).exec();
   }
 
-  async deleteByProduct(productId) {
-    return MarketProductModel.deleteMany({ product: productId }).exec();
+  async deleteByProduct(productId, options = {}) {
+    return MarketProductModel.deleteMany({ product: productId }, options).exec();
   }
 }

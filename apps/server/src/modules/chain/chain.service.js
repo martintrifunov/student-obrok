@@ -1,4 +1,5 @@
 import { Parser } from "@json2csv/plainjs";
+import mongoose from "mongoose";
 import { NotFoundError } from "../../shared/errors/NotFoundError.js";
 import { buildPaginationMeta } from "../../shared/utils/buildPaginationMeta.js";
 
@@ -61,13 +62,19 @@ export class ChainService {
     const chain = await this.chainRepository.findById(id);
     if (!chain) throw new NotFoundError(`No chain matches ID ${id}.`);
 
-    const markets = await this.marketRepository.findByChain(id);
-    for (const market of markets) {
-      await this.marketProductRepository.deleteByMarket(market._id);
-      await this.marketRepository.delete(market);
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        const markets = await this.marketRepository.findByChain(id);
+        for (const market of markets) {
+          await this.marketProductRepository.deleteByMarket(market._id, { session });
+          await this.marketRepository.delete(market, { session });
+        }
+        await this.chainRepository.delete(chain, { session });
+      });
+    } finally {
+      await session.endSession();
     }
-
-    await this.chainRepository.delete(chain);
   }
 
   async generateReport() {
