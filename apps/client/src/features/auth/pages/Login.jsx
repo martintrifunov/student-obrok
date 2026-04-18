@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
@@ -66,10 +66,6 @@ const Login = () => {
   const togglePersist = () => {
     setPersist((prev) => !prev);
   };
-
-  useEffect(() => {
-    localStorage.setItem("persist", persist);
-  }, [persist]);
 
   return (
     <Box
