@@ -23,18 +23,32 @@ async function handleResponse(res, raw) {
 
 export async function fetchPublic(path, options = {}) {
   const { raw, ...fetchOptions } = options;
+  const headers = new Headers(fetchOptions.headers);
+  if (!headers.has("Content-Type") && !(fetchOptions.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
   const res = await fetch(`${BASE_API_URL}${path}`, {
     credentials: "include",
     ...fetchOptions,
+    headers,
   });
   return handleResponse(res, raw);
 }
 
+let refreshPromise = null;
+
 async function refreshAccessToken() {
-  const data = await fetchPublic("/refresh");
-  const { setAuth } = useAuthStore.getState();
-  setAuth((prev) => ({ ...prev, accessToken: data.accessToken }));
-  return data.accessToken;
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = fetchPublic("/refresh")
+    .then((data) => {
+      const { setAuth } = useAuthStore.getState();
+      setAuth((prev) => ({ ...prev, accessToken: data.accessToken }));
+      return data.accessToken;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
 }
 
 export async function fetchPrivate(path, options = {}) {

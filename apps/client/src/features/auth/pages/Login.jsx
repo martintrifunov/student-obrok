@@ -33,7 +33,6 @@ const Login = () => {
     try {
       const data = await fetchPublic("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
