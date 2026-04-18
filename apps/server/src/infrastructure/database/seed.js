@@ -11,6 +11,7 @@ export const seedAdminUser = async () => {
     await UserModel.create({
       username: process.env.ADMIN_USERNAME,
       password: hashed,
+      role: "admin",
     });
     console.log("Admin user seeded.");
   }

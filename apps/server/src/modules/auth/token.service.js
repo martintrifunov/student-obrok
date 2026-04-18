@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken";
 
 export class TokenService {
-  generateAccessToken(username) {
+  generateAccessToken(username, role) {
     return jwt.sign(
-      { UserInfo: { username } },
+      { UserInfo: { username, role } },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "15min" },
     );

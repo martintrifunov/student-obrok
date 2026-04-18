@@ -27,7 +27,7 @@ export class AuthService {
       if (!tokenInDb) refreshTokenArray = [];
     }
 
-    const accessToken = this.tokenService.generateAccessToken(user.username);
+    const accessToken = this.tokenService.generateAccessToken(user.username, user.role);
     const newRefreshToken = this.tokenService.generateRefreshToken(
       user.username,
     );
@@ -93,6 +93,7 @@ export class AuthService {
 
       const accessToken = this.tokenService.generateAccessToken(
         decoded.username,
+        user.role,
       );
       const newRefreshToken = this.tokenService.generateRefreshToken(
         user.username,

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { productController } from "../../container.js";
 import verifyJWT from "../auth/middleware/verifyJWT.js";
+import verifyAdmin from "../auth/middleware/verifyAdmin.js";
 import { validateRequest } from "../../shared/middleware/validateRequest.js";
 import {
   productQuerySchema,
@@ -26,18 +27,21 @@ router.get(
 router.post(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(createProductSchema),
   productController.create,
 );
 router.put(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(updateProductSchema),
   productController.update,
 );
 router.delete(
   "/",
   verifyJWT,
+  verifyAdmin,
   validateRequest(deleteProductSchema),
   productController.delete,
 );
