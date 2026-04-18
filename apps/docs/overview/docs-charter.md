@@ -6,7 +6,7 @@ title: Documentation Charter
 
 ## Public Summary
 
-This charter defines how Student Obrok documentation is written so it stays consistent, useful, and maintainable.
+This charter defines how Obrok documentation is written so it stays consistent, useful, and maintainable.
 
 ## Internal Details
 
