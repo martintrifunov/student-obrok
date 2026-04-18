@@ -20,7 +20,7 @@ const Login = () => {
   const { setAuth, persist, setPersist } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathName || "/dashboard";
+  const from = location.state?.from?.pathname || "/dashboard";
   const theme = useTheme();
 
   const [username, setUsername] = useState("");
