@@ -23,6 +23,8 @@ import { analyticsRouter } from "./modules/analytics/analytics.routes.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(
   helmet({
     contentSecurityPolicy: process.env.NODE_ENV === "production",
