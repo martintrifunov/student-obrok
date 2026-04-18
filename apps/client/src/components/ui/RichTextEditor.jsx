@@ -47,6 +47,10 @@ const RichTextEditor = ({ value, onChange, error }) => {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       return;
     }
+    if (!/^https?:\/\//i.test(url)) {
+      window.alert("Only http:// and https:// links are allowed.");
+      return;
+    }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   };
 
