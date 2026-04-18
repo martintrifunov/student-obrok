@@ -28,13 +28,13 @@ export default function useVisitorHeartbeat() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (!document.hidden) {
-        sendHeartbeat({ path: latestPathRef.current || pathname || "/", isPageView: false });
+        sendHeartbeat({ path: latestPathRef.current || "/", isPageView: false });
       }
     }, HEARTBEAT_INTERVAL_MS);
 
     const onVisibility = () => {
       if (!document.hidden) {
-        sendHeartbeat({ path: latestPathRef.current || pathname || "/", isPageView: false });
+        sendHeartbeat({ path: latestPathRef.current || "/", isPageView: false });
       }
     };
 
@@ -44,5 +44,5 @@ export default function useVisitorHeartbeat() {
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [pathname, sendHeartbeat]);
+  }, [sendHeartbeat]);
 }
