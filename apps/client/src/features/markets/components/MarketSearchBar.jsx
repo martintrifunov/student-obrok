@@ -6,6 +6,7 @@ const MarketSearchBar = ({ handleSearchChange }) => {
   return (
     <TextField
       hiddenLabel
+      aria-label="Search markets"
       placeholder="Search markets..."
       variant="outlined"
       onChange={handleSearchChange}

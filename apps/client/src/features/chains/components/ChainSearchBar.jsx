@@ -6,6 +6,7 @@ const ChainSearchBar = ({ handleSearchChange }) => {
   return (
     <TextField
       hiddenLabel
+      aria-label="Search chains"
       placeholder="Search chains..."
       variant="outlined"
       onChange={handleSearchChange}
