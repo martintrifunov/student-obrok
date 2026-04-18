@@ -128,6 +128,7 @@ const HolidaysList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="edit holiday"
                           onClick={() =>
                             navigate(`/dashboard/holiday/${holiday._id}`)
                           }
@@ -137,6 +138,7 @@ const HolidaysList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="delete holiday"
                           onClick={() => handleRemoveHoliday(holiday._id)}
                           disabled={deleteMutation.isPending}
                         >
@@ -202,6 +204,7 @@ const HolidaysList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="edit holiday"
                           onClick={() =>
                             navigate(`/dashboard/holiday/${holiday._id}`)
                           }
@@ -211,6 +214,7 @@ const HolidaysList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="delete holiday"
                           onClick={() => handleRemoveHoliday(holiday._id)}
                           disabled={deleteMutation.isPending}
                         >

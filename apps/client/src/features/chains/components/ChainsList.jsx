@@ -113,6 +113,7 @@ const ChainsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="edit chain"
                           onClick={() =>
                             navigate(`/dashboard/chain/${chain._id}`)
                           }
@@ -122,6 +123,7 @@ const ChainsList = ({ searchTerm }) => {
                         <IconButton
                           size="small"
                           color="inherit"
+                          aria-label="delete chain"
                           onClick={() => handleRemoveChain(chain._id)}
                           disabled={deleteMutation.isPending}
                         >
@@ -201,6 +203,7 @@ const ChainsList = ({ searchTerm }) => {
                       <TableCell style={{ textAlign: "right" }}>
                         <IconButton
                           color="inherit"
+                          aria-label="edit chain"
                           onClick={() =>
                             navigate(`/dashboard/chain/${chain._id}`)
                           }
@@ -209,6 +212,7 @@ const ChainsList = ({ searchTerm }) => {
                         </IconButton>
                         <IconButton
                           color="inherit"
+                          aria-label="delete chain"
                           onClick={() => handleRemoveChain(chain._id)}
                           disabled={deleteMutation.isPending}
                         >
