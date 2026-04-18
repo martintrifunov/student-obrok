@@ -2,11 +2,15 @@ import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 
 export default withMermaid(defineConfig({
-  title: "Student Obrok Docs",
+  title: "Obrok Documentation",
   description: "Architecture, backend, frontend, deployment, and engineering patterns.",
   lang: "en-US",
   cleanUrls: true,
   lastUpdated: true,
+  head: [
+    ["link", { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    ["link", { rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+  ],
   sitemap: {
     hostname: "https://docs.obrok.net",
   },
@@ -14,7 +18,8 @@ export default withMermaid(defineConfig({
     lineNumbers: true,
   },
   themeConfig: {
-    logo: "/logo.svg",
+    logo: "/favicon.svg",
+    siteTitle: "Obrok Documentation",
     search: {
       provider: "local",
     },
