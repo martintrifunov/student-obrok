@@ -3,7 +3,10 @@ import { Marker, Popup } from "react-map-gl/maplibre";
 import { Typography, Box, styled } from "@mui/material";
 import creditPopupIcon from "@/assets/icons/credit_popup.svg";
 import useMapPitch from "@/features/map/hooks/useMapPitch";
-import { CREDIT_MARKER_PATH, MARKER_VIEWBOX } from "@/features/map/config/markerPaths";
+import {
+  CREDIT_MARKER_PATH,
+  MARKER_VIEWBOX,
+} from "@/features/map/config/markerPaths";
 
 const CreditMarker = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -29,7 +32,13 @@ const CreditMarker = () => {
           aria-label="credit marker"
           $verticalOffset={verticalOffset}
         >
-          <path d={CREDIT_MARKER_PATH} stroke="white" strokeWidth="80" strokeLinejoin="round" paintOrder="stroke fill" />
+          <path
+            d={CREDIT_MARKER_PATH}
+            stroke="white"
+            strokeWidth="80"
+            strokeLinejoin="round"
+            paintOrder="stroke fill"
+          />
         </CreditMarkerIcon>
       </Marker>
 
@@ -60,7 +69,7 @@ const CreditMarker = () => {
                 textAlign="center"
                 lineHeight={1.2}
               >
-                Студентски Оброк
+                Оброк
               </Typography>
 
               <img
@@ -76,7 +85,7 @@ const CreditMarker = () => {
                 textAlign="center"
                 sx={{ mt: 1 }}
               >
-                <strong>Студентски Оброк</strong>, развиен од{" "}
+                <strong>Оброк</strong>, развиен од{" "}
                 <Typography
                   component="span"
                   variant="body2"
@@ -85,9 +94,9 @@ const CreditMarker = () => {
                 >
                   Мартин Трифунов
                 </Typography>
-                . Студентски Оброк е модерна веб апликација дизајнирана да им
-                помогне на студентите да пронајдат пристапни и буџетски понуди
-                за оброци во нивна близина преку интерактивна 3D мапа.
+                . Оброк е модерна веб апликација дизајнирана да им помогне на
+                студентите да пронајдат пристапни и буџетски понуди за оброци во
+                нивна близина преку интерактивна 3D мапа.
               </Typography>
             </Box>
           </CreditPopup>

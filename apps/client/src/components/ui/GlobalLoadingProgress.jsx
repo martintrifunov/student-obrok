@@ -6,7 +6,7 @@ const GlobalLoadingProgress = () => {
   return (
     <GlobalLoadingOverlay>
       <Typography variant="h5" fontWeight="bold" mb={2}>
-        Студентски Оброк
+        Оброк
       </Typography>
       <Box width={{ xs: "50%", md: "15%" }} mb={2}>
         <LinearProgress color="primary" />
