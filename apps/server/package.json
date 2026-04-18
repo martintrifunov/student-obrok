@@ -1,5 +1,5 @@
 {
-  "name": "student-obrok-server",
+  "name": "obrok-server",
   "private": true,
   "version": "1.0",
   "main": "src/server.js",

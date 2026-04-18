@@ -6,7 +6,7 @@ title: Pattern Catalog
 
 ## Public Summary
 
-Student Obrok uses explicit, practical patterns to keep modules understandable and evolvable across backend and frontend.
+Obrok uses explicit, practical patterns to keep modules understandable and evolvable across backend and frontend.
 
 ## Internal Details
 

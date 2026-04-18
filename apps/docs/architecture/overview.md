@@ -6,7 +6,7 @@ title: System Architecture Overview
 
 ## Public Summary
 
-Student Obrok is a containerized full-stack system where a React client consumes an Express API, while OSRM provides route computation and MongoDB stores application data.
+Obrok is a containerized full-stack system where a React client consumes an Express API, while OSRM provides route computation and MongoDB stores application data.
 
 ## Internal Details
 

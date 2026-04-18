@@ -32,6 +32,6 @@ jobs:
           git config --global user.email "${GITLAB_MAIL}"
           git config --global user.name "${GITLAB_USERNAME}"
           
-          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.finki.ukim.mk/193254/student-obrok.git
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.finki.ukim.mk/193254/obrok.git
 
           git push gitlab main:main --force

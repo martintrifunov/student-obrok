@@ -119,14 +119,14 @@ export default withMermaid(defineConfig({
       },
     ],
     socialLinks: [
-      { icon: "github", link: "https://github.com/martintrifunov/student-obrok" },
+      { icon: "github", link: "https://github.com/martintrifunov/obrok" },
     ],
     editLink: {
-      pattern: "https://github.com/martintrifunov/student-obrok/edit/main/apps/docs/:path",
+      pattern: "https://github.com/martintrifunov/obrok/edit/main/apps/docs/:path",
       text: "Edit this page on GitHub",
     },
     footer: {
-      message: "Student Obrok engineering documentation.",
+      message: "Obrok engineering documentation.",
       copyright: "Copyright 2026",
     },
   },
