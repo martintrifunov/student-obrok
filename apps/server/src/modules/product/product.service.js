@@ -7,11 +7,13 @@ export class ProductService {
     marketRepository,
     imageRepository,
     marketProductRepository,
+    productEmbeddingRepository,
   ) {
     this.productRepository = productRepository;
     this.marketRepository = marketRepository;
     this.imageRepository = imageRepository;
     this.marketProductRepository = marketProductRepository;
+    this.productEmbeddingRepository = productEmbeddingRepository;
   }
 
   async getAllProducts({
@@ -115,6 +117,7 @@ export class ProductService {
     const product = await this.productRepository.findById(id);
     if (!product) throw new NotFoundError(`No product matches ID ${id}.`);
     await this.marketProductRepository.deleteByProduct(id);
+    await this.productEmbeddingRepository.deleteByProduct(id);
     await this.productRepository.delete(product);
   }
 

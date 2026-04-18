@@ -42,6 +42,10 @@ export class ProductEmbeddingRepository {
     return ProductEmbeddingModel.bulkWrite(ops, { ordered: false });
   }
 
+  async deleteByProduct(productId) {
+    return ProductEmbeddingModel.deleteOne({ product: productId }).exec();
+  }
+
   async count() {
     return ProductEmbeddingModel.countDocuments().exec();
   }
