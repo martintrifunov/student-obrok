@@ -81,7 +81,6 @@ const MarketMarkers = ({
         properties: {
           cluster: false,
           marketIndex: index,
-          market: market,
         },
         geometry: {
           type: "Point",
@@ -136,7 +135,7 @@ const MarketMarkers = ({
             );
           }
 
-          const market = cluster.properties.market;
+          const market = filteredMarkets[cluster.properties.marketIndex];
           const chainName = market.chain?.name || market.name;
           return (
             <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
