@@ -45,6 +45,10 @@ jobs:
           script: |
             set -e
 
+            # Load nvm so the SSH session uses the correct Node version
+            export NVM_DIR="$HOME/.nvm"
+            source "$NVM_DIR/nvm.sh"
+
             # Navigate to the exact absolute path on the VPS
             cd /home/maco/projects/obrok
             
