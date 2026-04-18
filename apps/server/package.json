@@ -25,8 +25,6 @@
     "scrape:kam": "node src/scripts/scrape.js kam",
     "scrape:superkitgo": "node src/scripts/scrape.js superkitgo",
     "scrape:kipper": "node src/scripts/scrape.js kipper",
-    "scrape:debug:vero": "node src/scripts/debug-vero.js",
-    "scrape:debug:ramstore": "node src/scripts/debug-ramstore.js",
     "coords:populate": "node src/scripts/populate-coordinates.js",
     "coords:populate:vero": "node src/scripts/populate-coordinates.js vero",
     "coords:populate:ramstore": "node src/scripts/populate-coordinates.js ramstore",
