@@ -110,7 +110,7 @@ async function wipeChain(db, chainKey) {
 
 async function wipe() {
   const target = process.argv[2]?.toLowerCase();
-  const uri = process.env.MONGO_URI_LOCAL ?? process.env.MONGO_URI;
+  const uri = process.env.MONGO_URI_LOCAL ?? process.env.DATABASE_URI;
   if (!uri) throw new Error("No Mongo URI found");
 
   console.log("Connecting to database...");
