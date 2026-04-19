@@ -49,9 +49,13 @@ describe("KipperScraper", () => {
     const page = {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
-      evaluate: vi.fn().mockResolvedValueOnce("4 April 2026 - 13:21"),
+      evaluate: vi.fn()
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce("4 April 2026 - 13:21"),
       setUserAgent: vi.fn(),
       setExtraHTTPHeaders: vi.fn(),
+      setCookie: vi.fn(),
+      url: vi.fn().mockReturnValue("https://kipper.mk/mk/kipper-163-tetove/"),
     };
 
     const result = await scraper.fetchProducts(
@@ -78,6 +82,7 @@ describe("KipperScraper", () => {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
       evaluate: vi.fn()
+        .mockResolvedValueOnce(true)
         .mockResolvedValueOnce("03.04.2026 06:08")
         .mockResolvedValueOnce([
           { title: "STANDARD", price: 120, category: "Општо" },
@@ -86,6 +91,8 @@ describe("KipperScraper", () => {
         ]),
       setUserAgent: vi.fn(),
       setExtraHTTPHeaders: vi.fn(),
+      setCookie: vi.fn(),
+      url: vi.fn().mockReturnValue("https://kipper.mk/mk/kipper-163-tetove/"),
     };
 
     const result = await scraper.fetchProducts(
