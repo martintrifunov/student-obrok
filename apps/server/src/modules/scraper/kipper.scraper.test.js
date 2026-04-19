@@ -50,6 +50,7 @@ describe("KipperScraper", () => {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
       evaluate: vi.fn()
+        .mockResolvedValueOnce(undefined)  // Cloudflare Rocket Loader decode
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce("4 April 2026 - 13:21"),
       setUserAgent: vi.fn(),
@@ -83,6 +84,7 @@ describe("KipperScraper", () => {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
       evaluate: vi.fn()
+        .mockResolvedValueOnce(undefined)  // Cloudflare Rocket Loader decode
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce("03.04.2026 06:08")
         .mockResolvedValueOnce([

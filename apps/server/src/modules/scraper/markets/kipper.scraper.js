@@ -209,6 +209,27 @@ export class KipperScraper extends BaseScraper {
 
     await page.goto(storeUrl, { waitUntil: "networkidle2", timeout: NAV_TIMEOUT_MS });
 
+    // Cloudflare Rocket Loader rewrites inline scripts into base64-encoded
+    // data: URIs with a non-standard type, so the browser never executes
+    // them.  If productsData wasn't set natively, decode it from the HTML.
+    await page.evaluate(() => {
+      if (window.productsData?.post_id) return;
+
+      const scripts = document.querySelectorAll("script[src^='data:text/javascript;base64,']");
+      for (const script of scripts) {
+        try {
+          const b64 = script.src.replace("data:text/javascript;base64,", "");
+          const decoded = atob(b64);
+          if (decoded.includes("productsData")) {
+            // Execute the decoded script to set window.productsData
+            const fn = new Function(decoded);
+            fn();
+            if (window.productsData?.post_id) break;
+          }
+        } catch { /* skip undecodable scripts */ }
+      }
+    });
+
     const landedUrl = page.url();
     const hasProductData = await page.evaluate(() => !!window.productsData?.post_id);
     console.log(
