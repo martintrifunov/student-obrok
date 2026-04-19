@@ -82,13 +82,22 @@ export class KipperScraper extends BaseScraper {
   }
 
   async fetchMarkets(page) {
-    await page.goto(INDEX_URL, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    );
+    await page.setExtraHTTPHeaders({
+      "Accept-Language": "mk-MK,mk;q=0.9,en-US;q=0.8,en;q=0.7",
+    });
+
+    await page.goto(INDEX_URL, { waitUntil: "networkidle2", timeout: NAV_TIMEOUT_MS });
+
+    console.log(`[Kipper] Loaded index page: ${page.url()}`);
 
     let previousLinkCount = 0;
     for (let clickCount = 0; clickCount < LOAD_MORE_MAX_CLICKS; clickCount++) {
       const currentLinkCount = await page.evaluate(() =>
         Array.from(document.querySelectorAll("h3 a[href]"))
-          .filter((link) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
+          .filter((link) => /\/[a-z]{2}\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
           .length,
       );
 
@@ -108,7 +117,7 @@ export class KipperScraper extends BaseScraper {
 
       const nextLinkCount = await page.evaluate(() =>
         Array.from(document.querySelectorAll("h3 a[href]"))
-          .filter((link) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
+          .filter((link) => /\/[a-z]{2}\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
           .length,
       );
 
@@ -122,10 +131,12 @@ export class KipperScraper extends BaseScraper {
     const detailUrls = await page.evaluate(() => {
       const links = Array.from(document.querySelectorAll("h3 a[href]"))
         .map((link) => link.href)
-        .filter((href) => /\/mk\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(href));
+        .filter((href) => /\/[a-z]{2}\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(href));
 
       return Array.from(new Set(links));
     });
+
+    console.log(`[Kipper] Found ${detailUrls.length} market URLs`);
 
     const markets = [];
     for (const detailUrl of detailUrls) {
