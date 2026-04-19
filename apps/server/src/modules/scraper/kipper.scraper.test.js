@@ -33,7 +33,7 @@ describe("KipperScraper", () => {
         address: "Маршал Тито бр.5, Свети Николе",
       });
 
-    const page = { goto, waitForFunction, evaluate };
+    const page = { goto, waitForFunction, evaluate, setUserAgent: vi.fn(), setExtraHTTPHeaders: vi.fn(), url: vi.fn().mockReturnValue("https://kipper.mk/mk/marketet/") };
 
     const markets = await scraper.fetchMarkets(page);
 
