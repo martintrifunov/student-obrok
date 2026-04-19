@@ -192,6 +192,18 @@ export class KipperScraper extends BaseScraper {
       "Accept-Language": "mk-MK,mk;q=0.9,en-US;q=0.8,en;q=0.7",
     });
 
+    // Hide the webdriver flag that bot-detection scripts look for
+    await page.evaluateOnNewDocument(() => {
+      Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+      Object.defineProperty(navigator, "plugins", { get: () => [1, 2, 3] });
+      window.chrome = { runtime: {} };
+    });
+
+    // Disable request interception so that all resources (incl. scripts
+    // that inject productsData) load normally — a stripped request profile
+    // can itself trigger bot-detection scoring.
+    await page.setRequestInterception(false);
+
     // Force Macedonian language via WPML cookie before navigating
     const domain = new URL(storeUrl).hostname;
     await page.setCookie({
