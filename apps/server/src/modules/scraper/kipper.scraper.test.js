@@ -54,6 +54,8 @@ describe("KipperScraper", () => {
         .mockResolvedValueOnce("4 April 2026 - 13:21"),
       setUserAgent: vi.fn(),
       setExtraHTTPHeaders: vi.fn(),
+      evaluateOnNewDocument: vi.fn(),
+      setRequestInterception: vi.fn(),
       setCookie: vi.fn(),
       url: vi.fn().mockReturnValue("https://kipper.mk/mk/kipper-163-tetove/"),
     };
@@ -91,6 +93,8 @@ describe("KipperScraper", () => {
         ]),
       setUserAgent: vi.fn(),
       setExtraHTTPHeaders: vi.fn(),
+      evaluateOnNewDocument: vi.fn(),
+      setRequestInterception: vi.fn(),
       setCookie: vi.fn(),
       url: vi.fn().mockReturnValue("https://kipper.mk/mk/kipper-163-tetove/"),
     };
