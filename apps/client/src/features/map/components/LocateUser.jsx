@@ -125,7 +125,7 @@ const LocateUser = ({
     enableRoutingRef.current?.();
 
     if (followUserRef.current && shouldNotify) {
-      const currentMap = mapRef.current;
+      const currentMap = mapRef.current?.getMap?.();
       if (
         currentMap &&
         !currentMap.isZooming() &&
