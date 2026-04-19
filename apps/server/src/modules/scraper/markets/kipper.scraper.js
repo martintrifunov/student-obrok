@@ -199,11 +199,6 @@ export class KipperScraper extends BaseScraper {
       window.chrome = { runtime: {} };
     });
 
-    // Disable request interception so that all resources (incl. scripts
-    // that inject productsData) load normally — a stripped request profile
-    // can itself trigger bot-detection scoring.
-    await page.setRequestInterception(false);
-
     // Force Macedonian language via WPML cookie before navigating
     const domain = new URL(storeUrl).hostname;
     await page.setCookie({
