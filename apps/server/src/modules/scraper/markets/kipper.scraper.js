@@ -128,47 +128,57 @@ export class KipperScraper extends BaseScraper {
       previousLinkCount = nextLinkCount;
     }
 
-    const detailUrls = await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll("h3 a[href]"))
-        .map((link) => link.href)
-        .filter((href) => /\/[a-z]{2}\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(href));
-
-      return Array.from(new Set(links));
+    // Extract name + URL pairs directly from the index page so we always
+    // have the correct market name even if detail-page navigation is
+    // geo-blocked or redirected on the VPS.
+    const indexEntries = await page.evaluate(() => {
+      const seen = new Set();
+      return Array.from(document.querySelectorAll("h3 a[href]"))
+        .filter((link) => /\/[a-z]{2}\/(?:kipper-|%d0%ba%d0%b8%d0%bf)/i.test(link.href))
+        .reduce((acc, link) => {
+          if (!seen.has(link.href)) {
+            seen.add(link.href);
+            acc.push({ name: link.textContent.trim(), url: link.href });
+          }
+          return acc;
+        }, []);
     });
 
-    console.log(`[Kipper] Found ${detailUrls.length} market URLs`);
+    console.log(`[Kipper] Found ${indexEntries.length} market URLs`);
 
     const markets = [];
-    for (const detailUrl of detailUrls) {
-      await page.goto(detailUrl, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
-      await page.waitForFunction(
-        () => /Град:|Адреса:|Општина:/i.test(document.body.innerText),
-        { timeout: 15_000 },
-      ).catch(() => {});
+    for (const { name, url } of indexEntries) {
+      if (!name) continue;
 
-      const market = await page.evaluate(() => {
-        const bodyText = document.body.innerText.replace(/\u00a0/g, " ");
-        const extractField = (label) => {
-          const match = bodyText.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
-          return match ? match[1].trim() : "";
-        };
+      // Try to get the street address from the detail page; fall back to
+      // empty address (geocoder will resolve from the market name/city).
+      let address = "";
+      try {
+        await page.goto(url, { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
+        await page.waitForFunction(
+          () => /Град:|Адреса:|Општина:/i.test(document.body.innerText),
+          { timeout: 15_000 },
+        ).catch(() => {});
 
-        const name = document.querySelector("h1")?.textContent?.trim() || "";
-        const city = extractField("Град");
-        const address = extractField("Адреса");
+        address = await page.evaluate(() => {
+          const bodyText = document.body.innerText.replace(/\u00a0/g, " ");
+          const hasMarketData = /Град:|Адреса:|Општина:/i.test(bodyText);
+          if (!hasMarketData) return "";
 
-        return {
-          name,
-          address: [address, city].filter(Boolean).join(", "),
-        };
-      });
+          const extractField = (label) => {
+            const match = bodyText.match(new RegExp(`${label}:\\s*([^\\n]+)`, "i"));
+            return match ? match[1].trim() : "";
+          };
 
-      if (!market.name) continue;
+          const city = extractField("Град");
+          const addr = extractField("Адреса");
+          return [addr, city].filter(Boolean).join(", ");
+        });
+      } catch {
+        // detail page unreachable — continue with empty address
+      }
 
-      markets.push({
-        ...market,
-        pricelistUrl: detailUrl,
-      });
+      markets.push({ name, address, pricelistUrl: url });
     }
 
     return BaseScraper.deduplicateByName(markets);

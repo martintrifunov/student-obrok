@@ -18,20 +18,14 @@ describe("KipperScraper", () => {
     const goto = vi.fn().mockResolvedValue(undefined);
     const waitForFunction = vi.fn().mockResolvedValue(undefined);
     const evaluate = vi.fn()
-      .mockResolvedValueOnce(2)
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce([
-        "https://kipper.mk/mk/kipper-163-tetove/",
-        "https://kipper.mk/mk/kipper-162-sveti-nikole/",
+      .mockResolvedValueOnce(2)    // currentLinkCount
+      .mockResolvedValueOnce(false) // clicked (breaks loop)
+      .mockResolvedValueOnce([     // indexEntries from index page
+        { name: "Киппер 163 - Тетово", url: "https://kipper.mk/mk/kipper-163-tetove/" },
+        { name: "Киппер 162 - Свети Николе", url: "https://kipper.mk/mk/kipper-162-sveti-nikole/" },
       ])
-      .mockResolvedValueOnce({
-        name: "Киппер 163 - Тетово",
-        address: "Киро Ристоски бр.1 Тетово, Тетово",
-      })
-      .mockResolvedValueOnce({
-        name: "Киппер 162 - Свети Николе",
-        address: "Маршал Тито бр.5, Свети Николе",
-      });
+      .mockResolvedValueOnce("Киро Ристоски бр.1 Тетово, Тетово")  // address for market 1
+      .mockResolvedValueOnce("Маршал Тито бр.5, Свети Николе");     // address for market 2
 
     const page = { goto, waitForFunction, evaluate, setUserAgent: vi.fn(), setExtraHTTPHeaders: vi.fn(), url: vi.fn().mockReturnValue("https://kipper.mk/mk/marketet/") };
 
