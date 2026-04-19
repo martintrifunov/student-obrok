@@ -137,6 +137,7 @@ const MarketMarkers = ({
           }
 
           const market = filteredMarkets[cluster.properties.marketIndex];
+          if (!market) return null;
           const chainName = market.chain?.name || market.name;
           return (
             <React.Fragment key={`market-${cluster.properties.marketIndex}`}>
