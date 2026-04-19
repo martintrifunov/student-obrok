@@ -192,7 +192,21 @@ export class KipperScraper extends BaseScraper {
       "Accept-Language": "mk-MK,mk;q=0.9,en-US;q=0.8,en;q=0.7",
     });
 
+    // Force Macedonian language via WPML cookie before navigating
+    const domain = new URL(storeUrl).hostname;
+    await page.setCookie({
+      name: "wp-wpml_current_language",
+      value: "mk",
+      domain,
+    });
+
     await page.goto(storeUrl, { waitUntil: "networkidle2", timeout: NAV_TIMEOUT_MS });
+
+    const landedUrl = page.url();
+    const hasProductData = await page.evaluate(() => !!window.productsData?.post_id);
+    console.log(
+      `[Kipper] Product page: requested=${storeUrl} landed=${landedUrl} hasProductData=${hasProductData}`,
+    );
 
     await page.waitForFunction(
       () => {
