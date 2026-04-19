@@ -185,6 +185,13 @@ export class KipperScraper extends BaseScraper {
   }
 
   async fetchProducts(page, storeUrl, previousUpdateString) {
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    );
+    await page.setExtraHTTPHeaders({
+      "Accept-Language": "mk-MK,mk;q=0.9,en-US;q=0.8,en;q=0.7",
+    });
+
     await page.goto(storeUrl, { waitUntil: "networkidle2", timeout: NAV_TIMEOUT_MS });
 
     await page.waitForFunction(

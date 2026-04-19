@@ -50,6 +50,8 @@ describe("KipperScraper", () => {
       goto: vi.fn().mockResolvedValue(undefined),
       waitForFunction: vi.fn().mockResolvedValue(undefined),
       evaluate: vi.fn().mockResolvedValueOnce("4 April 2026 - 13:21"),
+      setUserAgent: vi.fn(),
+      setExtraHTTPHeaders: vi.fn(),
     };
 
     const result = await scraper.fetchProducts(
@@ -82,6 +84,8 @@ describe("KipperScraper", () => {
           { title: "PREMIUM", price: 1599, category: "Специјално" },
           { title: "PREMIUM", price: 1699, category: "Специјално" },
         ]),
+      setUserAgent: vi.fn(),
+      setExtraHTTPHeaders: vi.fn(),
     };
 
     const result = await scraper.fetchProducts(
