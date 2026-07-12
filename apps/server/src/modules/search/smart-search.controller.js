@@ -10,7 +10,7 @@ export class SmartSearchController {
 
   search = async (req, res) => {
     const result = await this.smartSearchService.search({
-      ...req.query,
+      ...req.body,
       analytics: {
         visitorId: req.visitorId,
         userId: req.user || null,

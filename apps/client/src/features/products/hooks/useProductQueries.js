@@ -133,14 +133,11 @@ export function useSmartSearchBudget(options = {}) {
 export function useSmartSearch({ q, lat, lon, budgetOnly }, options = {}) {
   return useQuery({
     queryKey: smartSearchKeys.query({ q, lat, lon, budgetOnly }),
-    queryFn: () => {
-      const params = new URLSearchParams();
-      params.append("q", q);
-      if (lat != null) params.append("lat", lat);
-      if (lon != null) params.append("lon", lon);
-      if (budgetOnly) params.append("budgetOnly", "true");
-      return fetchPrivate(`/smart-search?${params}`);
-    },
+    queryFn: () =>
+      fetchPrivate("/smart-search", {
+        method: "POST",
+        body: JSON.stringify({ q, lat, lon, budgetOnly }),
+      }),
     enabled: !!q && (options.enabled ?? true),
     refetchOnWindowFocus: options.refetchOnWindowFocus ?? false,
   });
