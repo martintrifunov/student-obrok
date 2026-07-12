@@ -25,6 +25,7 @@ export default withMermaid(defineConfig({
     },
     nav: [
       { text: "Overview", link: "/" },
+      { text: "How It Works", link: "/concepts/overview" },
       { text: "Architecture", link: "/architecture/overview" },
       { text: "Backend", link: "/backend/overview" },
       { text: "Frontend", link: "/frontend/overview" },
@@ -39,6 +40,15 @@ export default withMermaid(defineConfig({
           { text: "Home", link: "/" },
           { text: "Documentation Charter", link: "/overview/docs-charter" },
           { text: "How To Use This Site", link: "/overview/how-to-read" },
+        ],
+      },
+      {
+        text: "How It Works",
+        items: [
+          { text: "Overview", link: "/concepts/overview" },
+          { text: "Search & Recipe Decomposition", link: "/concepts/search-and-recipes" },
+          { text: "Geolocation", link: "/concepts/geolocation" },
+          { text: "Routing & Map", link: "/concepts/routing-and-map" },
         ],
       },
       {
