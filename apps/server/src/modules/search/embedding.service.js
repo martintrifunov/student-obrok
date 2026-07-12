@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const MODEL = "gemini-embedding-2-preview";
+const MODEL = "gemini-embedding-2";
 const DIMENSIONS = 768;
 const CHUNK_SIZE = 20;
 
@@ -28,6 +28,9 @@ export class EmbeddingService {
   #isTransientError(err) {
     const status = err?.status;
     const message = String(err?.message || "").toUpperCase();
+    const code = err?.code || err?.cause?.code;
+    const networkCodes = ["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "ENOTFOUND"];
+
     return (
       status === 429 ||
       status === 500 ||
@@ -35,7 +38,9 @@ export class EmbeddingService {
       status === 503 ||
       status === 504 ||
       message.includes("RESOURCE_EXHAUSTED") ||
-      message.includes("UNAVAILABLE")
+      message.includes("UNAVAILABLE") ||
+      message.includes("FETCH FAILED") ||
+      networkCodes.includes(code)
     );
   }
 
@@ -49,13 +54,21 @@ export class EmbeddingService {
     return base + jitter;
   }
 
+  #formatForTaskType(text, taskType) {
+    if (taskType === "RETRIEVAL_QUERY") {
+      return `task: search result | query: ${text}`;
+    }
+    return `title: ${text} | text: ${text}`;
+  }
+
   async #embedWithRetry(text, taskType, maxRetries = 8) {
+    const prompt = this.#formatForTaskType(text, taskType);
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await this.client.models.embedContent({
           model: MODEL,
-          contents: text,
-          config: { taskType, outputDimensionality: DIMENSIONS },
+          contents: prompt,
+          config: { outputDimensionality: DIMENSIONS },
         });
         return result.embeddings[0].values;
       } catch (err) {

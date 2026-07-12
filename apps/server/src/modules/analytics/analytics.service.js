@@ -10,7 +10,7 @@ export class AnalyticsService {
     return userId ? `user:${userId}` : `visitor:${visitorId}`;
   }
 
-  async trackHeartbeat({ visitorId, userId, path, isPageView = false, ip, userAgent }) {
+  async trackHeartbeat({ visitorId, userId, path, isPageView = false }) {
     const seenAt = new Date();
     const identityKey = this.#identityKey(visitorId, userId);
 
@@ -18,8 +18,6 @@ export class AnalyticsService {
       visitorId,
       userId,
       path,
-      ip,
-      userAgent,
       seenAt,
     });
 

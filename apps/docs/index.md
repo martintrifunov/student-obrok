@@ -33,6 +33,7 @@ Each major page follows the same structure:
 
 ## Documentation Map
 
+- [How It Works](/concepts/overview) — plain-language explanation of search, geolocation, and routing
 - [System Architecture](/architecture/overview)
 - [Backend](/backend/overview)
 - [Frontend](/frontend/overview)
@@ -42,6 +43,7 @@ Each major page follows the same structure:
 
 ## Current Scope (v1)
 
+- Conceptual explanation of search, recipe decomposition, geolocation, and routing for readers who don't need implementation depth.
 - Full architecture map and cross-service flow documentation.
 - Backend module and operational flow documentation.
 - Frontend architecture and state/routing data flow documentation.

@@ -16,10 +16,10 @@ router.get(
   smartSearchController.getBudget,
 );
 
-router.get(
+router.post(
   "/",
   optionalVerifyJWT,
-  validateRequest(smartSearchQuerySchema, "query"),
+  validateRequest(smartSearchQuerySchema, "body"),
   smartSearchController.search,
 );
 

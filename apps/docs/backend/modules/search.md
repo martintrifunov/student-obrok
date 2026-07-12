@@ -41,7 +41,7 @@ flowchart TD
     F --> G[Price Sort + Return]
 ```
 
-1. **Intent parsing** via Gemini 2.5 Flash — detects search terms, price preference, language.
+1. **Intent parsing** via Gemini (with a lighter fallback model) — detects search terms, price preference, language.
 2. **Parallel execution** of vector search (cosine similarity on embeddings) and keyword search (MongoDB text/regex).
 3. **RRF merge** with k=60 to combine ranked results.
 4. **Market scoping** optimization when `marketId` is provided.
@@ -49,7 +49,7 @@ flowchart TD
 ### Smart Search (SmartSearchService)
 
 **Endpoints**:
-- `GET /smart-search?q=...&lat=...&lon=...` — Recipe search with geolocation
+- `POST /smart-search` — Recipe search with geolocation, body: `{ q, lat, lon, budgetOnly }`
 - `GET /smart-search/budget` — Weekly budget calculation
 
 ```mermaid
@@ -64,9 +64,10 @@ flowchart TD
 
 ### Embedding Service
 
-- **Model**: Gemini 2 text embeddings (768 dimensions)
-- **Batch processing**: rate-limited at 350ms between batches
-- **Retry**: exponential backoff on API busy/rate-limit responses
+- **Model**: Gemini text embeddings (768 dimensions); exact model id in `embedding.service.js` (`MODEL` constant).
+- **Task-type-aware prompts**: the raw text is wrapped differently depending on whether it's being embedded as a document (`title: ... | text: ...`) or a query (`task: search result | query: ...`), matching Gemini's retrieval-tuning convention for asymmetric search.
+- **Batch processing**: rate-limited at 350ms between batches.
+- **Retry**: exponential backoff on rate-limit and transient network errors (timeouts, DNS failures, connection resets).
 
 ### Embedding Sync
 
@@ -76,11 +77,10 @@ flowchart TD
 
 ### Intent Parser Service
 
-- **Model**: Gemini 2.5 Flash
+- **Model**: Gemini, with a lighter fallback model if the primary is unavailable; exact model ids in `intent-parser.service.js` (`MODELS` constant).
 - **Bilingual**: Cyrillic + Latin Macedonian
 - **Detects**: recipe vs. product search, price preference (asc/desc), ingredient decomposition
 - **Cache**: 5-minute local cache, 500 entry max
-- **Fallback**: model fallback strategy if primary unavailable
 
 ### Feature Flag Gates
 

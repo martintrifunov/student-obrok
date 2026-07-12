@@ -16,7 +16,7 @@ export class AnalyticsRepository {
     return { monthStart, monthEnd };
   }
 
-  async upsertVisitorSession({ visitorId, userId, path, ip, userAgent, seenAt }) {
+  async upsertVisitorSession({ visitorId, userId, path, seenAt }) {
     return VisitorSessionModel.findOneAndUpdate(
       { visitorId },
       {
@@ -24,8 +24,6 @@ export class AnalyticsRepository {
           userId: userId || null,
           lastSeenAt: seenAt,
           lastPath: path || null,
-          ip: ip || null,
-          userAgent: userAgent || null,
         },
         $setOnInsert: { firstSeenAt: seenAt },
       },

@@ -68,9 +68,13 @@ registry.register(ramstoreScraper);
 
 ### Geocoding
 
-- **Primary**: Nominatim API lookup by market address.
-- **Fallback**: City center coordinates if address lookup fails.
-- **Caching**: Coordinates are cached to avoid redundant API calls.
+Three-tier strategy, in order:
+
+1. **Static override** — `data/market-coordinates.json`, keyed by normalized market name. Checked first; this is how manually-corrected or chain-provided coordinates take precedence over the two automated tiers below.
+2. **Nominatim lookup** — queries built from address, store name, and transliterated variants.
+3. **City-center fallback** — if every Nominatim query fails, places the market near a hardcoded city-center coordinate with a small deterministic offset (so multiple failed lookups in the same city don't stack on one point).
+
+See [Geolocation](/concepts/geolocation) for why the static tier exists and its known failure mode.
 
 ### Performance Optimizations
 
