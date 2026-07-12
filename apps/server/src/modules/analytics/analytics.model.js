@@ -36,8 +36,6 @@ const visitorSessionSchema = new mongoose.Schema(
     firstSeenAt: { type: Date, default: Date.now },
     lastSeenAt: { type: Date, default: Date.now, index: true },
     lastPath: { type: String, default: null },
-    ip: { type: String, default: null },
-    userAgent: { type: String, default: null },
   },
   { timestamps: true },
 );

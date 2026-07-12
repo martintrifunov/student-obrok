@@ -9,8 +9,6 @@ export class AnalyticsController {
       userId: req.user || null,
       path: req.body?.path || req.path,
       isPageView: req.body?.isPageView === true,
-      ip: req.ip,
-      userAgent: req.headers["user-agent"] || null,
     });
 
     res.status(200).json(result);
