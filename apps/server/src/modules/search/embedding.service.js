@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const MODEL = "gemini-embedding-2-preview";
+const MODEL = "gemini-embedding-2";
 const DIMENSIONS = 768;
 const CHUNK_SIZE = 20;
 
@@ -28,6 +28,9 @@ export class EmbeddingService {
   #isTransientError(err) {
     const status = err?.status;
     const message = String(err?.message || "").toUpperCase();
+    const code = err?.code || err?.cause?.code;
+    const networkCodes = ["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "ENOTFOUND"];
+
     return (
       status === 429 ||
       status === 500 ||
@@ -35,7 +38,9 @@ export class EmbeddingService {
       status === 503 ||
       status === 504 ||
       message.includes("RESOURCE_EXHAUSTED") ||
-      message.includes("UNAVAILABLE")
+      message.includes("UNAVAILABLE") ||
+      message.includes("FETCH FAILED") ||
+      networkCodes.includes(code)
     );
   }
 

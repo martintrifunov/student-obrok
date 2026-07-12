@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const MODELS = ["gemini-2.5-flash", "gemini-1.5-flash"];
+const MODELS = ["gemini-3.5-flash", "gemini-3.1-flash-lite"];
 
 const SYSTEM_PROMPT = `You are a query intent parser for a Macedonian grocery price comparison app.
 Analyze the user query and return structured JSON.
@@ -149,6 +149,9 @@ export class IntentParserService {
   #isTransientError(err) {
     const status = err?.status;
     const message = String(err?.message || "").toUpperCase();
+    const code = err?.code || err?.cause?.code;
+    const networkCodes = ["ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "EAI_AGAIN", "ENOTFOUND"];
+
     return (
       status === 429 ||
       status === 500 ||
@@ -156,7 +159,9 @@ export class IntentParserService {
       status === 503 ||
       status === 504 ||
       message.includes("RESOURCE_EXHAUSTED") ||
-      message.includes("UNAVAILABLE")
+      message.includes("UNAVAILABLE") ||
+      message.includes("FETCH FAILED") ||
+      networkCodes.includes(code)
     );
   }
 
