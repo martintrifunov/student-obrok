@@ -54,13 +54,21 @@ export class EmbeddingService {
     return base + jitter;
   }
 
+  #formatForTaskType(text, taskType) {
+    if (taskType === "RETRIEVAL_QUERY") {
+      return `task: search result | query: ${text}`;
+    }
+    return `title: ${text} | text: ${text}`;
+  }
+
   async #embedWithRetry(text, taskType, maxRetries = 8) {
+    const prompt = this.#formatForTaskType(text, taskType);
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await this.client.models.embedContent({
           model: MODEL,
-          contents: text,
-          config: { taskType, outputDimensionality: DIMENSIONS },
+          contents: prompt,
+          config: { outputDimensionality: DIMENSIONS },
         });
         return result.embeddings[0].values;
       } catch (err) {
