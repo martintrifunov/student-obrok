@@ -28,16 +28,16 @@ Standard CRUD layer: controller, service, routes, schema, model, repository (7 f
 
 ```
 name             : String (required)
-location         : [Number, Number] — [longitude, latitude]
+location         : [Number, Number] — [latitude, longitude]
 chain            : ObjectId → Chain (required)
 lastScrapedUpdate: Date
 ```
 
 Virtual: `products` — populated via MarketProduct back-reference.
 
-### GeoJSON Convention
+### Coordinate Order
 
-Coordinates are stored as `[longitude, latitude]` (GeoJSON order), not `[lat, lon]`.
+Coordinates are stored as `[latitude, longitude]`, not GeoJSON's `[lon, lat]` order. This matches the tuple order used throughout the geocoding pipeline (see [Geolocation](/concepts/geolocation)) and by Nominatim's response fields; converting to GeoJSON order is only needed at the map-rendering boundary.
 
 ### Cascade Delete
 
