@@ -47,7 +47,6 @@ export class KamScraper extends BaseScraper {
     const markets = [];
     for (const shop of shops) {
       if (!shop.ShopFiles?.length) continue;
-      if (shop.Visible === false || shop.HasStock === false) continue;
 
       markets.push({
         name: `КАМ ${shop.Name}`.trim(),
